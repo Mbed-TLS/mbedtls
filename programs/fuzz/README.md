@@ -1,3 +1,5 @@
+# New fuzzing harnesses
+
 What is it?
 ------
 
@@ -7,7 +9,7 @@ They are used with a so-called fuzz driver, which will generate inputs, try to p
 
 These targets were meant to be used with oss-fuzz but can be used in other contexts.
 
-This code was contributed by Philippe Antoine ( Catena cyber ).
+This code was contributed by Philippe Antoine (Catena cyber) and Marc Heuse (SRLabs).
 
 How to run?
 ------

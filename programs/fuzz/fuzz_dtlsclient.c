@@ -22,6 +22,8 @@ const char *pers = "fuzz_dtlsclient";
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
+    srand(1);
+    fuzz_watchdog_arm();
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && \
     defined(MBEDTLS_SSL_CLI_C) && \
     defined(MBEDTLS_TIMING_C)
@@ -32,19 +34,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     mbedtls_timing_delay_context timer;
     unsigned char buf[4096];
     fuzzBufferOffset_t biomemfuzz;
+    uint8_t options;
 
-    if (initialized == 0) {
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
-        mbedtls_x509_crt_init(&cacert);
-        if (mbedtls_x509_crt_parse(&cacert, (const unsigned char *) mbedtls_test_cas_pem,
-                                   mbedtls_test_cas_pem_len) != 0) {
-            return 1;
-        }
-#endif
-        dummy_init();
-
-        initialized = 1;
+    //we take 1 byte as options input
+    if (Size < 1) {
+        return 0;
     }
+    options = Data[Size - 1];
 
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
@@ -52,6 +48,19 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
         goto exit;
+    }
+
+    if (initialized == 0) {
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
+        mbedtls_x509_crt_init(&cacert);
+        if (mbedtls_x509_crt_parse(&cacert, (const unsigned char *) mbedtls_test_cas_pem,
+                                   mbedtls_test_cas_pem_len) != 0) {
+            goto exit;
+        }
+#endif
+        dummy_init();
+
+        initialized = 1;
     }
 
     if (mbedtls_ssl_config_defaults(&conf,
@@ -79,13 +88,45 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 #endif
 
+    /* The MTU is the one connection parameter an application is free to choose
+     * that the record layer then has to satisfy. mbedtls_ssl_set_mtu()
+     * documents an error for values below the record expansion, so every value
+     * here is one the library states it handles. 0 means "no limit". */
+    mbedtls_ssl_set_mtu(&ssl, options);
+
     biomemfuzz.Data = Data;
-    biomemfuzz.Size = Size;
+    biomemfuzz.Size = Size-1;
     biomemfuzz.Offset = 0;
     mbedtls_ssl_set_bio(&ssl, &biomemfuzz, dummy_send, fuzz_recv, fuzz_recv_timeout);
+    fuzz_watch_input(&ssl);
 
     ret = mbedtls_ssl_handshake(&ssl);
     if (ret == 0) {
+        mbedtls_ssl_session session;
+        mbedtls_ssl_session_init(&session);
+        if (mbedtls_ssl_get_session(&ssl, &session) == 0) {
+            size_t olen1 = 0, olen2 = 0;
+            unsigned char *b1, *b2;
+            mbedtls_ssl_session_save(&session, NULL, 0, &olen1);
+            b1 = malloc(olen1 != 0 ? olen1 : 1);
+            b2 = malloc(olen1 != 0 ? olen1 : 1);
+            if (b1 != NULL && b2 != NULL &&
+                mbedtls_ssl_session_save(&session, b1, olen1, &olen1) == 0) {
+                mbedtls_ssl_session session2;
+                mbedtls_ssl_session_init(&session2);
+                if (mbedtls_ssl_session_load(&session2, b1, olen1) == 0 &&
+                    mbedtls_ssl_session_save(&session2, b2, olen1, &olen2) == 0) {
+                    if (olen1 != olen2 || memcmp(b1, b2, olen1) != 0) {
+                        abort();
+                    }
+                }
+                mbedtls_ssl_session_free(&session2);
+            }
+            free(b1);
+            free(b2);
+        }
+        mbedtls_ssl_session_free(&session);
+
         //keep reading data from server until the end
         do {
             len = sizeof(buf) - 1;
@@ -101,6 +142,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 
 exit:
+    fuzz_watchdog_disarm();
+    fuzz_release_input();
     mbedtls_ssl_config_free(&conf);
     mbedtls_ssl_free(&ssl);
     mbedtls_psa_crypto_free();

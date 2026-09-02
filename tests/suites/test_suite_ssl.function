@@ -3425,6 +3425,79 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */
+void handshake_and_exchange_data()
+{
+    enum { BUFFSIZE = 1024 };
+    int ret;
+    unsigned char application_data[100];
+    unsigned char received_data[100];
+    mbedtls_test_ssl_endpoint client, server;
+    mbedtls_test_handshake_test_options options;
+
+    memset(application_data, 0x2a, sizeof(application_data));
+    memset(received_data, 0, sizeof(received_data));
+    memset(&client, 0, sizeof(client));
+    memset(&server, 0, sizeof(server));
+
+    mbedtls_test_init_handshake_options(&options);
+    options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.mfl = MBEDTLS_SSL_MAX_FRAG_LEN_512;
+    options.renegotiate = 1;
+
+    MD_OR_USE_PSA_INIT();
+
+    TEST_ASSERT(mbedtls_test_ssl_endpoint_init(
+                    &client, MBEDTLS_SSL_IS_CLIENT, &options) == 0);
+    TEST_ASSERT(mbedtls_test_ssl_endpoint_init(
+                    &server, MBEDTLS_SSL_IS_SERVER, &options) == 0);
+    TEST_ASSERT(mbedtls_test_mock_socket_connect(
+                    &client.socket, &server.socket, BUFFSIZE) == 0);
+
+    ret = mbedtls_test_move_handshake_to_state(
+        &server.ssl, &client.ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
+    TEST_ASSERT(ret == 0 ||
+                ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+    ret = mbedtls_test_move_handshake_to_state(
+        &client.ssl, &server.ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
+    TEST_ASSERT(ret == 0 ||
+                ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+    TEST_ASSERT(mbedtls_ssl_is_handshake_over(&client.ssl));
+    TEST_ASSERT(mbedtls_ssl_is_handshake_over(&server.ssl));
+
+    TEST_ASSERT(mbedtls_ssl_write(&server.ssl, application_data,
+                                  sizeof(application_data)) ==
+                (int) sizeof(application_data));
+    TEST_ASSERT(mbedtls_ssl_read(&client.ssl, received_data,
+                                 10) == 10);
+    TEST_ASSERT(memcmp(application_data, received_data,
+                       10) == 0);
+
+    ret = mbedtls_ssl_renegotiate(&client.ssl);
+    TEST_ASSERT(ret == 0 ||
+                ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
+                ret == MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO);
+
+    TEST_ASSERT(mbedtls_ssl_read(&client.ssl, received_data + 10,
+                                 sizeof(received_data) - 10) ==
+                (int) sizeof(received_data) - 10);
+    TEST_ASSERT(memcmp(application_data, received_data,
+                       sizeof(received_data)) == 0);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&server);
+    mbedtls_test_ssl_endpoint_free(&client);
+    mbedtls_test_free_handshake_options(&options);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ALG_SHA_256 */
 void handshake_psk_cipher(char *cipher, int pk_alg, data_t *psk_str, int dtls)
 {

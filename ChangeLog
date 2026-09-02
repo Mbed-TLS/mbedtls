@@ -41,7 +41,7 @@ Security
      unauthenticated plaintext data to be processed across a key change. In
      servers with MBEDTLS_SSL_EARLY_DATA enabled, this could be exploited by a
      man-in-the-middle attacker to cause loss of 0-RTT early data.
-     Reported by Ben Smyth.
+     Reported by Ben Smyth. CVE-2026-73096
    * Fix a possible buffer overflow in mbedtls_ecdh_calc_secret(): when the
      provided output buffer is too small, sometimes (depending on the value of
      the computed shared secret), the function would not return an error as it

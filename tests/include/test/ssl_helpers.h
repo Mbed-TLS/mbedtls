@@ -495,6 +495,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
  *
  * \p endpoint_type must be set as MBEDTLS_SSL_IS_SERVER or
  * MBEDTLS_SSL_IS_CLIENT.
+ * \p options configures the endpoint
  * \p pk_alg the algorithm to use, currently only MBEDTLS_PK_RSA and
  * MBEDTLS_PK_ECDSA are supported.
  * \p dtls_context - in case of DTLS - this is the context handling metadata.

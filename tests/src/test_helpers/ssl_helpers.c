@@ -823,6 +823,14 @@ int mbedtls_test_ssl_endpoint_init(
                                       MBEDTLS_SSL_PRESET_DEFAULT);
     TEST_ASSERT(ret == 0);
 
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    ret = mbedtls_ssl_conf_max_frag_len(&(ep->conf),
+                                        (unsigned char) options->mfl);
+    TEST_ASSERT(ret == 0);
+#else
+    TEST_ASSERT(options->mfl == MBEDTLS_SSL_MAX_FRAG_LEN_NONE);
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
     if (MBEDTLS_SSL_IS_CLIENT == endpoint_type) {
         if (options->client_min_version != MBEDTLS_SSL_VERSION_UNKNOWN) {
             mbedtls_ssl_conf_min_tls_version(&(ep->conf),
@@ -2203,17 +2211,6 @@ void mbedtls_test_ssl_perform_handshake(
     }
 
     mbedtls_ssl_conf_authmode(&server.conf, options->srv_auth_mode);
-
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    TEST_ASSERT(mbedtls_ssl_conf_max_frag_len(&(server.conf),
-                                              (unsigned char) options->mfl)
-                == 0);
-    TEST_ASSERT(mbedtls_ssl_conf_max_frag_len(&(client.conf),
-                                              (unsigned char) options->mfl)
-                == 0);
-#else
-    TEST_ASSERT(MBEDTLS_SSL_MAX_FRAG_LEN_NONE == options->mfl);
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
     if (options->psk_str != NULL && options->psk_str->len > 0) {

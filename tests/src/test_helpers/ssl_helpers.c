@@ -831,6 +831,15 @@ int mbedtls_test_ssl_endpoint_init(
     TEST_ASSERT(options->mfl == MBEDTLS_SSL_MAX_FRAG_LEN_NONE);
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if (options->renegotiate) {
+        mbedtls_ssl_conf_renegotiation(&(ep->conf),
+                                       MBEDTLS_SSL_RENEGOTIATION_ENABLED);
+        mbedtls_ssl_conf_legacy_renegotiation(
+            &(ep->conf), options->legacy_renegotiation);
+    }
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
+
     if (MBEDTLS_SSL_IS_CLIENT == endpoint_type) {
         if (options->client_min_version != MBEDTLS_SSL_VERSION_UNKNOWN) {
             mbedtls_ssl_conf_min_tls_version(&(ep->conf),
@@ -2230,20 +2239,6 @@ void mbedtls_test_ssl_perform_handshake(
 #endif
     }
 #endif
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if (options->renegotiate) {
-        mbedtls_ssl_conf_renegotiation(&(server.conf),
-                                       MBEDTLS_SSL_RENEGOTIATION_ENABLED);
-        mbedtls_ssl_conf_renegotiation(&(client.conf),
-                                       MBEDTLS_SSL_RENEGOTIATION_ENABLED);
-
-        mbedtls_ssl_conf_legacy_renegotiation(&(server.conf),
-                                              options->legacy_renegotiation);
-        mbedtls_ssl_conf_legacy_renegotiation(&(client.conf),
-                                              options->legacy_renegotiation);
-    }
-#endif /* MBEDTLS_SSL_RENEGOTIATION */
-
     TEST_ASSERT(mbedtls_test_mock_socket_connect(&(client.socket),
                                                  &(server.socket),
                                                  BUFFSIZE) == 0);

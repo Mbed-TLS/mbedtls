@@ -344,7 +344,7 @@ int mbedtls_pkcs7_get_cert_count(const mbedtls_pkcs7 *pkcs7);
  *                  or a negative error code on failure.
  */
 int mbedtls_pkcs7_get_certs(const mbedtls_pkcs7 *pkcs7,
-			    mbedtls_x509_crt **out_certs);
+                            mbedtls_x509_crt **out_certs);
 
 /**
  * \brief          Unallocate all PKCS #7 data and zeroize the memory.

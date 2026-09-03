@@ -464,14 +464,11 @@ component_test_psa_external_rng_use_psa_crypto () {
     tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
-component_test_entropy_nv_seed_only () {
-    msg "build: full minus platform entropy (NV seed only)"
+component_test_entropy_nv_seed_only_psa () {
+    msg "build: NV seed only, full (with USE_PSA_CRYPTO)"
     scripts/config.py full
     scripts/config.py set MBEDTLS_NO_PLATFORM_ENTROPY
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
-
-    msg "build: full minus platform entropy (NV seed only)"
-    make test
 
     # Check that the library seems to refer to the seedfile, but not to
     # platform entropy sources.
@@ -479,6 +476,32 @@ component_test_entropy_nv_seed_only () {
     not grep getrandom library/entropy*.o
     not grep /dev/random library/entropy*.o
     not grep /dev/.random library/entropy*.o
+
+    msg "test: NV seed only, full (with USE_PSA_CRYPTO) - unit tests"
+    make test
+
+    msg "test: full minus platform entropy - ssl-opt on sample programs"
+    tests/ssl-opt.sh -f 'Default\|Sample'
+}
+
+component_test_entropy_nv_seed_only_legacy () {
+    msg "build: NV seed only (with legacy crypto)"
+    scripts/config.py set MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py set MBEDTLS_NO_PLATFORM_ENTROPY
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+
+    # Check that the library seems to refer to the seedfile, but not to
+    # platform entropy sources.
+    grep seedfile library/platform.o
+    not grep getrandom library/entropy*.o
+    not grep /dev/random library/entropy*.o
+    not grep /dev/.random library/entropy*.o
+
+    msg "test: NV seed only (with legacy crypto) - unit tests"
+    make test
+
+    msg "test: NV seed only (with legacy crypto) - ssl-opt on sample programs"
+    tests/ssl-opt.sh -f 'Default\|Sample'
 }
 
 component_test_psa_inject_entropy () {

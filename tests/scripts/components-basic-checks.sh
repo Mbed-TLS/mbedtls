@@ -144,6 +144,7 @@ component_check_test_dependencies () {
     echo "PSA_HAVE_ALG_ECDSA_VERIFY" >> $expected
     echo "PSA_HAVE_ALG_RSA_PKCS1V15_SIGN" >> $expected
     echo "PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY" >> $expected
+    echo "PSA_HAVE_ALG_RSA_PSS_SIGN" >> $expected
     echo "PSA_HAVE_ALG_SOME_ECDSA" >> $expected
     echo "PSA_HAVE_ALG_SOME_RSA_SIGN" >> $expected
     echo "PSA_HAVE_ALG_SOME_RSA_VERIFY" >> $expected

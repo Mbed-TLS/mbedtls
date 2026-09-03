@@ -1,0 +1,5 @@
+Features
+   * Use the getrandom() system call for PSA crypto initialization on Linux
+     when supported by the C library, including musl, uClibc and Android
+     bionic, avoiding unnecessary reliance on /dev/random on Linux 5.6 and
+     earlier.

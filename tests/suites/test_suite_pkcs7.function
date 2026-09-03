@@ -355,7 +355,7 @@ void pkcs7_get_certs(char *pkcs7_file, int expected_ret)
         mbedtls_free(certs);
         certs = NULL;
     } else {
-        TEST_EQUAL(certs, NULL);
+        TEST_ASSERT(certs == NULL);
     }
 
 exit:

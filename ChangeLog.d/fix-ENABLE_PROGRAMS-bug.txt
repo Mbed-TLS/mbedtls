@@ -1,0 +1,2 @@
+Bugfix
+   * Fix failure of cmake -DENABLE_PROGRAMS=OFF. Fixes #10587.

@@ -2152,7 +2152,6 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
     size_t sig_alg_len;
 #if defined(MBEDTLS_DEBUG_C)
     unsigned char *sig_alg;
-    unsigned char *dn;
 #endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse certificate request"));
@@ -2289,8 +2288,8 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-#if defined(MBEDTLS_DEBUG_C)
-    dn = buf + mbedtls_ssl_hs_hdr_len(ssl) + 3 + n - dn_len;
+#if defined(MBEDTLS_DEBUG_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
+    unsigned char *dn = buf + mbedtls_ssl_hs_hdr_len(ssl) + 3 + n - dn_len;
     for (size_t i = 0, dni_len = 0; i < dn_len; i += 2 + dni_len) {
         unsigned char *p = dn + i + 2;
         mbedtls_x509_name name;

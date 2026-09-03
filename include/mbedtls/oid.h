@@ -265,7 +265,7 @@
  *   ecdsa-with-SHA2(3) 4 } */
 #define MBEDTLS_OID_ECDSA_SHA512            MBEDTLS_OID_ANSI_X9_62_SIG_SHA2 "\x04"
 
-#if defined(MBEDTLS_X509_USE_C)
+#if defined(MBEDTLS_X509_USE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief           Translate an ASN.1 OID into its numeric representation
  *                  (e.g. "\x2A\x86\x48\x86\xF7\x0D" into "1.2.840.113549")
@@ -278,7 +278,7 @@
  *                  PSA_ERROR_BUFFER_TOO_SMALL in case of error
  */
 int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_buf *oid);
-#endif /* MBEDTLS_X509_USE_C */
+#endif /* MBEDTLS_X509_USE_C && !MBEDTLS_X509_REMOVE_INFO */
 
 #if defined(MBEDTLS_X509_CREATE_C)
 /**

@@ -196,6 +196,7 @@ done:
     return ret;
 }
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 typedef struct {
     char buf[512];
     char *p;
@@ -325,6 +326,7 @@ static int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
 
     return 0;
 }
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 #endif /* MBEDTLS_FS_IO */
 
 static int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf const *oid,
@@ -507,7 +509,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void x509_parse_san(char *crt_file, char *result_str, int parse_result)
 {
     int ret;
@@ -846,7 +848,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void x509_verify_callback(char *crt_file, char *ca_file, char *name,
                           int exp_ret, char *exp_vrfy_out)
 {
@@ -1555,7 +1557,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C:!MBEDTLS_X509_REMOVE_INFO */
 void x509_oid_numstr(data_t *oid_buf, char *numstr, int blen, int ret)
 {
     mbedtls_x509_buf oid;
@@ -1712,7 +1714,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_FS_IO */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_FS_IO:!MBEDTLS_X509_REMOVE_INFO */
 void x509_crt_parse_authoritykeyid(char *file,
                                    data_t *keyId,
                                    char *authorityKeyId_issuer,
@@ -1782,7 +1784,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C:!MBEDTLS_X509_REMOVE_INFO */
 void oid_get_numeric_string(data_t *oid, int error_ret, char *result_str)
 {
     char buf[256];

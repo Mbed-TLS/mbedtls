@@ -1150,6 +1150,7 @@ static int ssl_async_start(mbedtls_ssl_context *ssl,
     ssl_async_operation_context_t *ctx = NULL;
     const char *op_name = ssl_async_operation_names[op_type];
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     {
         char dn[100];
         if (mbedtls_x509_dn_gets(dn, sizeof(dn), &cert->subject) > 0) {
@@ -1157,6 +1158,7 @@ static int ssl_async_start(mbedtls_ssl_context *ssl,
                            op_name, dn);
         }
     }
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
     /* Look for a private key that matches the public key in cert.
      * Since this test code has the private key inside Mbed TLS,

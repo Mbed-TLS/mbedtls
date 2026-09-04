@@ -3391,10 +3391,14 @@ void handshake_and_exchange_data(int mfl, int application_data_len,
                     ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
                     ret == MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO);
 
-        TEST_ASSERT(client.ssl.in_buf != old_in_buf);
-        TEST_ASSERT(client.ssl.in_buf_len == MBEDTLS_SSL_IN_BUFFER_LEN);
+        if (mfl == MBEDTLS_SSL_MAX_FRAG_LEN_NONE) {
+            TEST_ASSERT(client.ssl.in_buf == old_in_buf);
+        } else {
+            TEST_ASSERT(client.ssl.in_buf != old_in_buf);
+            TEST_ASSERT(client.ssl.in_buf_len == MBEDTLS_SSL_IN_BUFFER_LEN);
+        }
         TEST_ASSERT(client.ssl.in_offt == client.ssl.in_buf + unread_offset);
-    } else if (renegotiation_mode == RENEGOTIATE_FROM_CLIENT) {
+    } else if (renegotiation_mode == RENEGOTIATE_FROM_SERVER) {
         TEST_ASSERT(mbedtls_ssl_renegotiate(&server.ssl) == 0);
         TEST_ASSERT(client.ssl.in_buf == old_in_buf);
     } else {

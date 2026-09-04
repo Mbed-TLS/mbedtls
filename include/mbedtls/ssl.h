@@ -2653,16 +2653,19 @@ void mbedtls_ssl_conf_session_tickets_cb(mbedtls_ssl_config *conf,
  * \brief           Set the SSL session ticket context for the current
  *                  handshake (server only).
  *
- * \note            Same as the \p p_ticket parameter of
- *                  \c mbedtls_ssl_conf_session_tickets_cb(), but for use
- *                  within the SNI callback.
+ * \note            This function should only be called inside the SNI callback,
+ *                  i.e. the function passed to \c mbedtls_ssl_conf_sni().
+ *
+ * \note            If not equal to \c NULL, the ticket context \p p_ticket
+ *                  takes precedence for the current handshake over the one
+                    configured with \c mbedtls_ssl_conf_session_tickets_cb().
  *                  The configured ticket callbacks are unchanged.
  *                  Passing \c NULL clears the session ticket context for the
  *                  current handshake, so the configured ticket context is used.
  *
- * \param ssl       SSL context
- * \param p_ticket  Context shared by the ticket callbacks for the current
- *                  handshake.
+ * \param ssl       SSL context passed to the SNI callback.
+ * \param p_ticket  Context passed to the session ticket callbacks. It must
+ *                  remain valid until the current handshake completes.
  */
 void mbedtls_ssl_set_hs_session_ticket_context(mbedtls_ssl_context *ssl,
                                                void *p_ticket);
@@ -3217,19 +3220,22 @@ void mbedtls_ssl_conf_session_cache(mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 /**
- * \brief          Set the session cache context for the current handshake
- *                 (server-side only).
+ * \brief          Set the session cache callback context for the current
+ *                 handshake (server only).
  *
- * \note           Same as the \p p_cache parameter of
- *                 \c mbedtls_ssl_conf_session_cache(), but for use within the
- *                 SNI callback.
- *                 The configured session cache callbacks are unchanged.
+ * \note           This function should only be called inside the SNI callback,
+ *                 i.e. the function passed to \c mbedtls_ssl_conf_sni().
+ *
+ * \note           If not equal to \c NULL, the cache context \p p_cache
+ *                 takes precedence for the current handshake over the one
+ *                 configured with \c mbedtls_ssl_conf_session_cache().
+ *                 The configured cache callbacks are unchanged.
  *                 Passing \c NULL clears the session cache context for the
  *                 current handshake, so the configured cache context is used.
  *
- * \param ssl      SSL context
- * \param p_cache  Parameter (context) for the session cache callbacks for the
- *                 current handshake.
+ * \param ssl      SSL context passed to the SNI callback.
+ * \param p_cache  Context passed to the session cache callbacks. It must
+ *                 remain valid until the current handshake completes.
  */
 void mbedtls_ssl_set_hs_session_cache_context(mbedtls_ssl_context *ssl,
                                               void *p_cache);

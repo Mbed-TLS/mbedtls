@@ -5115,6 +5115,8 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
  *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO
+ *                 (on the client side only) or
  *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET or
  *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
  *                 you must stop using the SSL context for reading or writing,
@@ -5201,6 +5203,8 @@ static inline int mbedtls_ssl_is_handshake_over(mbedtls_ssl_context *ssl)
  *                 #MBEDTLS_ERR_SSL_WANT_READ, #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
  *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO
+ *                 (on the client side only) or
  *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET or
  *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA, you must stop using
  *                 the SSL context for reading or writing, and either free it
@@ -5227,7 +5231,9 @@ int mbedtls_ssl_handshake_step(mbedtls_ssl_context *ssl);
  * \warning        If this function returns something other than \c 0,
  *                 #MBEDTLS_ERR_SSL_WANT_READ, #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
- *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS, you must stop using
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO
+ *                 (on the client side only), you must stop using
  *                 the SSL context for reading or writing, and either free it
  *                 or call \c mbedtls_ssl_session_reset() on it before
  *                 re-using it for a new connection; the current connection
@@ -5384,6 +5390,8 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
  *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO
+ *                 (on the client side only) or
  *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET or
  *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
  *                 you must stop using the SSL context for reading or writing,

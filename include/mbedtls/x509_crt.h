@@ -602,7 +602,7 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  *
  * \note           The \p cn represents the reference identifier (historically,
  *                 the Common Name component of the certificate's Subject). It
- *                 must be either a DNS name, a URI or an IP address. (If the
+ *                 should be either a DNS name, a URI or an IP address. (If the
  *                 string can be interpreted either as a URI or an IP address,
  *                 it will be considered an IP address.)
  *
@@ -634,6 +634,11 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  *                 SAN extension. Support for this type is limited: no kind of
  *                 parsing or normalization is performed, and only exact
  *                 byte-for-byte matches will yield a positive result.
+ *
+ * \par            As a compatibility measure, if the name passed does not look
+ *                 like a valid IP, URI or DNS, it is treated as a free string
+ *                 intended to match one of the CN components of the Subject.
+ *                 The match must then be byte-for-byte.
  *
  * \note           The \p f_vrfy callback is a user-supplied callback that
  *                 can clear / modify / add flags for a certificate. If set,

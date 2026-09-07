@@ -269,10 +269,11 @@ static int x509_memcasecmp(const void *s1, const void *s2, size_t len)
  * Follow RFC 9525: the wildcard can only be the entirety of the leftmost label.
  * (Note: RFC 6125 was more lenient, but too complex for our own good.)
  */
-static int x509_check_dns_wildcard(const char *cn, const mbedtls_x509_buf *name)
+static int x509_check_dns_wildcard(const char *cn, size_t cn_len,
+                                   const mbedtls_x509_buf *name)
 {
     size_t i;
-    size_t cn_idx = 0, cn_len = strlen(cn);
+    size_t cn_idx = 0;
 
     /* We can't have a match if there is no wildcard to match */
     if (name->len < 3 || name->p[0] != '*' || name->p[1] != '.') {
@@ -2877,7 +2878,7 @@ static int x509_crt_check_dns_name(const mbedtls_x509_buf *name,
     }
 
     /* try wildcard match */
-    if (x509_check_dns_wildcard(cn, name) == 0) {
+    if (x509_check_dns_wildcard(cn, cn_len, name) == 0) {
         return 0;
     }
 

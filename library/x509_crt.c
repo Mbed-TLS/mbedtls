@@ -2928,6 +2928,62 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
     return -1;
 }
 
+/* Return 1 if the cn superficially looks like a URI, 0 if it doesn't.
+ *
+ * RFC 5280 4.2.1.6 URIs are as specified by RFC 3986, whose App. A says:
+ * URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+ * scheme        = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+ *
+ * For now, look for the presence of a colon, and that the scheme is non-empty
+ * and consists only of allowed charachers.
+ */
+static int x509_cn_looks_like_uri(const char *cn)
+{
+    const char *end = strchr(cn, ':');
+    if (end == NULL || end == cn) {
+        return 0;
+    }
+
+    for (const char *p = cn; p < end; p++) {
+        if (!((*p >= 'a' && *p <= 'z') ||
+              (*p >= 'A' && *p <= 'Z') ||
+              (*p >= '0' && *p <= '9') ||
+              *p == '+' || *p == '-' || *p == '.')) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+/* Return 1 if the cn superficially looks like a DNS, 0 if it doesn't.
+ *
+ * RFC 5280 4.2.1.6 says DNS names are as specified by Section 3.5 of
+ * RFC1034 and as modified by Section 2.1 of RFC1123, in particular they
+ * consist entirely of ASCII letters, digits, hyphen, and dot.
+ * Also allow underscore as it might be used in private host names.
+ *
+ * For now, accept any non-empty string that only consists of the allowed
+ * characters.
+ */
+static int x509_cn_looks_like_dns(const char *cn)
+{
+    if (*cn == '\0') {
+        return 0;
+    }
+
+    for (const char *p = cn; *p != '\0'; p++) {
+        if (!((*p >= 'a' && *p <= 'z') ||
+              (*p >= 'A' && *p <= 'Z') ||
+              (*p >= '0' && *p <= '9') ||
+              *p == '-' || *p == '.' || *p == '_')) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 /*
  * Infer the type of CN (as MBEDTLS_X509_SAN_xxx macro) based on its value.
  * Currently supported: IP (v4 or v6), URI, DNS (default).
@@ -2943,34 +2999,29 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
  * cn[in] must be a NUL-terminated string.
  * ip[out] must point to a 4-byte-aligned 16-bytes buffer
  * iplen[out] must point to a size_t
+ *
+ * Return the type as a MBEDTLS_X509_SAN_XXX value if CN is one of the supported
+ * types, otherwise MBEDTLS_X509_SAN_NONE.
  */
 static int x509_crt_infer_name_type(const char *cn, void *ip, size_t *ip_len)
 {
-    /* Check IP first, this avoids mistaking an IPv4 address for a DNS name.
+    /* Check IP first, this avoids mistaking an IPv4 address for a DNS name,
+     * and is how we chose to resolve possible IPv6 vs URI ambiguities.
      * It is also the only format for which we have an actual parser */
     *ip_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
     if (*ip_len != 0) {
         return MBEDTLS_X509_SAN_IP_ADDRESS;
     }
 
-    /* Then try URI. Since we've already ruled out IPv6 addresses, use the
-     * presence of a colon as a heuristic (we don't want a full URI parser).
-     *
-     * RFC 5280 4.2.1.6 URIs are as specified by RFC 3986, whose App. A says:
-     * URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
-     * so we know a URI always contains a colon.
-     *
-     * RFC 5280 4.2.1.6 says DNS names are as specified by Section 3.5 of
-     * RFC1034 and as modified by Section 2.1 of RFC1123, in particular they
-     * consist entirely of ASCII letters, digits, hyphen, and dot,
-     * so we know a DNS name never contains a colon.
-     */
-    if (strchr(cn, ':') != NULL) {
+    if (x509_cn_looks_like_uri(cn)) {
         return MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
     }
 
-    /* Default to DNS (historically the only option) */
-    return MBEDTLS_X509_SAN_DNS_NAME;
+    if (x509_cn_looks_like_dns(cn)) {
+        return MBEDTLS_X509_SAN_DNS_NAME;
+    }
+
+    return MBEDTLS_X509_SAN_NONE;
 }
 
 /*
@@ -2998,11 +3049,22 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
                                       cn, cn_len, name_type) == 0) {
             return;
         }
-    } else if (name_type == MBEDTLS_X509_SAN_DNS_NAME) {
+    } else if (name_type == MBEDTLS_X509_SAN_DNS_NAME ||
+               name_type == MBEDTLS_X509_SAN_NONE) {
         const mbedtls_x509_name *name;
         for (name = &crt->subject; name != NULL; name = name->next) {
-            if (MBEDTLS_OID_CMP(MBEDTLS_OID_AT_CN, &name->oid) == 0 &&
+            if (MBEDTLS_OID_CMP(MBEDTLS_OID_AT_CN, &name->oid) != 0) {
+                continue;
+            }
+
+            if (name_type == MBEDTLS_X509_SAN_DNS_NAME &&
                 x509_crt_check_dns_name(&name->val, cn, cn_len) == 0) {
+                return;
+            }
+
+            if (name_type == MBEDTLS_X509_SAN_NONE &&
+                name->val.len == cn_len &&
+                memcmp(name->val.p, cn, cn_len) == 0) {
                 return;
             }
         }

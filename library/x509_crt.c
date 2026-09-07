@@ -3006,7 +3006,10 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
 {
     const mbedtls_x509_name *name;
     size_t cn_len = strlen(cn);
-    uint32_t ip[4]; /* 16 bytes is enough for both IPv6 and IPv4 */
+
+    /* 16 bytes is enough for both IPv6 and IPv4. We also want the array
+     * 4-byte-aligned as the system's inet_pton() may require it. */
+    uint32_t ip[4];
     size_t ip_len;
 
     int name_type = x509_crt_infer_name_type(cn, cn_len, ip, &ip_len);

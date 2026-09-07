@@ -2949,11 +2949,11 @@ static int x509_crt_infer_name_type(const char *cn, size_t cn_len,
     /* Then try URI. Since we've already ruled out IPv6 addresses, use the
      * presence of a colon as a heuristic (we don't want a full URI parser).
      *
-     * RFC 5280 4.1.2.6 URIs are as specified by RFC 3986, whose App. A says:
+     * RFC 5280 4.2.1.6 URIs are as specified by RFC 3986, whose App. A says:
      * URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
-     * so we know a URI always contain a colon.
+     * so we know a URI always contains a colon.
      *
-     * RFC 5280 4.1.2.6 says DNS names are as specified by Section 3.5 of
+     * RFC 5280 4.2.1.6 says DNS names are as specified by Section 3.5 of
      * RFC1034 and as modified by Section 2.1 of RFC1123, in particular they
      * consist entirely of ASCII letters, digits, hyphen, and dot,
      * so we know a DNS name never contains a colon.

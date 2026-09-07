@@ -2961,7 +2961,8 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
  * Currently supported: IP (v4 or v6), URI, DNS (default).
  *
  * This takes advantage of the fact that the sets of permissible values for
- * these types are disjoint.
+ * these types are almost disjoint (except IPv6 and URI intersect slightly,
+ * and there we choose to give IPv6 precedence).
  *
  * If the type is found to be IP, also return the IP as bytes.
  */

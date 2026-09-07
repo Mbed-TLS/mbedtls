@@ -2980,27 +2980,26 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
                                  const char *cn,
                                  uint32_t *flags)
 {
-    const mbedtls_x509_name *name;
-    size_t cn_len = strlen(cn);
-
     /* 16 bytes is enough for both IPv6 and IPv4. We also want the array
      * 4-byte-aligned as the system's inet_pton() may require it. */
     uint32_t ip[4];
     size_t ip_len;
 
     int name_type = x509_crt_infer_name_type(cn, ip, &ip_len);
-
-    if (name_type == MBEDTLS_X509_SAN_IP_ADDRESS) {
-        cn = (const char *) ip;
-        cn_len = ip_len;
-    }
+    size_t cn_len = strlen(cn);
 
     if (crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
-        if (x509_crt_check_san(&crt->subject_alt_names,
-                               cn, cn_len, name_type) == 0) {
+        if (name_type == MBEDTLS_X509_SAN_IP_ADDRESS) {
+            if (x509_crt_check_san(&crt->subject_alt_names,
+                                   (const char *) ip, ip_len, name_type) == 0) {
+                return;
+            }
+        } else if (x509_crt_check_san(&crt->subject_alt_names,
+                                      cn, cn_len, name_type) == 0) {
             return;
         }
     } else if (name_type == MBEDTLS_X509_SAN_DNS_NAME) {
+        const mbedtls_x509_name *name;
         for (name = &crt->subject; name != NULL; name = name->next) {
             if (MBEDTLS_OID_CMP(MBEDTLS_OID_AT_CN, &name->oid) == 0 &&
                 x509_crt_check_dns_name(&name->val, cn, cn_len) == 0) {

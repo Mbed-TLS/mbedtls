@@ -2965,9 +2965,14 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
  * and there we choose to give IPv6 precedence).
  *
  * If the type is found to be IP, also return the IP as bytes.
+ * Otherwise, the values of ip and ip_len upon return are unspeficied.
+ *
+ * Parameters:
+ * cn[in] must be a NUL-terminated string.
+ * ip[out] must point to a 4-byte-aligned 16-bytes buffer
+ * iplen[out] must point to a size_t
  */
-static int x509_crt_infer_name_type(const char *cn, size_t cn_len,
-                                    void *ip, size_t *ip_len)
+static int x509_crt_infer_name_type(const char *cn, void *ip, size_t *ip_len)
 {
     /* Check IP first, this avoids mistaking an IPv4 address for a DNS name.
      * It is also the only format for which we have an actual parser */
@@ -2988,10 +2993,8 @@ static int x509_crt_infer_name_type(const char *cn, size_t cn_len,
      * consist entirely of ASCII letters, digits, hyphen, and dot,
      * so we know a DNS name never contains a colon.
      */
-    for (size_t i = 0; i < cn_len; i++) {
-        if (cn[i] == ':') {
-            return MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
-        }
+    if (strchr(cn, ':') != NULL) {
+        return MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
     }
 
     /* Default to DNS (historically the only option) */
@@ -3013,7 +3016,7 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
     uint32_t ip[4];
     size_t ip_len;
 
-    int name_type = x509_crt_infer_name_type(cn, cn_len, ip, &ip_len);
+    int name_type = x509_crt_infer_name_type(cn, ip, &ip_len);
 
     if (name_type == MBEDTLS_X509_SAN_IP_ADDRESS) {
         cn = (const char *) ip;

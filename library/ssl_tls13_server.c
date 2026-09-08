@@ -532,7 +532,8 @@ static int ssl_tls13_process_psk_identity(
         ssl, identity, identity_len, obfuscated_ticket_age,
         &psk->type, &session);
     if (ret != SSL_TLS1_3_PSK_IDENTITY_MATCH) {
-        return 0;
+        ret = 0;
+        goto cleanup;
     }
 
     MBEDTLS_SSL_DEBUG_MSG(4, ("found matched identity"));
@@ -555,7 +556,8 @@ static int ssl_tls13_process_psk_identity(
             break;
 #endif
         default:
-            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            goto cleanup;
     }
 
     psk->key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
@@ -572,7 +574,8 @@ static int ssl_tls13_process_psk_identity(
 
     if (psk->key_exchange_mode == MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable PSK key exchange mode"));
-        return 0;
+        ret = 0;
+        goto cleanup;
     }
 
     ssl_tls13_select_ciphersuite(ssl, ciphersuites, ciphersuites_end,
@@ -580,9 +583,6 @@ static int ssl_tls13_process_psk_identity(
                                  &psk->ciphersuite_info);
 
     if (psk->ciphersuite_info == NULL) {
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-        mbedtls_ssl_session_free(&session);
-#endif
         /*
          * We consider finding a ciphersuite suitable for the PSK as part
          * of the validation of its binder. Thus if we do not find one, we
@@ -591,7 +591,8 @@ static int ssl_tls13_process_psk_identity(
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR,
             MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
-        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+        ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+        goto cleanup;
     }
 
     ret = ssl_tls13_offered_psks_check_binder_match(
@@ -602,31 +603,29 @@ static int ssl_tls13_process_psk_identity(
         /* For security reasons, the handshake should be aborted when we
          * fail to validate a binder value. See RFC 8446 section 4.2.11.2
          * and appendix E.6. */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-        mbedtls_ssl_session_free(&session);
-#endif
         MBEDTLS_SSL_DEBUG_MSG(3, ("Invalid binder."));
         MBEDTLS_SSL_DEBUG_RET(
             1, "ssl_tls13_offered_psks_check_binder_match", ret);
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR,
             MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
-        return ret;
+        goto cleanup;
     }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (psk->type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION) {
         ret = ssl_tls13_session_copy_ticket(ssl->session_negotiate, &session);
-        mbedtls_ssl_session_free(&session);
         if (ret != 0) {
-            return ret;
+            goto cleanup;
         }
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
     *psk_is_set = 1;
 
-    return 0;
+cleanup:
+    mbedtls_ssl_session_free(&session);
+    return ret;
 }
 
 /* Parser for pre_shared_key extension in client hello

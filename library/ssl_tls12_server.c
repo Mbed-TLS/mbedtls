@@ -4083,7 +4083,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
     md_alg = mbedtls_ssl_md_alg_from_hash(ssl->in_msg[i]);
 
     if (md_alg == MBEDTLS_MD_NONE || mbedtls_ssl_set_calc_verify_md(ssl, ssl->in_msg[i])) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("peer not adhering to requested sig_alg"
+        MBEDTLS_SSL_DEBUG_MSG(1, ("peer using unsupported hash algorithm"
                                   " for verify message"));
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
@@ -4104,7 +4104,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
      */
     if ((pk_alg = mbedtls_ssl_pk_alg_from_sig(ssl->in_msg[i]))
         == MBEDTLS_PK_NONE) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("peer not adhering to requested sig_alg"
+        MBEDTLS_SSL_DEBUG_MSG(1, ("peer using unsupported public key algorithm"
                                   " for verify message"));
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }

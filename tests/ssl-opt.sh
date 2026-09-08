@@ -2590,13 +2590,8 @@ run_test    "Single supported algorithm sending: openssl client" \
                     -key $DATA_FILES_PATH/server6.key" \
             0
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 requires_pk_alg ECDSA
 requires_hash_alg SHA_256
 run_test    "Certificate verify message with disallowed signature algorithm" \
@@ -2608,12 +2603,7 @@ run_test    "Certificate verify message with disallowed signature algorithm" \
             -s "received sig_alg \[401\] rsa_pkcs1_sha256" \
             -s "peer not adhering to requested sig_alg for verify message"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled PSA_WANT_ECC_SECP_R1_256
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 requires_pk_alg ECDSA
 requires_hash_alg SHA_1
 requires_hash_alg SHA_256

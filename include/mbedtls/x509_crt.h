@@ -605,36 +605,36 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  *                 string can be interpreted either as a URI or an IP address,
  *                 it will be considered an IP address.)
  *
- * \par            DNS names must be provided in the "preferred name syntax", as
+ *                 DNS names must be provided in the "preferred name syntax", as
  *                 specified by Section 3.5 of RFC 1034 and as modified by
  *                 Section 2.1 of RFC 1123. Internationalized domain names must
  *                 be in ASCII Compatible Encoding (ACE) format as specified in
  *                 Section 4 of RFC 3490.
  *
- * \par            The provided DNS name will be matched against Subject
+ *                 The provided DNS name will be matched against Subject
  *                 Alternative Name (SAN) entries of type dNSName if the SAN
  *                 extension is present; otherwise against CN components of the
  *                 Subject. (This behaviour was present in RFC 6125, removed in
  *                 RFC 9525, but we preserve it for improved compatibility.)
  *
- * \par            DNS name matching is case-insensitive. If the certificate
+ *                 DNS name matching is case-insensitive. If the certificate
  *                 contains a wildcard, it is matched according to RFC 9525:
  *                 a single wildcard is allowed and it must be the entire
  *                 content of the leftmost label.
  *
- * \par            IP addresses must be provided in dotted-quad format for IPv4,
+ *                 IP addresses must be provided in dotted-quad format for IPv4,
  *                 and for IPv6 in the textual representation defined by RFC
  *                 4291 section 2.2. They will be converted to binary and
  *                 matched against iPAddress entries in the SAN extension. The
  *                 match must be exact (RFC 9525).
  *
- * \par            URIs must not be relative and must follow RFC 3986. They will
+ *                 URIs must not be relative and must follow RFC 3986. They will
  *                 be matched against uniformResourceIdentifier entries in the
  *                 SAN extension. Support for this type is limited: no kind of
  *                 parsing or normalization is performed, and only exact
  *                 byte-for-byte matches will yield a positive result.
  *
- * \par            As a compatibility measure, if the name passed does not look
+ *                 As a compatibility measure, if the name passed does not look
  *                 like a valid IP, URI or DNS, it is treated as a free string
  *                 intended to match one of the CN components of the Subject.
  *                 The match must then be byte-for-byte.
@@ -649,7 +649,7 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  *                 that specific certificate and the certificate depth from
  *                 the bottom (Peer cert depth = 0).
  *
- * \par            All flags left after returning from the callback
+ *                 All flags left after returning from the callback
  *                 are also returned to the application. The function should
  *                 return 0 for anything (including invalid certificates)
  *                 other than fatal error, as a non-zero return code

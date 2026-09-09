@@ -610,7 +610,7 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  *                 specified by Section 3.5 of RFC 1034 and as modified by
  *                 Section 2.1 of RFC 1123. Internationalized domain names must
  *                 be in ASCII Compatible Encoding (ACE) format as specified in
- *                 Section 4 of RFC 3490.
+ *                 Section 4 of RFC 3490 (also known as Punycode).
  *
  *                 The provided DNS name will be matched against Subject
  *                 Alternative Name (SAN) entries of type dNSName if the SAN

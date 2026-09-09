@@ -2935,7 +2935,7 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
  * scheme        = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
  *
  * For now, look for the presence of a colon, and that the scheme is non-empty
- * and consists only of allowed charachers.
+ * and consists only of allowed characters.
  */
 static int x509_cn_looks_like_uri(const char *cn)
 {
@@ -2990,14 +2990,16 @@ static int x509_cn_looks_like_dns(const char *cn)
  *
  * This takes advantage of the fact that the sets of permissible values for
  * these types are almost disjoint (except IPv6 and URI intersect slightly,
- * and there we choose to give IPv6 precedence).
+ * and there we choose to give IPv6 precedence). (Also, a dotted-quad IPv4 looks
+ * like a DNS name for the level of sanity checking we do, but can't be a valid
+ * FQDN as there is no purely-numeric TLD.)
  *
  * If the type is found to be IP, also return the IP as bytes.
- * Otherwise, the values of ip and ip_len upon return are unspeficied.
+ * Otherwise, the values of ip and ip_len upon return are unspecified.
  *
  * Parameters:
  * cn[in] must be a NUL-terminated string.
- * ip[out] must point to a 4-byte-aligned 16-bytes buffer
+ * ip[out] must point to a 4-byte-aligned 16-byte buffer
  * iplen[out] must point to a size_t
  *
  * Return the type as a MBEDTLS_X509_SAN_XXX value if CN is one of the supported

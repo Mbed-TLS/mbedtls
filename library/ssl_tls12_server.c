@@ -4053,6 +4053,8 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
      * Check if SignatureAndHashAlgorithm is one of the requested algorithms
      */
     const uint16_t sig_alg = MBEDTLS_GET_UINT16_BE(ssl->in_msg, i);
+    i += 2;
+
     const uint16_t *req_sig_alg = mbedtls_ssl_get_sig_algs(ssl);
     if (req_sig_alg == NULL) {
         // Should never happen
@@ -4084,9 +4086,9 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
     /*
      * Hash
      */
-    md_alg = mbedtls_ssl_md_alg_from_hash(ssl->in_msg[i]);
+    md_alg = mbedtls_ssl_md_alg_from_hash(MBEDTLS_BYTE_1(sig_alg));
 
-    if (md_alg == MBEDTLS_MD_NONE || mbedtls_ssl_set_calc_verify_md(ssl, ssl->in_msg[i])) {
+    if (md_alg == MBEDTLS_MD_NONE || mbedtls_ssl_set_calc_verify_md(ssl, MBEDTLS_BYTE_1(sig_alg))) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("peer using unsupported hash algorithm"
                                   " for verify message"));
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
@@ -4101,12 +4103,10 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
     /* Info from md_alg will be used instead */
     hashlen = 0;
 
-    i++;
-
     /*
      * Signature
      */
-    if ((pk_alg = mbedtls_ssl_pk_alg_from_sig(ssl->in_msg[i]))
+    if ((pk_alg = mbedtls_ssl_pk_alg_from_sig(MBEDTLS_BYTE_0(sig_alg)))
         == MBEDTLS_PK_NONE) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("peer using unsupported public key algorithm"
                                   " for verify message"));
@@ -4120,8 +4120,6 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_MSG(1, ("sig_alg doesn't match cert key"));
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
-
-    i++;
 
     if (i + 2 > ssl->in_hslen) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate verify message"));

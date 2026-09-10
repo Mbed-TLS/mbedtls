@@ -335,6 +335,10 @@ exit:
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
+/* On return with SSL_TLS1_3_PSK_IDENTITY_MATCH, the PSK corresponding to the
+ * identity has been installed in the handshake through
+ * mbedtls_ssl_set_hs_psk(), either directly or by the configured PSK callback.
+ */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_identity_match(
     mbedtls_ssl_context *ssl,
@@ -514,11 +518,13 @@ static int ssl_tls13_process_psk_identity(
     int *psk_is_set)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    int psk_ciphersuite_id;
-    psa_algorithm_t psk_hash_alg;
-    int allowed_key_exchange_modes;
+    int psk_ciphersuite_id = 0;
+    psa_algorithm_t psk_hash_alg = PSA_ALG_NONE;
+    int allowed_key_exchange_modes =
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
     mbedtls_ssl_session session;
 
+    *psk = (struct psk_attributes) PSK_ATTRIBUTES_INIT;
     *psk_is_set = 0;
 
     mbedtls_ssl_session_init(&session);
@@ -535,16 +541,11 @@ static int ssl_tls13_process_psk_identity(
 
     switch (psk->type) {
         case MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL:
-            psk_ciphersuite_id = 0;
             psk_hash_alg = PSA_ALG_SHA_256;
-            allowed_key_exchange_modes =
-                MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
             break;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
             psk_ciphersuite_id = session.ciphersuite;
-            psk_hash_alg = PSA_ALG_NONE;
-            ssl->session_negotiate->ticket_flags = session.ticket_flags;
             allowed_key_exchange_modes =
                 session.ticket_flags &
                 MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;

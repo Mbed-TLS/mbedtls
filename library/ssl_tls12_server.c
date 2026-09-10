@@ -4055,6 +4055,8 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
     const uint16_t sig_alg = MBEDTLS_GET_UINT16_BE(ssl->in_msg, i);
     const uint16_t *req_sig_alg = mbedtls_ssl_get_sig_algs(ssl);
     if (req_sig_alg == NULL) {
+        // Should never happen
+        MBEDTLS_SSL_DEBUG_MSG(1, ("mbedtls_ssl_get_sig_algs(ssl) returned NULL"));
         return MBEDTLS_ERR_SSL_BAD_CONFIG;
     }
 

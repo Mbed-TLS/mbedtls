@@ -4076,6 +4076,8 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
     if (*req_sig_alg == MBEDTLS_TLS_SIG_NONE) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("peer not adhering to requested sig_alg"
                                   " for verify message"));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 

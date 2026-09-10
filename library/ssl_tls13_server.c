@@ -672,8 +672,11 @@ static int ssl_tls13_parse_pre_shared_key_ext(
     /* identities_len       2 bytes
      * identities_data   >= 7 bytes
      */
-    MBEDTLS_SSL_CHK_BUF_READ_PTR(identities, pre_shared_key_ext_end, 7 + 2);
+    MBEDTLS_SSL_CHK_BUF_READ_PTR(identities, pre_shared_key_ext_end, 2);
     identities_len = MBEDTLS_GET_UINT16_BE(identities, 0);
+    if (identities_len < 7) {
+        goto decode_error;
+    }
     p_identity_len = identities + 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p_identity_len, pre_shared_key_ext_end,
                                  identities_len);
@@ -683,8 +686,11 @@ static int ssl_tls13_parse_pre_shared_key_ext(
      * binders      >= 33 bytes
      */
     binders = identities_end;
-    MBEDTLS_SSL_CHK_BUF_READ_PTR(binders, pre_shared_key_ext_end, 33 + 2);
+    MBEDTLS_SSL_CHK_BUF_READ_PTR(binders, pre_shared_key_ext_end, 2);
     binders_len = MBEDTLS_GET_UINT16_BE(binders, 0);
+    if (binders_len < 33) {
+        goto decode_error;
+    }
     p_binder_len = binders + 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p_binder_len, pre_shared_key_ext_end, binders_len);
     binders_end = p_binder_len + binders_len;
@@ -706,6 +712,9 @@ static int ssl_tls13_parse_pre_shared_key_ext(
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p_identity_len, identities_end, 2 + 1 + 4);
         identity_len = MBEDTLS_GET_UINT16_BE(p_identity_len, 0);
+        if (identity_len == 0) {
+            goto decode_error;
+        }
         identity = p_identity_len + 2;
         MBEDTLS_SSL_CHK_BUF_READ_PTR(identity, identities_end, identity_len + 4);
         obfuscated_ticket_age = MBEDTLS_GET_UINT32_BE(identity, identity_len);
@@ -713,6 +722,9 @@ static int ssl_tls13_parse_pre_shared_key_ext(
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p_binder_len, binders_end, 1 + 32);
         binder_len = *p_binder_len;
+        if (binder_len < 32) {
+            goto decode_error;
+        }
         binder = p_binder_len + 1;
         MBEDTLS_SSL_CHK_BUF_READ_PTR(binder, binders_end, binder_len);
         p_binder_len += binder_len + 1;
@@ -736,10 +748,7 @@ static int ssl_tls13_parse_pre_shared_key_ext(
     }
 
     if (p_identity_len != identities_end || p_binder_len != binders_end) {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("pre_shared_key extension decode error"));
-        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
-        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+        goto decode_error;
     }
 
     /* Update the handshake transcript with the binder list. */
@@ -758,6 +767,12 @@ static int ssl_tls13_parse_pre_shared_key_ext(
     MBEDTLS_SSL_DEBUG_MSG(3, ("Pre shared key found"));
 
     return 0;
+
+decode_error:
+    MBEDTLS_SSL_DEBUG_MSG(3, ("pre_shared_key extension decode error"));
+    MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                 MBEDTLS_ERR_SSL_DECODE_ERROR);
+    return MBEDTLS_ERR_SSL_DECODE_ERROR;
 }
 
 /*

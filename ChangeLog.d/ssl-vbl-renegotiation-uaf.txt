@@ -1,0 +1,5 @@
+Security
+   * Fix a use-after-free when TLS 1.2 renegotiation starts while unread
+     application data remains buffered, with variable buffer lengths enabled
+     and a maximum fragment length negotiated. Reported by Álvaro Merino
+     Argumanez (realvarx).

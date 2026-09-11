@@ -338,13 +338,13 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
                                    size_t out_buf_new_len)
 {
     int modified = 0;
-    size_t written_in = 0, iv_offset_in = 0, len_offset_in = 0, hdr_in = 0;
-    size_t written_out = 0, iv_offset_out = 0, len_offset_out = 0, hdr_out = 0;
+    size_t msg_offset_in = 0, iv_offset_in = 0, len_offset_in = 0, hdr_offset_in = 0;
+    size_t msg_offset_out = 0, iv_offset_out = 0, len_offset_out = 0, hdr_offset_out = 0;
     if (ssl->in_buf != NULL) {
-        written_in = ssl->in_msg - ssl->in_buf;
+        msg_offset_in = ssl->in_msg - ssl->in_buf;
         iv_offset_in = ssl->in_iv - ssl->in_buf;
         len_offset_in = ssl->in_len - ssl->in_buf;
-        hdr_in = ssl->in_hdr - ssl->in_buf;
+        hdr_offset_in = ssl->in_hdr - ssl->in_buf;
         if (downsizing ?
             ssl->in_buf_len > in_buf_new_len && ssl->in_left < in_buf_new_len :
             ssl->in_buf_len < in_buf_new_len) {
@@ -359,10 +359,10 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
     }
 
     if (ssl->out_buf != NULL) {
-        written_out = ssl->out_msg - ssl->out_buf;
+        msg_offset_out = ssl->out_msg - ssl->out_buf;
         iv_offset_out = ssl->out_iv - ssl->out_buf;
         len_offset_out = ssl->out_len - ssl->out_buf;
-        hdr_out = ssl->out_hdr - ssl->out_buf;
+        hdr_offset_out = ssl->out_hdr - ssl->out_buf;
         if (downsizing ?
             ssl->out_buf_len > out_buf_new_len && ssl->out_left < out_buf_new_len :
             ssl->out_buf_len < out_buf_new_len) {
@@ -377,18 +377,18 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
     }
     if (modified) {
         /* Update pointers here to avoid doing it twice. */
-        ssl->in_hdr = ssl->in_buf + hdr_in;
+        ssl->in_hdr = ssl->in_buf + hdr_offset_in;
         mbedtls_ssl_update_in_pointers(ssl);
         mbedtls_ssl_reset_out_pointers(ssl);
 
         /* Fields below might not be properly updated with record
          * splitting or with CID, so they are manually updated here. */
-        ssl->out_msg = ssl->out_buf + written_out;
+        ssl->out_msg = ssl->out_buf + msg_offset_out;
         ssl->out_len = ssl->out_buf + len_offset_out;
         ssl->out_iv = ssl->out_buf + iv_offset_out;
-        ssl->out_hdr = ssl->out_buf + hdr_out;
+        ssl->out_hdr = ssl->out_buf + hdr_offset_out;
 
-        ssl->in_msg = ssl->in_buf + written_in;
+        ssl->in_msg = ssl->in_buf + msg_offset_in;
         ssl->in_len = ssl->in_buf + len_offset_in;
         ssl->in_iv = ssl->in_buf + iv_offset_in;
     }

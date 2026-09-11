@@ -339,7 +339,11 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
 {
     int modified = 0;
     size_t msg_offset_in = 0, iv_offset_in = 0, len_offset_in = 0, hdr_offset_in = 0;
+    size_t offt_offset_in = 0;
     size_t msg_offset_out = 0, iv_offset_out = 0, len_offset_out = 0, hdr_offset_out = 0;
+    if (ssl->in_offt != NULL) {
+        offt_offset_in = ssl->in_offt - ssl->in_buf;
+    }
     if (ssl->in_buf != NULL) {
         msg_offset_in = ssl->in_msg - ssl->in_buf;
         iv_offset_in = ssl->in_iv - ssl->in_buf;
@@ -391,6 +395,12 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
         ssl->in_msg = ssl->in_buf + msg_offset_in;
         ssl->in_len = ssl->in_buf + len_offset_in;
         ssl->in_iv = ssl->in_buf + iv_offset_in;
+        /* mbedtls_ssl_update_in_pointers() doesn't change ssl->in_offt this implies
+         * 1. Updating ssl->in_offt might be needed
+         * 2. The condition below correctly tests the pre-resize value */
+        if (ssl->in_offt != NULL) {
+            ssl->in_offt = ssl->in_buf + offt_offset_in;
+        }
     }
 }
 #endif /* MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */

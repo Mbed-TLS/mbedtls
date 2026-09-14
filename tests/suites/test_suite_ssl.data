@@ -379,31 +379,24 @@ depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 handshake_version:0:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_VERSION_TLS1_2
 
 TLS 1.2: client renegotiates after reading 10 of 100 bytes, MFL 512
-depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 handshake_and_exchange_data:MBEDTLS_SSL_MAX_FRAG_LEN_512:100:10:0
 
 TLS 1.2: client renegotiates after reading 1 of 100 bytes, MFL 512
-depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 handshake_and_exchange_data:MBEDTLS_SSL_MAX_FRAG_LEN_512:100:1:0
 
 TLS 1.2: client renegotiates after reading 99 of 100 bytes, MFL 512
-depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 handshake_and_exchange_data:MBEDTLS_SSL_MAX_FRAG_LEN_512:100:99:0
 
 TLS 1.2: client renegotiates with an exact-MFL record
-depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 handshake_and_exchange_data:MBEDTLS_SSL_MAX_FRAG_LEN_512:512:10:0
 
 TLS 1.2: client renegotiates after a partial read, MFL 4096
-depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 handshake_and_exchange_data:MBEDTLS_SSL_MAX_FRAG_LEN_4096:100:10:0
 
 TLS 1.2: client renegotiates without buffer resizing
-depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 handshake_and_exchange_data:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:100:10:0
 
 TLS 1.2: server requests renegotiation with unread client data
-depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 handshake_and_exchange_data:MBEDTLS_SSL_MAX_FRAG_LEN_512:100:10:1
 
 Handshake, tls1_3

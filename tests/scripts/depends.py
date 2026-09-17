@@ -432,9 +432,10 @@ class DomainData:
         if options.build_and_test_command:
             build_and_test = [[options.build_and_test_command]]
         else:
-            build_command = [options.make_command, '-f', 'scripts/legacy.make', 'CFLAGS=-Werror -O2']
+            build_command = [options.make_command, '-f', 'scripts/legacy.make',
+                             'CFLAGS=-Werror -O2']
             build_and_test = [build_command, [options.make_command, '-f',
-                                          'scripts/legacy.make', 'test']]
+                                              'scripts/legacy.make', 'test']]
         self.all_config_symbols = set(conf.settings.keys())
         psa_info = psa_information.Information().constructors
         algs = {crypto_knowledge.Algorithm(alg): symbol

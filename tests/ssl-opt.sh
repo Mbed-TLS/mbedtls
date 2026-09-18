@@ -2908,15 +2908,16 @@ run_test    "Certificate verify message with disallowed signature algorithm" \
             -c "is a fatal alert message (msg 40)"
 
 requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_384
 requires_pk_alg ECDSA
-requires_hash_alg SHA_1
 requires_hash_alg SHA_256
+requires_hash_alg SHA_384
 run_test    "Certificate verify message with disallowed hash algorithm" \
-            "$P_SRV sig_algs=ecdsa_sha1 auth_mode=required debug_level=3" \
-            "$P_CLI force_version=tls12 sig_algs=ecdsa_sha1 debug_level=1\
+            "$P_SRV sig_algs=ecdsa_secp384r1_sha384 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp384r1_sha384 debug_level=1 \
                     key_file=$DATA_FILES_PATH/ecdsa_secp256r1.key crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt" \
             1 \
-            -s "requested sig_alg \[203\] ecdsa_sha1" \
+            -s "requested sig_alg \[503\] ecdsa_secp384r1_sha384" \
             -s "received sig_alg \[403\] ecdsa_secp256r1_sha256" \
             -s "peer not adhering to requested sig_alg for verify message" \
             -c "is a fatal alert message (msg 40)"

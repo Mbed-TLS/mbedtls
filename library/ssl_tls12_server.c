@@ -4086,13 +4086,15 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
     /*
      * Hash
      */
-    md_alg = mbedtls_ssl_md_alg_from_hash(MBEDTLS_BYTE_1(sig_alg));
-
-    if (md_alg == MBEDTLS_MD_NONE || mbedtls_ssl_set_calc_verify_md(ssl, MBEDTLS_BYTE_1(sig_alg))) {
+    ret = mbedtls_ssl_set_calc_verify_md(ssl, MBEDTLS_BYTE_1(sig_alg));
+    if (ret != 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("peer using unsupported hash algorithm"
                                   " for verify message"));
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
+
+    // Since mbedtls_ssl_set_calc_verify_md() succeeded, this will never be MBEDTLS_MD_NONE.
+    md_alg = mbedtls_ssl_md_alg_from_hash(MBEDTLS_BYTE_1(sig_alg));
 
 #if !defined(MBEDTLS_MD_SHA1)
     if (MBEDTLS_MD_SHA1 == md_alg) {

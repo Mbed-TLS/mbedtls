@@ -2590,6 +2590,10 @@ run_test    "Single supported algorithm sending: openssl client" \
                     -key $DATA_FILES_PATH/server6.key" \
             0
 
+# To test the behaviour of the server, the client needs to send a certificate
+# that doesn't match any of the requested signature algorithms.
+# Our client does this, as it ignores the server's preferences
+# - see the documentation of mbedtls_ssl_conf_own_cert()
 requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
 requires_pk_alg ECDSA

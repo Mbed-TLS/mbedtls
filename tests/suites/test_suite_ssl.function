@@ -3309,14 +3309,12 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP */
-void handshake_and_exchange_data(int mfl, int application_data_len,
-                                 int first_read_len, int renegotiation_mode)
+void handshake_exchange_data_and_renegotiate(int mfl, int application_data_len,
+                                             int first_read_len, int peer_initiating_renegotiation)
 {
     enum {
         BUFFSIZE = 17000,
         MAX_APPLICATION_DATA_LEN = 4096,
-        RENEGOTIATE_FROM_CLIENT = 0,
-        RENEGOTIATE_FROM_SERVER = 1
     };
     int ret;
     unsigned char application_data[MAX_APPLICATION_DATA_LEN];
@@ -3327,17 +3325,17 @@ void handshake_and_exchange_data(int mfl, int application_data_len,
     mbedtls_test_ssl_endpoint client, server;
     mbedtls_test_handshake_test_options options;
 
+    memset(&client, 0, sizeof(client));
+    memset(&server, 0, sizeof(server));
+    memset(application_data, 0x2a, (size_t) application_data_len);
+    memset(received_data, 0, sizeof(received_data));
+
     TEST_ASSERT(application_data_len > 1);
     TEST_ASSERT(application_data_len <= MAX_APPLICATION_DATA_LEN);
     TEST_ASSERT(first_read_len > 0);
     TEST_ASSERT(first_read_len < application_data_len);
-    TEST_ASSERT(renegotiation_mode == RENEGOTIATE_FROM_CLIENT ||
-                renegotiation_mode == RENEGOTIATE_FROM_SERVER);
-
-    memset(application_data, 0x2a, (size_t) application_data_len);
-    memset(received_data, 0, sizeof(received_data));
-    memset(&client, 0, sizeof(client));
-    memset(&server, 0, sizeof(server));
+    TEST_ASSERT(peer_initiating_renegotiation == MBEDTLS_SSL_IS_CLIENT ||
+                peer_initiating_renegotiation == MBEDTLS_SSL_IS_SERVER);
 
     mbedtls_test_init_handshake_options(&options);
     options.pk_alg = MBEDTLS_PK_RSA;
@@ -3385,7 +3383,7 @@ void handshake_and_exchange_data(int mfl, int application_data_len,
     unread_offset = client.ssl.in_offt - client.ssl.in_buf;
     remaining_data_len = application_data_len - first_read_len;
 
-    if (renegotiation_mode == RENEGOTIATE_FROM_CLIENT) {
+    if (peer_initiating_renegotiation == MBEDTLS_SSL_IS_CLIENT) {
         ret = mbedtls_ssl_renegotiate(&client.ssl);
         TEST_ASSERT(ret == 0 ||
                     ret == MBEDTLS_ERR_SSL_WANT_READ ||
@@ -3399,7 +3397,7 @@ void handshake_and_exchange_data(int mfl, int application_data_len,
             TEST_ASSERT(client.ssl.in_buf_len == MBEDTLS_SSL_IN_BUFFER_LEN);
         }
         TEST_ASSERT(client.ssl.in_offt == client.ssl.in_buf + unread_offset);
-    } else if (renegotiation_mode == RENEGOTIATE_FROM_SERVER) {
+    } else if (peer_initiating_renegotiation == MBEDTLS_SSL_IS_SERVER) {
         TEST_ASSERT(mbedtls_ssl_renegotiate(&server.ssl) == 0);
         TEST_ASSERT(client.ssl.in_buf == old_in_buf);
     } else {
@@ -3416,10 +3414,16 @@ void handshake_and_exchange_data(int mfl, int application_data_len,
     TEST_ASSERT(memcmp(application_data, received_data,
                        (size_t) application_data_len) == 0);
 
-    if (renegotiation_mode == RENEGOTIATE_FROM_SERVER) {
+    if (peer_initiating_renegotiation == MBEDTLS_SSL_IS_SERVER) {
         ret = mbedtls_ssl_read(&client.ssl, received_data, 1);
         TEST_ASSERT(ret == MBEDTLS_ERR_SSL_WANT_READ ||
                     ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+        if (mfl == MBEDTLS_SSL_MAX_FRAG_LEN_NONE) {
+            TEST_ASSERT(client.ssl.in_buf == old_in_buf);
+        } else {
+            TEST_ASSERT(client.ssl.in_buf != old_in_buf);
+            TEST_ASSERT(client.ssl.in_buf_len == MBEDTLS_SSL_IN_BUFFER_LEN);
+        }
         TEST_ASSERT(client.ssl.in_offt == NULL);
     }
 

@@ -429,9 +429,13 @@ class DomainData:
     # pylint: disable=too-many-locals
     def __init__(self, options, conf):
         """Gather data about the library and establish a list of domains to test."""
-        build_command = [options.make_command, '-f', 'scripts/legacy.make', 'CFLAGS=-Werror -O2']
-        build_and_test = [build_command, [options.make_command, '-f',
-                                          'scripts/legacy.make', 'test']]
+        if options.build_and_test_command:
+            build_and_test = [[options.build_and_test_command]]
+        else:
+            build_command = [options.make_command, '-f', 'scripts/legacy.make',
+                             'CFLAGS=-Werror -O2']
+            build_and_test = [build_command, [options.make_command, '-f',
+                                              'scripts/legacy.make', 'test']]
         self.all_config_symbols = set(conf.settings.keys())
         psa_info = psa_information.Information().constructors
         algs = {crypto_knowledge.Algorithm(alg): symbol
@@ -600,6 +604,8 @@ def main():
         parser.add_argument('--make-command', metavar='CMD',
                             help='Command to run instead of make (e.g. gmake)',
                             action='store', default='make')
+        parser.add_argument('--build-and-test-command',
+                            help='Provide a custom command or script to build and test')
         parser.add_argument('tasks', metavar='TASKS', nargs='*',
                             help='The domain(s) or job(s) to test (default: all).',
                             default=True)

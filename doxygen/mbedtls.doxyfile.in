@@ -1,5 +1,5 @@
 PROJECT_NAME           = "Mbed TLS v4.2.0"
-OUTPUT_DIRECTORY       = ../apidoc/
+OUTPUT_DIRECTORY       = "@CMAKE_CURRENT_LIST_DIR@/apidoc/"
 FULL_PATH_NAMES        = NO
 OPTIMIZE_OUTPUT_FOR_C  = YES
 EXTRACT_ALL            = YES

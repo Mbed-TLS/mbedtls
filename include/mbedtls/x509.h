@@ -500,4 +500,15 @@ size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst);
 }
 #endif
 
+/**
+ * \brief          Translate hash algorithm OID into md_type
+ *
+ * \param oid      OID to use
+ * \param md_alg   place to store message digest algorithm
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
+ */
+int mbedtls_x509_oid_get_md_alg(const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_alg);
+
+
 #endif /* MBEDTLS_X509_H */

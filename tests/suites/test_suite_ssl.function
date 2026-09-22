@@ -33,8 +33,9 @@
 #define TEST_TLS12_SESSION_LOAD_OOB_ID_LEN       3
 
 /* Corrupted length fields for ssl_context_load_rejects_oob_length */
-#define TEST_SSL_CONTEXT_LOAD_OOB_CID   0
-#define TEST_SSL_CONTEXT_LOAD_OOB_ALPN  1
+#define TEST_SSL_CONTEXT_LOAD_OOB_IN_CID   0
+#define TEST_SSL_CONTEXT_LOAD_OOB_OUT_CID  1
+#define TEST_SSL_CONTEXT_LOAD_OOB_ALPN     2
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
@@ -3046,12 +3047,16 @@ exit:
 void ssl_context_load_rejects_oob_length(int field)
 {
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    /* Sentinel CID so we can find its location inside the serialized buffer. */
+    /* Sentinel CIDs so we can find their location inside the serialized
+     * buffer. The server's own CID is serialized as in_cid and the client's
+     * as out_cid; they have different lengths so that the two fields can be
+     * told apart. */
     const unsigned char server_cid[] = {
         0xAB, 0xCD, 0xEF, 0x12, 0x34, 0x56, 0x78, 0x9A
     };
     const unsigned char client_cid[] = {
-        0x9A, 0x78, 0x56, 0x34, 0x12, 0xEF, 0xCD, 0xAB
+        0x9A, 0x78, 0x56, 0x34, 0x12, 0xEF,
+        0xCD, 0xAB, 0x10, 0x32, 0x54, 0x76
     };
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
@@ -3094,10 +3099,17 @@ void ssl_context_load_rejects_oob_length(int field)
 
     switch (field) {
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-        case TEST_SSL_CONTEXT_LOAD_OOB_CID:
+        case TEST_SSL_CONTEXT_LOAD_OOB_IN_CID:
+        case TEST_SSL_CONTEXT_LOAD_OOB_OUT_CID:
+            /* Each peer's own CID has to fit in MBEDTLS_SSL_CID_IN_LEN_MAX and
+             * its peer's CID in MBEDTLS_SSL_CID_OUT_LEN_MAX. */
+            TEST_ASSUME(MBEDTLS_SSL_CID_IN_LEN_MAX >= sizeof(server_cid) &&
+                        MBEDTLS_SSL_CID_IN_LEN_MAX >= sizeof(client_cid));
+            TEST_ASSUME(MBEDTLS_SSL_CID_OUT_LEN_MAX >= sizeof(server_cid) &&
+                        MBEDTLS_SSL_CID_OUT_LEN_MAX >= sizeof(client_cid));
             /* Configure CID with unique patterns so we can locate the length
-             * byte in the serialized context. Both peers must agree on the CID
-             * length via conf_cid() before set_cid() will accept the value. */
+             * bytes in the serialized context. On each peer the length passed
+             * to conf_cid() must match the one passed to set_cid(). */
             TEST_EQUAL(mbedtls_ssl_conf_cid(
                            &client_ep.conf, sizeof(client_cid),
                            MBEDTLS_SSL_UNEXPECTED_CID_FAIL), 0);
@@ -3110,15 +3122,24 @@ void ssl_context_load_rejects_oob_length(int field)
             TEST_EQUAL(mbedtls_ssl_set_cid(
                            &server_ep.ssl, MBEDTLS_SSL_CID_ENABLED,
                            server_cid, sizeof(server_cid)), 0);
-            sentinel = server_cid;
-            sentinel_len = sizeof(server_cid);
-            /* The smallest length that overflows the in_cid array in the SSL
-             * transform, so the size check on that array, not the in-buffer
-             * bounds check before it, is what must reject the corrupted
-             * length. The loaded data gets the in_cid field grown to this
-             * many bytes (see the construction of load_buf below) so that
-             * the in-buffer bounds check indeed passes. */
-            corrupt_len = (unsigned char) (MBEDTLS_SSL_CID_IN_LEN_MAX + 1);
+            /* The corrupted length is the smallest one that overflows the
+             * in_cid or out_cid array in the SSL transform, so the size check
+             * on that array, not the in-buffer bounds check before it, is
+             * what must reject it. The loaded data gets the field grown to
+             * this many bytes (see the construction of load_buf below) so
+             * that the in-buffer bounds check indeed passes. A one-byte
+             * serialized length cannot overflow a 255-byte CID array. */
+            if (field == TEST_SSL_CONTEXT_LOAD_OOB_IN_CID) {
+                TEST_ASSUME(MBEDTLS_SSL_CID_IN_LEN_MAX < 255);
+                sentinel = server_cid;
+                sentinel_len = sizeof(server_cid);
+                corrupt_len = (unsigned char) (MBEDTLS_SSL_CID_IN_LEN_MAX + 1);
+            } else {
+                TEST_ASSUME(MBEDTLS_SSL_CID_OUT_LEN_MAX < 255);
+                sentinel = client_cid;
+                sentinel_len = sizeof(client_cid);
+                corrupt_len = (unsigned char) (MBEDTLS_SSL_CID_OUT_LEN_MAX + 1);
+            }
             break;
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
@@ -3181,13 +3202,14 @@ void ssl_context_load_rejects_oob_length(int field)
 
     field_off = (size_t) (len_p + 1 - context_buf);
 
-    if (field == TEST_SSL_CONTEXT_LOAD_OOB_CID) {
-        /* The in_cid field sits in the middle of the serialized data, so a
+    if (field == TEST_SSL_CONTEXT_LOAD_OOB_IN_CID ||
+        field == TEST_SSL_CONTEXT_LOAD_OOB_OUT_CID) {
+        /* The CID fields sit in the middle of the serialized data, so a
          * corrupted length cannot reach past the end of the buffer. Instead
          * grow the field itself: keep its bytes, pad it to corrupt_len bytes
          * and append the untouched rest of the serialized data, so that the
-         * in-buffer bounds check passes and the size check on the in_cid
-         * array is reached. */
+         * in-buffer bounds check passes and the size check on the CID array
+         * is reached. */
         load_len = context_buf_len + corrupt_len - sentinel_len;
         TEST_CALLOC(load_buf, load_len);
         memcpy(load_buf, context_buf, field_off + sentinel_len);
@@ -3197,8 +3219,9 @@ void ssl_context_load_rejects_oob_length(int field)
                context_buf + field_off + sentinel_len,
                context_buf_len - field_off - sentinel_len);
         /* Double-check that corrupt_len bytes of field data plus the next
-         * length byte are present, which is what the in-buffer bounds check
-         * requires. */
+         * byte are present, which is the most the in-buffer bounds checks
+         * require (the in_cid one also accounts for the out_cid length
+         * byte). */
         TEST_ASSERT(load_len - field_off >= (size_t) corrupt_len + 1);
     } else {
         /* The ALPN field is the last one saved, so the buffer already ends
@@ -3224,11 +3247,11 @@ void ssl_context_load_rejects_oob_length(int field)
      * out-of-bounds bytes are unlikely to match a configured protocol; what
      * the missing check leaks is the out-of-bounds read in memcmp() itself,
      * so that case catches a regression only when the test suite runs under
-     * ASan or Valgrind. In the CID case, without the size check the
-     * memcpy() overflows the in_cid array inside the SSL transform (which
-     * stays within the enclosing struct, invisible to ASan), the rest of
-     * the data then parses correctly aligned and the load succeeds, so the
-     * check below catches a regression on its own. */
+     * ASan or Valgrind. In the CID cases, without the size check the
+     * memcpy() overflows the in_cid or out_cid array inside the SSL
+     * transform (which stays within the enclosing struct, invisible to
+     * ASan), the rest of the data then parses correctly aligned and the
+     * load succeeds, so the check below catches a regression on its own. */
     TEST_EQUAL(mbedtls_ssl_context_load(&server_ep.ssl, load_buf, load_len),
                MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
 

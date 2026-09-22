@@ -3054,9 +3054,13 @@ TLS 1.3: Session serialization rejects ALPN without terminator
 depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_ALPN
 ssl_session_load_rejects_bad_serialized_data:MBEDTLS_SSL_VERSION_TLS1_3:MBEDTLS_SSL_IS_SERVER:TEST_TLS13_SESSION_LOAD_ALPN_NO_NUL
 
-SSL context serialization rejects out-of-bounds DTLS CID length
+SSL context serialization rejects out-of-bounds DTLS in_cid length
 depends_on:MBEDTLS_SSL_DTLS_CONNECTION_ID
-ssl_context_load_rejects_oob_length:TEST_SSL_CONTEXT_LOAD_OOB_CID
+ssl_context_load_rejects_oob_length:TEST_SSL_CONTEXT_LOAD_OOB_IN_CID
+
+SSL context serialization rejects out-of-bounds DTLS out_cid length
+depends_on:MBEDTLS_SSL_DTLS_CONNECTION_ID
+ssl_context_load_rejects_oob_length:TEST_SSL_CONTEXT_LOAD_OOB_OUT_CID
 
 SSL context serialization rejects out-of-bounds ALPN length
 depends_on:MBEDTLS_SSL_ALPN

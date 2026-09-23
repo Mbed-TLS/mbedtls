@@ -2990,24 +2990,36 @@ static int x509_cn_looks_like_uri(const char *cn)
  * RFC 5280 4.2.1.6 says DNS names are as specified by Section 3.5 of
  * RFC1034 and as modified by Section 2.1 of RFC1123, in particular they
  * consist entirely of ASCII letters, digits, hyphen, and dot.
- * Also allow underscore as it might be used in private host names.
+ *
+ * In compatibility mode (only used in CN matching), also allow:
+ * - underscore as it might be used in private host names;
+ * - non-ASCII as people might not be using Punycode as they should;
+ * and both have always "worked" historically.
  *
  * For now, accept any non-empty string that only consists of the allowed
  * characters.
  */
-static int x509_cn_looks_like_dns(const char *cn)
+static int x509_cn_looks_like_dns(const char *cn, int compat_mode)
 {
     if (*cn == '\0') {
         return 0;
     }
 
     for (const char *p = cn; *p != '\0'; p++) {
-        if (!((*p >= 'a' && *p <= 'z') ||
-              (*p >= 'A' && *p <= 'Z') ||
-              (*p >= '0' && *p <= '9') ||
-              *p == '-' || *p == '.' || *p == '_')) {
-            return 0;
+        /* ASCII letters, digits, hyphen and dot always acceptable */
+        if ((*p >= 'a' && *p <= 'z') ||
+            (*p >= 'A' && *p <= 'Z') ||
+            (*p >= '0' && *p <= '9') ||
+            *p == '-' || *p == '.') {
+            continue;
         }
+
+        /* In compat mode, also accept underscore and non-ASCII */
+        if (compat_mode == 1 && (*p == '_' || (unsigned char) *p >= 0x80)) {
+            continue;
+        }
+
+        return 0;
     }
 
     return 1;
@@ -3048,7 +3060,7 @@ static int x509_crt_infer_name_type(const char *cn, void *ip, size_t *ip_len)
         return MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
     }
 
-    if (x509_cn_looks_like_dns(cn)) {
+    if (x509_cn_looks_like_dns(cn, 0)) {
         return MBEDTLS_X509_SAN_DNS_NAME;
     }
 
@@ -3088,13 +3100,14 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
                 continue;
             }
 
-            if (name_type == MBEDTLS_X509_SAN_DNS_NAME &&
+            /* Legacy path: be more lax in what we match using DNS rules */
+            if (x509_cn_looks_like_dns(cn, 1) &&
                 x509_crt_check_dns_name(&name->val, cn, cn_len) == 0) {
                 return;
             }
 
-            if (name_type == MBEDTLS_X509_SAN_NONE &&
-                name->val.len == cn_len &&
+            /* Final compat fallback: exact byte match */
+            if (name->val.len == cn_len &&
                 memcmp(name->val.p, cn, cn_len) == 0) {
                 return;
             }

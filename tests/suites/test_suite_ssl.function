@@ -32,7 +32,8 @@
 
 #if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_SSL_CLI_C) && \
-    defined(MBEDTLS_PSA_CRYPTO_C)
+    defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
 #define SSL_TEST_KEY_SLICE_1_LENGTH 4
 #define SSL_TEST_KEY_SLICE_2_LENGTH 10
 static size_t ssl_test_tiny_key_slice_length(size_t slice_idx)
@@ -47,7 +48,9 @@ static size_t ssl_test_tiny_key_slice_length(size_t slice_idx)
     (SSL_TEST_KEY_SLICE_1_LENGTH +                         \
      SSL_TEST_KEY_SLICE_2_LENGTH +                         \
      psa_key_slot_volatile_slice_count() - 2)
-#endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_SSL_CLI_C &&
+          MBEDTLS_PSA_CRYPTO_C && MBEDTLS_SSL_PROTO_TLS1_3 &&
+          MBEDTLS_USE_PSA_CRYPTO */
 #else /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
 #define SSL_TEST_MAX_VOLATILE_KEYS MBEDTLS_PSA_KEY_SLOT_COUNT
 #endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */

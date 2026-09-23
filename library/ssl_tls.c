@@ -2019,7 +2019,15 @@ int mbedtls_ssl_set_hs_psk(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        alg = PSA_ALG_HKDF_EXTRACT(PSA_ALG_ANY_HASH);
+#if defined(PSA_WANT_ALG_SHA_384)
+        if (ssl->handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+            alg = PSA_ALG_HKDF_EXTRACT(PSA_ALG_SHA_384);
+        } else
+#endif /* PSA_WANT_ALG_SHA_384 */
+        {
+            alg = PSA_ALG_HKDF_EXTRACT(PSA_ALG_SHA_256);
+        }
+
         psa_set_key_usage_flags(&key_attributes,
                                 PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
     }

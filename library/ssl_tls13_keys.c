@@ -329,10 +329,11 @@ int mbedtls_ssl_tls13_derive_secret(
 
 }
 
-int mbedtls_ssl_tls13_evolve_secret(
+static int ssl_tls13_evolve_secret_internal(
     psa_algorithm_t hash_alg,
     const unsigned char *secret_old,
     const unsigned char *input, size_t input_len,
+    mbedtls_svc_key_id_t input_key,
     unsigned char *secret_new)
 {
     int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
@@ -342,7 +343,7 @@ int mbedtls_ssl_tls13_evolve_secret(
     unsigned char tmp_secret[PSA_MAC_MAX_SIZE] = { 0 };
     const unsigned char all_zeroes_input[MBEDTLS_TLS1_3_MD_MAX_SIZE] = { 0 };
     const unsigned char *l_input = NULL;
-    size_t l_input_len;
+    size_t l_input_len = 0;
 
     psa_key_derivation_operation_t operation =
         PSA_KEY_DERIVATION_OPERATION_INIT;
@@ -370,12 +371,14 @@ int mbedtls_ssl_tls13_evolve_secret(
 
     ret = 0;
 
-    if (input != NULL && input_len != 0) {
-        l_input = input;
-        l_input_len = input_len;
-    } else {
-        l_input = all_zeroes_input;
-        l_input_len = hlen;
+    if (mbedtls_svc_key_id_is_null(input_key)) {
+        if (input != NULL && input_len != 0) {
+            l_input = input;
+            l_input_len = input_len;
+        } else {
+            l_input = all_zeroes_input;
+            l_input_len = hlen;
+        }
     }
 
     status = psa_key_derivation_setup(&operation,
@@ -394,9 +397,18 @@ int mbedtls_ssl_tls13_evolve_secret(
         goto cleanup;
     }
 
-    status = psa_key_derivation_input_bytes(&operation,
-                                            PSA_KEY_DERIVATION_INPUT_SECRET,
-                                            l_input, l_input_len);
+    if (!mbedtls_svc_key_id_is_null(input_key)) {
+        status = psa_key_derivation_input_key(
+            &operation,
+            PSA_KEY_DERIVATION_INPUT_SECRET,
+            input_key);
+    } else {
+        status = psa_key_derivation_input_bytes(
+            &operation,
+            PSA_KEY_DERIVATION_INPUT_SECRET,
+            l_input,
+            l_input_len);
+    }
 
     if (status != PSA_SUCCESS) {
         goto cleanup;
@@ -416,6 +428,30 @@ cleanup:
     ret = (ret == 0 ? PSA_TO_MBEDTLS_ERR(status) : ret);
     mbedtls_platform_zeroize(tmp_secret, sizeof(tmp_secret));
     return ret;
+}
+
+
+
+
+
+
+
+
+
+
+int mbedtls_ssl_tls13_evolve_secret(
+    psa_algorithm_t hash_alg,
+    const unsigned char *secret_old,
+    const unsigned char *input, size_t input_len,
+    unsigned char *secret_new)
+{
+    return ssl_tls13_evolve_secret_internal(
+        hash_alg,
+        secret_old,
+        input,
+        input_len,
+        MBEDTLS_SVC_KEY_ID_INIT,
+        secret_new);
 }
 
 int mbedtls_ssl_tls13_derive_early_secrets(
@@ -841,16 +877,23 @@ int mbedtls_ssl_tls13_create_psk_binder(mbedtls_ssl_context *ssl,
     unsigned char early_secret[PSA_MAC_MAX_SIZE];
     size_t const hash_len = PSA_HASH_LENGTH(hash_alg);
     size_t actual_len;
-
-#if !defined(MBEDTLS_DEBUG_C)
-    ssl = NULL; /* make sure we don't use it except for debug */
-    ((void) ssl);
-#endif
+    mbedtls_svc_key_id_t psk_opaque = MBEDTLS_SVC_KEY_ID_INIT;
 
     /* We should never call this function with an unknown hash,
      * but add an assertion anyway. */
     if (!PSA_ALG_IS_HASH(hash_alg)) {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    /*
+     * External PSKs may be configured as opaque PSA keys.
+     *
+     * Do not use a configured external opaque PSK for resumption binders:
+     * resumption PSKs are supplied explicitly through psk/psk_len.
+     */
+    if (ssl != NULL &&
+        psk_type == MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL) {
+        psk_opaque = mbedtls_ssl_get_opaque_psk(ssl);
     }
 
     /*
@@ -864,12 +907,14 @@ int mbedtls_ssl_tls13_create_psk_binder(mbedtls_ssl_context *ssl,
      *            v
      */
 
-    ret = mbedtls_ssl_tls13_evolve_secret(hash_alg,
-                                          NULL,           /* Old secret */
-                                          psk, psk_len,   /* Input      */
-                                          early_secret);
+    ret = ssl_tls13_evolve_secret_internal(
+        hash_alg,
+        NULL,           /* Old secret */
+        psk, psk_len,   /* Raw input, if used */
+        psk_opaque,     /* Opaque PSA input, if used */
+        early_secret);
     if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_evolve_secret", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls13_evolve_secret_internal", ret);
         goto exit;
     }
 
@@ -1230,9 +1275,6 @@ int mbedtls_ssl_tls13_key_schedule_stage_early(mbedtls_ssl_context *ssl)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t hash_alg;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    unsigned char *psk = NULL;
-    size_t psk_len = 0;
-
     if (handshake->ciphersuite_info == NULL) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("cipher suite info not found"));
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
@@ -1241,22 +1283,25 @@ int mbedtls_ssl_tls13_key_schedule_stage_early(mbedtls_ssl_context *ssl)
     hash_alg = mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) handshake->ciphersuite_info->mac);
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     if (mbedtls_ssl_tls13_key_exchange_mode_with_psk(ssl)) {
-        ret = mbedtls_ssl_tls13_export_handshake_psk(ssl, &psk, &psk_len);
-        if (ret != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_export_handshake_psk",
-                                  ret);
-            return ret;
-        }
+        /*
+         * In TLS 1.3 the handshake PSK is always stored as a PSA key, so
+         * opaque (possibly non-exportable) PSKs are consumed directly by
+         * HKDF without ever exporting them to raw bytes.
+         */
+        ret = ssl_tls13_evolve_secret_internal(
+            hash_alg,
+            NULL,                    /* Old secret */
+            NULL, 0,                 /* Raw input, unused */
+            handshake->psk_opaque,   /* Opaque PSA input */
+            handshake->tls13_master_secrets.early);
+    } else
+#endif
+    {
+        ret = mbedtls_ssl_tls13_evolve_secret(hash_alg, NULL, NULL, 0,
+                                              handshake->tls13_master_secrets.early);
     }
-#endif
-
-    ret = mbedtls_ssl_tls13_evolve_secret(hash_alg, NULL, psk, psk_len,
-                                          handshake->tls13_master_secrets.early);
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
-    mbedtls_free((void *) psk);
-#endif
     if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_evolve_secret", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "TLS 1.3: evolve early secret", ret);
         return ret;
     }
 

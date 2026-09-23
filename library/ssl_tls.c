@@ -346,14 +346,14 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
     size_t msg_offset_in = 0, iv_offset_in = 0, len_offset_in = 0, hdr_offset_in = 0;
     size_t offt_offset_in = 0;
     size_t msg_offset_out = 0, iv_offset_out = 0, len_offset_out = 0, hdr_offset_out = 0;
-    if (ssl->in_offt != NULL) {
-        offt_offset_in = ssl->in_offt - ssl->in_buf;
-    }
     if (ssl->in_buf != NULL) {
         msg_offset_in = ssl->in_msg - ssl->in_buf;
         iv_offset_in = ssl->in_iv - ssl->in_buf;
         len_offset_in = ssl->in_len - ssl->in_buf;
         hdr_offset_in = ssl->in_hdr - ssl->in_buf;
+        if (ssl->in_offt != NULL) {
+            offt_offset_in = ssl->in_offt - ssl->in_buf;
+        }
         if (downsizing ?
             ssl->in_buf_len > in_buf_new_len && ssl->in_left < in_buf_new_len :
             ssl->in_buf_len < in_buf_new_len) {

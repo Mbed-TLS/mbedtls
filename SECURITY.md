@@ -27,7 +27,8 @@ Its
 applies to all cryptographic operations performed by Mbed TLS. In particular,
 users of Mbed TLS should note the considerations around
 [block ciphers](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/SECURITY.md#block-ciphers)
-since they apply to the block ciphers used in TLS.
+since they apply to the block ciphers used in TLS and to software GCM's GHASH
+implementation.
 
 ## Threat model
 

@@ -1,0 +1,10 @@
+Bugfix
+   * Fix a buffer over-read when parsing a TLS 1.2 ClientHello or
+     CertificateRequest that is truncated inside the two-byte length field
+     of the ciphersuite list (server side) or of the certificate
+     authorities list (client side): the length checks preceding those
+     fields reserved too few bytes, so the length field could be read past
+     the end of the message. Such messages are now rejected before the
+     read.
+   * The TLS 1.2 client now rejects a CertificateRequest message whose
+     supported_signature_algorithms list has an odd length.

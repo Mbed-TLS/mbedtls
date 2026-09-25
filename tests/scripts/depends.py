@@ -189,7 +189,7 @@ If what is False, announce that the job has failed.'''
             header += f'#error "{option}"\n'
             header += '#endif\n'
         include_path = ['include', 'tf-psa-crypto/include',
-                        'tf-psa-crypto/drivers/builtin/include'
+                        'tf-psa-crypto/drivers/builtin/include',
                         'tf-psa-crypto/drivers/pqcp/include']
 
         try:
@@ -206,6 +206,7 @@ If what is False, announce that the job has failed.'''
             log_line('Inconsistent config option(s):')
             for option in sorted(failed):
                 log_line('  ' + option)
+            print(e)
             return False
 
         finally:

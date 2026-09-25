@@ -1,0 +1,4 @@
+Bugfix
+   * Reject serialized SSL contexts whose ALPN protocol length exceeds the
+     remaining serialized data, instead of reading past the end of the buffer
+     in mbedtls_ssl_context_load().

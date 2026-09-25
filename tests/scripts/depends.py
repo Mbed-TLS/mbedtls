@@ -206,7 +206,6 @@ If what is False, announce that the job has failed.'''
             log_line('Inconsistent config option(s):')
             for option in sorted(failed):
                 log_line('  ' + option)
-            print(e)
             return False
 
         finally:

@@ -238,7 +238,11 @@ static int write_certificate(mbedtls_x509write_cert *crt, const char *output_fil
         output_start = output_buf;
     }
 
-    if ((f = fopen(output_file, "w")) == NULL) {
+    /*
+     * DER output is binary data. Use binary mode on Windows to prevent
+     * text-mode newline translation.
+     */
+    if ((f = fopen(output_file, opt.format == FORMAT_DER ? "wb" : "w")) == NULL) {
         return -1;
     }
 

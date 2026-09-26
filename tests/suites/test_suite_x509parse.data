@@ -3471,6 +3471,30 @@ X509 CRT parse Authority Key Id - Wrong Issuer sequence
 depends_on:PSA_WANT_ALG_MD5:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 x509_crt_parse_authoritykeyid:"../framework/data_files/clusterfuzz-testcase-minimized-fuzz_x509crt-6666050834661376.crt.der":"":"":"":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, MBEDTLS_ERR_ASN1_OUT_OF_DATA)
 
+# Self-signed certificate whose AuthorityKeyIdentifier is an empty SEQUENCE (30 00).
+# All fields of AuthorityKeyIdentifier are OPTIONAL in the ASN.1 module (RFC 5280,
+# Appendix A.2), so this is syntactically valid; some antivirus products install
+# such a root for HTTPS scanning. Generated with Python cryptography:
+#   key = ec.generate_private_key(ec.SECP256R1())
+#   name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Test")])
+#   cert = (x509.CertificateBuilder().subject_name(name).issuer_name(name)
+#           .public_key(key.public_key()).serial_number(1)
+#           .not_valid_before(datetime.datetime(2025, 1, 1))
+#           .not_valid_after(datetime.datetime(2035, 1, 1))
+#           .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
+#           .add_extension(x509.UnrecognizedExtension(ObjectIdentifier("2.5.29.35"),
+#                                                     b"\x30\x00"), critical=False)
+#           .sign(key, hashes.SHA256()))
+X509 CRT parse Authority Key Id - Empty sequence
+depends_on:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
+x509parse_crt:"3082012b3081d1a003020102020101300a06082a8648ce3d040302300f310d300b06035504030c0454657374301e170d3235303130313030303030305a170d3335303130313030303030305a300f310d300b06035504030c04546573743059301306072a8648ce3d020106082a8648ce3d03010703420004f8cf6bd9eb57f5fdc8771103e9f75becb6a865b1a5de8492b3233170f49e1ff388d25d24376d130c86a8acb5b0478d7c49b83f07ffbd0684c26a0da42c752256a31e301c300f0603551d130101ff040530030101ff30090603551d2304023000300a06082a8648ce3d0403020349003046022100cffb50bdb73287649de96d4c48fcbb5d6e1eb468c72c5016776a9fdf0dc3d295022100e1b4b7ecba9ca1b43882a688c6fd93ffc99112247cf3ebb852b07f09d7c76be2":"cert. version     \: 3\nserial number     \: 01\nissuer name       \: CN=Test\nsubject name      \: CN=Test\nissued  on        \: 2025-01-01 00\:00\:00\nexpires on        \: 2035-01-01 00\:00\:00\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nbasic constraints \: CA=true\n":0
+
+# Generated the same way as above, with extension value b"\x30\x01\x80":
+# a [0] tag without a length. This must still be rejected.
+X509 CRT parse Authority Key Id - Truncated keyIdentifier
+depends_on:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
+x509parse_crt:"3082012b3081d2a003020102020101300a06082a8648ce3d040302300f310d300b06035504030c0454657374301e170d3235303130313030303030305a170d3335303130313030303030305a300f310d300b06035504030c04546573743059301306072a8648ce3d020106082a8648ce3d03010703420004eba1e439f91038837190c4da3703001dff24411b90bf6998f56cba76c753c19ca9158f3c243ccb2118f8b6a78b6eb507962e855bf7c13dbafc314dc56d5d27d8a31f301d300f0603551d130101ff040530030101ff300a0603551d230403300180300a06082a8648ce3d040302034800304502205443c61342f55d3d4cec26df92b7614a5e67177f057efd4f6fb9d7a1a47f5d110221008f05c4c193e203d78a322455132f1b4428388904874dd329fc60a68a37a559b4":"":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, MBEDTLS_ERR_ASN1_OUT_OF_DATA)
+
 OID get numeric string - hardware module name
 oid_get_numeric_string:"2B06010505070804":0:"1.3.6.1.5.5.7.8.4"
 

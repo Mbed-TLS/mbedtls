@@ -638,6 +638,11 @@ static int x509_get_authority_key_id(unsigned char **p,
                                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
 
+    /* All fields are OPTIONAL, so an empty SEQUENCE is valid. */
+    if (*p == end) {
+        return 0;
+    }
+
     ret = mbedtls_asn1_get_tag(p, end, &len,
                                MBEDTLS_ASN1_CONTEXT_SPECIFIC);
 

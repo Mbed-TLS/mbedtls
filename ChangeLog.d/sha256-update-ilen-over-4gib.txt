@@ -1,0 +1,6 @@
+Bugfix
+   * Fix mbedtls_sha256_update() computing the wrong digest when a single
+     call is passed 4GiB (2^32 bytes) or more of input on a 64-bit
+     platform: the upper 32 bits of the input length were silently
+     dropped from the running byte count used at finalization. Reported
+     by TimothyPMann in #10964.

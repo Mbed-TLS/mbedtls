@@ -183,6 +183,36 @@ static void pre_handshake_tweak_contexts(mbedtls_test_ssl_endpoint *client,
 }
 #endif
 
+/* Model a short send immediately before client-initiated renegotiation. */
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH) && \
+    defined(MBEDTLS_SSL_RENEGOTIATION) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_ECP_HAVE_SECP256R1) && \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
+    defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && \
+    defined(MBEDTLS_MD_CAN_SHA256)
+static void resize_with_pending_output(mbedtls_test_ssl_endpoint *client,
+                                       mbedtls_test_ssl_endpoint *server,
+                                       void *param)
+{
+    mbedtls_ssl_context *ssl = &client->ssl;
+    (void) server;
+    (void) param;
+
+    TEST_ASSERT(ssl->out_buf_len < MBEDTLS_SSL_OUT_BUFFER_LEN);
+    TEST_EQUAL(ssl->out_left, 0);
+    ssl->out_hdr = ssl->out_buf + 24;
+    ssl->out_left = 24;
+    TEST_EQUAL(mbedtls_ssl_renegotiate(ssl), MBEDTLS_ERR_SSL_WANT_READ);
+    TEST_EQUAL(ssl->renego_status, MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS);
+    TEST_EQUAL(ssl->out_buf_len, MBEDTLS_SSL_OUT_BUFFER_LEN);
+
+exit:
+    return;
+}
+#endif
+
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
     defined(MBEDTLS_PKCS1_V15) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
@@ -3710,6 +3740,25 @@ void resize_buffers_renegotiate_mfl(int mfl, int legacy_renegotiation,
     test_resize_buffers(mfl, 1, legacy_renegotiation, 0, 1, cipher);
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_MD_CAN_SHA256 */
+void resize_pending_output_asan()
+{
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_init_handshake_options(&options);
+    options.pk_alg = MBEDTLS_PK_ECDSA;
+    options.mfl = MBEDTLS_SSL_MAX_FRAG_LEN_512;
+    options.resize_buffers = 1;
+    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.post_data_fun = resize_with_pending_output;
+    mbedtls_test_ssl_perform_handshake(&options);
+    goto exit;
+exit:
+    mbedtls_test_free_handshake_options(&options);
 }
 /* END_CASE */
 

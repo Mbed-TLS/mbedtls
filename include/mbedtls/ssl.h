@@ -4838,6 +4838,9 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 enabled on server (see mbedtls_ssl_conf_early_data()
  *                 documentation). You must call mbedtls_ssl_read_early_data()
  *                 to read the early data before resuming the handshake.
+ * \return         #MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO if application data was received
+ *                 while the client was waiting for the ServerHello during renegotiation. Call
+ *                 mbedtls_ssl_read() to consume the pending data before continuing renegotiation.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -5091,6 +5094,9 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 enabled on server (see mbedtls_ssl_conf_early_data()
  *                 documentation). You must call mbedtls_ssl_read_early_data()
  *                 to read the early data before resuming the handshake.
+ * \return         #MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO if application data was received
+ *                 while the client was waiting for the ServerHello during renegotiation. Call
+ *                 mbedtls_ssl_read() to consume the pending data before continuing renegotiation.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *

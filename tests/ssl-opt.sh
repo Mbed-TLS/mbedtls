@@ -2566,6 +2566,8 @@ run_test    "Unique IV in GCM" \
             -U "IV used"
 
 # Test for correctness of sent single supported algorithm
+# Force a ciphersuite with a matching PRF to satisfy our TLS 1.2 client
+# See the comments in ssl_write_certificate_verify()
 requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -2575,7 +2577,8 @@ requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 run_test    "Single supported algorithm sending: mbedtls client" \
             "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required debug_level=3" \
-            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp256r1_sha256 debug_level=3 \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
+                    sig_algs=ecdsa_secp256r1_sha256 debug_level=3 \
                     key_file=$DATA_FILES_PATH/ecdsa_secp256r1.key crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt" \
             0 \
             -c "Supported Signature Algorithm found: 04 03"
@@ -2600,7 +2603,8 @@ requires_pk_alg ECDSA
 requires_hash_alg SHA_256
 run_test    "Certificate verify message with disallowed signature algorithm" \
             "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required debug_level=3" \
-            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp256r1_sha256 \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
+            sig_algs=ecdsa_secp256r1_sha256 \
                     key_file=$DATA_FILES_PATH/cli-rsa.key crt_file=$DATA_FILES_PATH/cli-rsa-sha256.crt" \
             1 \
             -s "requested sig_alg \[403\] ecdsa_secp256r1_sha256" \
@@ -2615,7 +2619,8 @@ requires_hash_alg SHA_256
 requires_hash_alg SHA_384
 run_test    "Certificate verify message with disallowed hash algorithm" \
             "$P_SRV sig_algs=ecdsa_secp384r1_sha384 auth_mode=required debug_level=3" \
-            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp384r1_sha384 \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
+                    sig_algs=ecdsa_secp384r1_sha384 \
                     key_file=$DATA_FILES_PATH/ecdsa_secp256r1.key crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt" \
             1 \
             -s "requested sig_alg \[503\] ecdsa_secp384r1_sha384" \

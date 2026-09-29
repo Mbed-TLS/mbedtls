@@ -6237,6 +6237,82 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_CLI_C:MBEDTLS_DEBUG_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED:PSA_WANT_ALG_CHACHA20_POLY1305:PSA_WANT_ALG_SHA_256:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP */
+void ssl_server_rejects_empty_client_key_exchange()
+{
+    /* Non-regression test: an ECDHE_RSA/ECDHE_ECDSA ClientKeyExchange with an
+     * empty body used to make the server read the public-key length byte one
+     * past the end of the message. The pointer was advanced before checking
+     * that a byte was available, so the remaining-length computation wrapped
+     * around to a huge value and the subsequent length checks were bypassed.
+     * The server must reject it cleanly instead. */
+    enum { BUFFSIZE = 16384 };
+    mbedtls_test_ssl_endpoint server, client;
+    mbedtls_platform_zeroize(&server, sizeof(server));
+    mbedtls_platform_zeroize(&client, sizeof(client));
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_init_handshake_options(&options);
+    mbedtls_test_ssl_log_pattern srv_pattern;
+    memset(&srv_pattern, 0, sizeof(srv_pattern));
+    int ret = -1;
+
+    /* A ClientKeyExchange with an empty body: a TLS 1.2 handshake record
+     * (length 4) wrapping only the handshake header (type
+     * client_key_exchange, length 0). */
+    const unsigned char empty_cke[] = {
+        0x16, 0x03, 0x03, 0x00, 0x04, /* record: handshake, TLS 1.2, length 4 */
+        0x10, 0x00, 0x00, 0x00        /* handshake: client_key_exchange, len 0 */
+    };
+
+    PSA_INIT();
+
+    srv_pattern.pattern = "Invalid buffer length";
+    options.srv_log_obj = &srv_pattern;
+    options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
+    mbedtls_debug_set_threshold(3);
+
+    options.pk_alg = MBEDTLS_PK_ECDSA;
+    options.cipher = "TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256";
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
+    ret = mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
+                                         &options);
+    TEST_EQUAL(ret, 0);
+    ret = mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
+                                         &options);
+    TEST_EQUAL(ret, 0);
+    ret = mbedtls_test_mock_socket_connect(&server.socket, &client.socket,
+                                           BUFFSIZE);
+    TEST_EQUAL(ret, 0);
+
+    /* Drive the handshake until the client is about to send its
+     * ClientKeyExchange, i.e. the server is waiting to receive one. */
+    ret = mbedtls_test_move_handshake_to_state(&client.ssl, &server.ssl,
+                                               MBEDTLS_SSL_CLIENT_KEY_EXCHANGE);
+    TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_SSL_WANT_READ);
+
+    /* Inject the crafted empty ClientKeyExchange in place of the client's. */
+    ret = mbedtls_test_mock_tcp_send_b(&client.socket, empty_cke,
+                                       sizeof(empty_cke));
+    TEST_EQUAL(ret, (int) sizeof(empty_cke));
+
+    do {
+        ret = mbedtls_ssl_handshake_step(&server.ssl);
+    } while (ret == 0 && server.ssl.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE);
+
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
+    TEST_ASSERT(srv_pattern.counter >= 1);
+
+exit:
+    mbedtls_test_free_handshake_options(&options);
+    mbedtls_test_ssl_endpoint_free(&server);
+    mbedtls_test_ssl_endpoint_free(&client);
+    mbedtls_debug_set_threshold(0);
+    PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_DEBUG_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT:PSA_WANT_ALG_ECDSA_ANY */
 void send_large_fragmented_hello(int hs_len_int, int first_frag_content_len_int,
                                  char *log_pattern, int expected_ret)

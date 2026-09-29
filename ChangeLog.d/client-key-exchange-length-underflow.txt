@@ -1,0 +1,7 @@
+Bugfix
+   * Reject an empty ECDHE_RSA/ECDHE_ECDSA ClientKeyExchange on the server
+     instead of reading the public-key length byte past the end of the
+     message. The pointer was advanced before checking that a byte was
+     available, so the remaining-length computation wrapped around and the
+     subsequent length checks were bypassed, letting bytes past the message
+     be copied in as the peer's ECDH public key.

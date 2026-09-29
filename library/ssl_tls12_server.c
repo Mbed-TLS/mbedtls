@@ -3005,12 +3005,24 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA) {
-        size_t data_len = (size_t) (*p++);
-        size_t buf_len = (size_t) (end - p);
         psa_status_t status = PSA_ERROR_GENERIC_ERROR;
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
         MBEDTLS_SSL_DEBUG_MSG(3, ("Read the peer's public key."));
+
+        /*
+         * Make sure the length byte is inside the message before reading it,
+         * otherwise `end - p` below wraps around to a huge value and defeats
+         * the length checks. The ECDHE_PSK branch guards its own length byte
+         * the same way.
+         */
+        if (p >= end) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid buffer length"));
+            return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+        }
+
+        size_t data_len = (size_t) (*p++);
+        size_t buf_len = (size_t) (end - p);
 
         /*
          * We must have at least two bytes (1 for length, at least 1 for data)

@@ -1,0 +1,3 @@
+Security
+   * Fix a remotely exploitable buffer overflow in TLS in some configurations
+     where ECJPAKE is enabled. CVE-2026-90469

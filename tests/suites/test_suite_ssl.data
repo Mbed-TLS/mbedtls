@@ -3632,3 +3632,18 @@ tls13_record_boundary_alignment:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HS_FINISHED
 TLS 1.3 EndOfEarlyData record boundary alignment enforcement
 depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_SESSION_TICKETS
 tls13_record_boundary_alignment:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HS_END_OF_EARLY_DATA
+
+# A P-256 key share and ZK public value each occupy 65 bytes, plus a
+# one-byte length prefix. With 132 bytes, these two outputs exactly fill the
+# buffer. The following ZK proof step must therefore fail at the length-prefix
+# bounds check in mbedtls_psa_ecjpake_write_round().
+EC-JPAKE write round with undersized output buffer
+depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:PSA_WANT_ALG_JPAKE:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256
+ssl_ecjpake_write_round_buffer_overflow:132:MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL
+
+# A P-256/SHA-256 round-one message contains two sets of a 65-byte key share,
+# a 65-byte ZK public value and a 32-byte ZK proof, each with a one-byte
+# length prefix: 2 * (66 + 66 + 33) = 330 bytes.
+EC-JPAKE write round with sufficient output buffer
+depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:PSA_WANT_ALG_JPAKE:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256
+ssl_ecjpake_write_round_buffer_overflow:330:0

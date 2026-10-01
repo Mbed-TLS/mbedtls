@@ -2911,19 +2911,18 @@ run_test    "Certificate verify message with disallowed signature algorithm" \
             -s "peer not adhering to requested sig_alg for verify message" \
             -s "send alert level=2 message=40"
 
-requires_config_enabled PSA_WANT_ECC_SECP_R1_256
-requires_config_enabled PSA_WANT_ECC_SECP_R1_384
+requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
 requires_pk_alg ECDSA
 requires_hash_alg SHA_256
 requires_hash_alg SHA_384
 run_test    "Certificate verify message with disallowed hash algorithm" \
-            "$P_SRV sig_algs=ecdsa_secp384r1_sha384 auth_mode=required debug_level=3" \
-            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
-                    sig_algs=ecdsa_secp384r1_sha384 \
-                    key_file=$DATA_FILES_PATH/ecdsa_secp256r1.key crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt" \
+            "$P_SRV sig_algs=rsa_pkcs1_sha384 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256 \
+                    sig_algs=rsa_pkcs1_sha384 \
+                    key_file=$DATA_FILES_PATH/cli-rsa.key crt_file=$DATA_FILES_PATH/cli-rsa-sha256.crt" \
             1 \
-            -s "requested sig_alg \[503\] ecdsa_secp384r1_sha384" \
-            -s "received sig_alg \[403\] ecdsa_secp256r1_sha256" \
+            -s "requested sig_alg \[501\] rsa_pkcs1_sha384" \
+            -s "received sig_alg \[401\] rsa_pkcs1_sha256" \
             -s "peer not adhering to requested sig_alg for verify message" \
             -s "send alert level=2 message=40"
 

@@ -7235,3 +7235,56 @@ exit:
     PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:MBEDTLS_USE_PSA_CRYPTO */
+void ssl_ecjpake_write_round_buffer_overflow(int len, int expected_ret)
+{
+    static const unsigned char password[] = "threadjpaketest";
+    static const unsigned char client_id[] = "client";
+    static const unsigned char server_id[] = "server";
+    psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
+    psa_pake_operation_t operation = psa_pake_operation_init();
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t password_key = MBEDTLS_SVC_KEY_ID_INIT;
+    unsigned char *output = NULL;
+    size_t olen = 0;
+
+    PSA_INIT();
+
+    TEST_ASSERT(len > 0);
+    output = mbedtls_calloc(1, (size_t) len);
+    TEST_ASSERT(output != NULL);
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
+    PSA_ASSERT(psa_import_key(&attributes, password, sizeof(password) - 1,
+                              &password_key));
+
+    psa_pake_cs_set_algorithm(&cipher_suite,
+                              PSA_ALG_JPAKE);
+    psa_pake_cs_set_primitive(
+        &cipher_suite,
+        PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,
+                           PSA_ECC_FAMILY_SECP_R1, 256));
+    psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
+    PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
+    PSA_ASSERT(psa_pake_set_user(&operation, client_id,
+                                 sizeof(client_id) - 1));
+    PSA_ASSERT(psa_pake_set_peer(&operation, server_id,
+                                 sizeof(server_id) - 1));
+
+    PSA_ASSERT(psa_pake_set_password_key(&operation, password_key));
+
+    TEST_EQUAL(mbedtls_psa_ecjpake_write_round(
+                   &operation, output, (size_t) len, &olen,
+                   MBEDTLS_ECJPAKE_ROUND_ONE),
+               expected_ret);
+
+exit:
+    mbedtls_free(output);
+    psa_destroy_key(password_key);
+    psa_pake_abort(&operation);
+    PSA_DONE();
+}
+/* END_CASE */

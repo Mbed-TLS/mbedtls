@@ -3581,6 +3581,14 @@ ssl_tls_exporter_too_early:MBEDTLS_SSL_VERSION_TLS1_3:1:MBEDTLS_SSL_SERVER_CERTI
 TLS 1.3 - HRR then TLS 1.2 second ClientHello
 tls13_hrr_then_tls12_second_client_hello
 
+TLS 1.2 client rejects ServerHello with 0x0304 legacy_version
+depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+tls12_reject_0304_legacy_version:MBEDTLS_SSL_IS_CLIENT
+
+TLS 1.2 server rejects ClientHello with 0x0304 legacy_version
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+tls12_reject_0304_legacy_version:MBEDTLS_SSL_IS_SERVER
+
 Baseline for: Server using sig_alg not offered by the client - RSA with SHA256
 depends_on:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED:MBEDTLS_MD_CAN_SHA256
 send_invalid_sig_alg:MBEDTLS_SSL_SIG_RSA:MBEDTLS_SSL_HASH_SHA256:0

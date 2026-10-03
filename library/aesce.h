@@ -34,6 +34,19 @@ extern "C" {
 #endif
 
 #if defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+/* Runtime detection uses getauxval(). Some C libraries do not provide
+ * <sys/auxv.h> in some configurations (for example uClibc-ng without
+ * shared library support), so check for it when the compiler allows it. */
+#if defined(__has_include)
+#if __has_include(<sys/auxv.h>)
+#define MBEDTLS_AESCE_HAVE_GETAUXVAL
+#endif
+#else
+#define MBEDTLS_AESCE_HAVE_GETAUXVAL
+#endif
+#endif /* __linux__ && !MBEDTLS_AES_USE_HARDWARE_ONLY */
+
+#if defined(MBEDTLS_AESCE_HAVE_GETAUXVAL)
 
 extern signed char mbedtls_aesce_has_support_result;
 
@@ -48,14 +61,26 @@ int mbedtls_aesce_has_support_impl(void);
                                      mbedtls_aesce_has_support_impl() : \
                                      mbedtls_aesce_has_support_result)
 
-#else /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
+#elif defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+
+/* On Linux without getauxval(), we can't detect support at runtime. Only
+ * assume that it's supported if the build targets CPUs with the AES
+ * instructions, otherwise use the software implementation.
+ */
+#if defined(__ARM_FEATURE_AES) || defined(__ARM_FEATURE_CRYPTO)
+#define MBEDTLS_AESCE_HAS_SUPPORT() 1
+#else
+#define MBEDTLS_AESCE_HAS_SUPPORT() 0
+#endif
+
+#else /* MBEDTLS_AESCE_HAVE_GETAUXVAL */
 
 /* If we are not on Linux, we can't detect support so assume that it's supported.
  * Similarly, assume support if MBEDTLS_AES_USE_HARDWARE_ONLY is set.
  */
 #define MBEDTLS_AESCE_HAS_SUPPORT() 1
 
-#endif /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
+#endif /* MBEDTLS_AESCE_HAVE_GETAUXVAL */
 
 /**
  * \brief          Internal AES-ECB block encryption and decryption

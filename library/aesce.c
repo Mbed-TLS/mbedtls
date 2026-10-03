@@ -104,7 +104,7 @@
 #endif /* !(__ARM_FEATURE_CRYPTO || __ARM_FEATURE_AES) ||
           MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 
-#if defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if defined(MBEDTLS_AESCE_HAVE_GETAUXVAL)
 
 #include <sys/auxv.h>
 #if !defined(HWCAP_NEON)
@@ -158,7 +158,7 @@ int mbedtls_aesce_has_support_impl(void)
 }
 #endif
 
-#endif /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
+#endif /* MBEDTLS_AESCE_HAVE_GETAUXVAL */
 
 /* Single round of AESCE encryption */
 #define AESCE_ENCRYPT_ROUND                   \

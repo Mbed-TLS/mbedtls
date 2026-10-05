@@ -289,6 +289,20 @@ component_build_sha_armce_gcc () {
             grep -E 'sha256[a-z0-9]+\s+[qv]' library/sha256.s
         scripts/config.py unset $opt
     done
+
+    # The same for the SHA-512 extensions with -mcpu=cortex-a76, which has
+    # extensions beyond Armv8.2-A. Before GCC 13, the SHA-512 intrinsics
+    # require Armv8.2-A, so this only builds with GCC 13 or later.
+    if [ "$(gcc_version "${AARCH64_LINUX_GNU_GCC_PREFIX}gcc")" -ge 13 ]; then
+        for opt in MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT; do
+            scripts/config.py set $opt
+                msg "$opt ${AARCH64_LINUX_GNU_GCC_PREFIX}gcc, -mcpu=cortex-a76 -D_FORTIFY_SOURCE=2"
+                make -B library/sha512.o library/sha512.s CC="${AARCH64_LINUX_GNU_GCC_PREFIX}gcc" CFLAGS="-std=c99 -Werror -O2 -mcpu=cortex-a76 -D_FORTIFY_SOURCE=2"
+                msg "$opt ${AARCH64_LINUX_GNU_GCC_PREFIX}gcc, test aarch64 crypto instructions built"
+                grep -E 'sha512[a-z0-9]+\s+[qv]' library/sha512.s
+            scripts/config.py unset $opt
+        done
+    fi
 }
 
 support_build_sha_armce_gcc () {

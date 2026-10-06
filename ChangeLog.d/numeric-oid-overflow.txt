@@ -1,0 +1,3 @@
+Bugfix
+   * Reject numeric OID components that exceed the range of unsigned int
+     instead of silently encoding a different value. Fixes #10910.

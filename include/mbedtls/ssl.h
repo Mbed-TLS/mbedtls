@@ -648,18 +648,32 @@
 #endif
 #endif /* !MBEDTLS_PSK_MAX_LEN */
 
+/**
+ * In PSA-client-only builds (MBEDTLS_PSA_CRYPTO_C off, e.g. NS-side
+ * mbedtls dispatching to a secure PSA service like TF-M) the local
+ * ECP_LIGHT cascade does not run and MBEDTLS_ECP_MAX_BYTES collapses
+ * to 1. Take the larger of that and PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE,
+ * which is sized by the enabled PSA_WANT_ECC_* curves and is always
+ * defined, so psa_raw_key_agreement() has a real output buffer to
+ * write the ECDH shared secret into.
+ */
+#define MBEDTLS_SSL_PMS_ECDH_SIZE                                       \
+    (PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE > MBEDTLS_ECP_MAX_BYTES      \
+         ? PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE                        \
+         : MBEDTLS_ECP_MAX_BYTES)
+
 /* Dummy type used only for its size */
 union mbedtls_ssl_premaster_secret {
     unsigned char dummy; /* Make the union non-empty even with SSL disabled */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)    || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-    unsigned char _pms_ecdh[MBEDTLS_ECP_MAX_BYTES];    /* RFC 4492 5.10 */
+    unsigned char _pms_ecdh[MBEDTLS_SSL_PMS_ECDH_SIZE];    /* RFC 4492 5.10 */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     unsigned char _pms_psk[4 + 2 * MBEDTLS_PSK_MAX_LEN];       /* RFC 4279 2 */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-    unsigned char _pms_ecdhe_psk[4 + MBEDTLS_ECP_MAX_BYTES
+    unsigned char _pms_ecdhe_psk[4 + MBEDTLS_SSL_PMS_ECDH_SIZE
                                  + MBEDTLS_PSK_MAX_LEN];       /* RFC 5489 2 */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)

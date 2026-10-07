@@ -1,0 +1,4 @@
+Security
+   * Build symbol MBEDTLS_PK_DECRYPT_MAX_ITERATIONS has been added to
+     limit the maximum number of iterations for the PBKDF2 algorithm used when
+     decrypting a PKCS#8 encrypted private key in PK module. CVE-2026-50582.

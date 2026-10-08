@@ -202,6 +202,15 @@ oid_from_numeric_string:"2.4294967215":0:"8FFFFFFF7F"
 OID from numeric string - OID with overflowing subidentifier
 oid_from_numeric_string:"2.4294967216":MBEDTLS_ERR_ASN1_INVALID_DATA:""
 
+OID from numeric string - numeric component overflows on final digit
+oid_from_numeric_string:"2.4294967296":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - numeric component overflows to nonzero value
+oid_from_numeric_string:"2.4294967299":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - numeric component continues after overflow
+oid_from_numeric_string:"2.42949672966":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
 mbedtls_oid_get_md_hmac - RIPEMD160
 depends_on:MBEDTLS_MD_CAN_RIPEMD160
 mbedtls_oid_get_md_hmac:"2B06010505080104":MBEDTLS_MD_RIPEMD160

@@ -115,7 +115,18 @@
 #  if defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT)
 #    if defined(__unix__)
 #      if defined(__linux__)
-/* Our preferred method of detection is getauxval() */
+/* Our preferred method of detection is getauxval(), but some C libraries
+ * do not provide <sys/auxv.h> in some configurations (for example uClibc-ng
+ * without shared library support). */
+#        if defined(__has_include)
+#          if __has_include(<sys/auxv.h>)
+#            define MBEDTLS_SHA256_HAVE_GETAUXVAL
+#          endif
+#        else
+#          define MBEDTLS_SHA256_HAVE_GETAUXVAL
+#        endif
+#      endif
+#      if defined(MBEDTLS_SHA256_HAVE_GETAUXVAL)
 #        include <sys/auxv.h>
 /* These are not always defined via sys/auxv.h */
 #        if !defined(HWCAP_SHA2)

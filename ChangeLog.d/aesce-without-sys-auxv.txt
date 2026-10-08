@@ -1,0 +1,8 @@
+Bugfix
+   * Fix the build with MBEDTLS_AESCE_C on Linux with C libraries that do
+     not provide <sys/auxv.h> in some configurations, such as uClibc-ng
+     without shared library support. In such builds, the AES instructions
+     are only used if the code is compiled for CPUs that have them. The
+     same applies to MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT and
+     MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT, which then detect the
+     instructions with SIGILL.

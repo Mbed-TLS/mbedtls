@@ -10,6 +10,11 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
+/* Ensure that SIG_SETMASK is defined when -std=c99 is used. */
+#if !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
+
 #if defined(__aarch64__) && !defined(__ARM_FEATURE_SHA512) && \
     defined(__clang__) && __clang_major__ >= 7
 /*
@@ -103,7 +108,18 @@
 #  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 #    if defined(__unix__)
 #      if defined(__linux__)
-/* Our preferred method of detection is getauxval() */
+/* Our preferred method of detection is getauxval(), but some C libraries
+ * do not provide <sys/auxv.h> in some configurations (for example uClibc-ng
+ * without shared library support). */
+#        if defined(__has_include)
+#          if __has_include(<sys/auxv.h>)
+#            define MBEDTLS_SHA512_HAVE_GETAUXVAL
+#          endif
+#        else
+#          define MBEDTLS_SHA512_HAVE_GETAUXVAL
+#        endif
+#      endif
+#      if defined(MBEDTLS_SHA512_HAVE_GETAUXVAL)
 #        include <sys/auxv.h>
 #        if !defined(HWCAP_SHA512)
 /* The same header that declares getauxval() should provide the HWCAP_xxx

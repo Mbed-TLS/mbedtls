@@ -1276,17 +1276,13 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
             ssl->session_negotiate->ciphersuite);
         ssl->handshake->ciphersuite_info = ciphersuite_info;
 
-        /* Enable psk and psk_ephemeral to make stage early happy */
-        ssl->handshake->key_exchange_mode =
-            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
-
-        /* Start the TLS 1.3 key schedule:
-         *     Set the PSK and derive early secret.
-         */
-        ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
+        /* Provisionally derive the early secret for early-data protection.
+         * The selected handshake's early secret is derived after ServerHello
+         * because the server may ignore this PSK. */
+        ret = mbedtls_ssl_tls13_compute_early_secret_for_early_data(ssl);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_key_schedule_stage_early", ret);
+                1, "mbedtls_ssl_tls13_compute_early_secret_for_early_data", ret);
             return ret;
         }
 
@@ -1928,10 +1924,10 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL)
 #endif
     {
-        ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
+        ret = mbedtls_ssl_tls13_compute_early_secret(ssl);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_key_schedule_stage_early", ret);
+                1, "mbedtls_ssl_tls13_compute_early_secret", ret);
             goto cleanup;
         }
     }

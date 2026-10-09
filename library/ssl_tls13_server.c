@@ -1908,10 +1908,9 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
     ssl->handshake->sni_name_len = 0;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-    ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
+    ret = mbedtls_ssl_tls13_compute_early_secret(ssl);
     if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1,
-                              "mbedtls_ssl_tls1_3_key_schedule_stage_early", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_compute_early_secret", ret);
         return ret;
     }
 

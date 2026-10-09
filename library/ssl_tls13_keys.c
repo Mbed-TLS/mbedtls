@@ -1227,13 +1227,16 @@ cleanup:
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
-int mbedtls_ssl_tls13_key_schedule_stage_early(mbedtls_ssl_context *ssl)
+static int ssl_tls13_compute_early_secret(mbedtls_ssl_context *ssl,
+                                          int with_psk)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t hash_alg;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     unsigned char *psk = NULL;
     size_t psk_len = 0;
+
+    (void) with_psk;
 
     if (handshake->ciphersuite_info == NULL) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("cipher suite info not found"));
@@ -1242,7 +1245,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_early(mbedtls_ssl_context *ssl)
 
     hash_alg = mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) handshake->ciphersuite_info->mac);
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
-    if (mbedtls_ssl_tls13_key_exchange_mode_with_psk(ssl)) {
+    if (with_psk) {
         ret = mbedtls_ssl_tls13_export_handshake_psk(ssl, &psk, &psk_len);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_export_handshake_psk",
@@ -1262,10 +1265,24 @@ int mbedtls_ssl_tls13_key_schedule_stage_early(mbedtls_ssl_context *ssl)
         return ret;
     }
 
-    MBEDTLS_SSL_DEBUG_BUF(4, "mbedtls_ssl_tls13_key_schedule_stage_early",
+    MBEDTLS_SSL_DEBUG_BUF(4, "ssl_tls13_compute_early_secret",
                           handshake->tls13_master_secrets.early,
                           PSA_HASH_LENGTH(hash_alg));
     return 0;
+}
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+int mbedtls_ssl_tls13_compute_early_secret_for_early_data(
+    mbedtls_ssl_context *ssl)
+{
+    return ssl_tls13_compute_early_secret(ssl, 1);
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
+int mbedtls_ssl_tls13_compute_early_secret(mbedtls_ssl_context *ssl)
+{
+    return ssl_tls13_compute_early_secret(
+        ssl, mbedtls_ssl_tls13_key_exchange_mode_with_psk(ssl));
 }
 
 /**

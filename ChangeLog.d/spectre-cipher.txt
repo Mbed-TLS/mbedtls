@@ -1,0 +1,5 @@
+Security
+   * Fix a Spectre v1 side channel in non-authenticated ciphers that can
+     leak many key bits to powerful local attackers. Reported by Oleksii
+     Oleksenko (Azure Research, Microsoft) and Alvise de Faveri Tron
+     (Vrije Universiteit Amsterdam). CVE-2026-93833

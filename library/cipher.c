@@ -476,7 +476,11 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
 #endif
 
 #if defined(MBEDTLS_CCM_C)
-    if (MBEDTLS_MODE_CCM_STAR_NO_TAG == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
+    if (MBEDTLS_CT_SPEC_RISKY_BOOL(MBEDTLS_MODE_CCM_STAR_NO_TAG ==
+                                   ctx->cipher_info->mode)) {
+        MBEDTLS_CT_NULLIFY_IF_SPECULATING_EQ(ctx,
+                                             MBEDTLS_MODE_CCM_STAR_NO_TAG,
+                                             ctx->cipher_info->mode);
         int set_lengths_result;
         int ccm_star_mode;
 
@@ -627,7 +631,11 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #endif
 
 #if defined(MBEDTLS_CCM_C)
-    if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CCM_STAR_NO_TAG) {
+    if (MBEDTLS_CT_SPEC_RISKY_BOOL(MBEDTLS_MODE_CCM_STAR_NO_TAG ==
+                                   ctx->cipher_info->mode)) {
+        MBEDTLS_CT_NULLIFY_IF_SPECULATING_EQ(ctx,
+                                             MBEDTLS_MODE_CCM_STAR_NO_TAG,
+                                             ctx->cipher_info->mode);
         return mbedtls_ccm_update((mbedtls_ccm_context *) ctx->cipher_ctx,
                                   input, ilen,
                                   output, ilen, olen);

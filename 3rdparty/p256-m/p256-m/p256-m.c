@@ -74,13 +74,52 @@ static void u256_set32(uint32_t z[8], uint32_t x)
     }
 }
 
+/* Use 64-bit arithmetic where it is native or the CPU has a carry flag.
+ * Otherwise, split each limb into 16-bit halves to avoid variable-time
+ * compiler-generated 64-bit addition and subtraction. */
+#if UINTPTR_MAX > UINT32_MAX || defined(__arm__) || defined(__aarch64__) || \
+    defined(_M_ARM) || defined(_M_ARM64) || \
+    defined(__i386__) || defined(__x86_64__) || \
+    defined(_M_IX86) || defined(_M_X64) || \
+    defined(__powerpc__) || defined(__powerpc64__) || \
+    defined(__ppc__) || defined(__PPC__) || defined(_ARCH_PPC) || \
+    defined(__m68k__) || defined(__mc68000__) || \
+    defined(__RX__) || defined(__RX) || defined(__sh__) || \
+    defined(__arc__) || defined(__tricore__) || defined(__CTC__) || \
+    defined(__MICROBLAZE__)
+#define P256M_USE_UINT64_ADDSUB
+#endif
+
+/*
+ * 32-bit addition with carry
+ *
+ * in: x, y in [0, 2^32)
+ *     carry in [0, 1]
+ * out: z = (x + y + carry) mod 2^32
+ *      c = (x + y + carry) div 2^32
+ * That is, z + c * 2^32 = x + y + carry (and c is either 0 or 1)
+ */
+static uint32_t u32_addc(uint32_t x, uint32_t y, uint32_t *z, uint32_t carry)
+{
+#if defined(P256M_USE_UINT64_ADDSUB)
+    uint64_t sum = (uint64_t) carry + x + y;
+    *z = (uint32_t) sum;
+    return (uint32_t) (sum >> 32);
+#else
+    uint32_t lo = (x & 0xffff) + (y & 0xffff) + carry;
+    uint32_t hi = (x >> 16) + (y >> 16) + (lo >> 16);
+    *z = (lo & 0xffff) | ((hi & 0xffff) << 16);
+    return (hi >> 16);
+#endif
+}
+
 /*
  * 256-bit addition
  *
  * in: x, y in [0, 2^256)
  * out: z = (x + y) mod 2^256
  *      c = (x + y) div 2^256
- * That is, z + c * 2^256 = x + y
+ * That is, z + c * 2^256 = x + y (and c is either 0 or 1)
  *
  * Note: as a memory area, z must be either equal to x or y, or not overlap.
  */
@@ -90,12 +129,33 @@ static uint32_t u256_add(uint32_t z[8],
     uint32_t carry = 0;
 
     for (unsigned i = 0; i < 8; i++) {
-        uint64_t sum = (uint64_t) carry + x[i] + y[i];
-        z[i] = (uint32_t) sum;
-        carry = (uint32_t) (sum >> 32);
+        carry = u32_addc(x[i], y[i], &z[i], carry);
     }
 
     return carry;
+}
+
+/*
+ * 32-bit subtraction with carry
+ *
+ * in: x, y in [0, 2^32)
+ *     carry in [0, 1]
+ * out: z = (x - y - carry) mod 2^32
+ *      c = 0 if x >= y + carry, 1 otherwise
+ * That is, z = c * 2^32 + x - y - carry
+ */
+static uint32_t u32_subc(uint32_t x, uint32_t y, uint32_t *z, uint32_t carry)
+{
+#if defined(P256M_USE_UINT64_ADDSUB)
+    uint64_t diff = (uint64_t) x - y - carry;
+    *z = (uint32_t) diff;
+    return -(uint32_t) (diff >> 32);
+#else
+    uint32_t lo = (x & 0xffff) - (y & 0xffff) - carry;
+    uint32_t hi = (x >> 16) - (y >> 16) - (lo >> 31);
+    *z = (lo & 0xffff) | ((hi & 0xffff) << 16);
+    return hi >> 31;
+#endif
 }
 
 /*
@@ -103,7 +163,7 @@ static uint32_t u256_add(uint32_t z[8],
  *
  * in: x, y in [0, 2^256)
  * out: z = (x - y) mod 2^256
- *      c = 0 if x >=y, 1 otherwise
+ *      c = 0 if x >= y, 1 otherwise
  * That is, z = c * 2^256 + x - y
  *
  * Note: as a memory area, z must be either equal to x or y, or not overlap.
@@ -114,9 +174,7 @@ static uint32_t u256_sub(uint32_t z[8],
     uint32_t carry = 0;
 
     for (unsigned i = 0; i < 8; i++) {
-        uint64_t diff = (uint64_t) x[i] - y[i] - carry;
-        z[i] = (uint32_t) diff;
-        carry = -(uint32_t) (diff >> 32);
+        carry = u32_subc(x[i], y[i], &z[i], carry);
     }
 
     return carry;

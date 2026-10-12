@@ -123,6 +123,14 @@ static size_t ssl_test_tiny_key_slice_length(size_t slice_idx)
         default: return 1;
     }
 }
+
+/* In the below definition SSL_TEST_KEY_SLICE_1_LENGTH has 4 slots and
+ * SSL_TEST_KEY_SLICE_2_LENGTH has 10 all other slices have 1.
+ * psa_key_slot_volatile_slice_count() returns the total number of slices.
+ * However we have already countes slices 1 and 2, so we mustr subtract 2 from
+ * this number to avoid double counting.
+ */
+
 #define SSL_TEST_MAX_VOLATILE_KEYS                         \
     (SSL_TEST_KEY_SLICE_1_LENGTH +                         \
      SSL_TEST_KEY_SLICE_2_LENGTH +                         \

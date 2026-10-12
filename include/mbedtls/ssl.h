@@ -1224,8 +1224,6 @@ struct mbedtls_ssl_session {
     uint32_t MBEDTLS_PRIVATE(ticket_age_add);     /*!< Randomly generated value used to obscure the age of the ticket */
     uint8_t MBEDTLS_PRIVATE(ticket_flags);        /*!< Ticket flags */
     uint8_t MBEDTLS_PRIVATE(resumption_key_len);  /*!< resumption key length */
-    unsigned char MBEDTLS_PRIVATE(resumption_key_unused)[
-        MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN]; /*!< Unused, kept for ABI compatibility */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)
     char *MBEDTLS_PRIVATE(hostname);             /*!< host name binded with tickets */

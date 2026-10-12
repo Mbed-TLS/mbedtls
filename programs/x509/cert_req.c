@@ -66,7 +66,7 @@ int main(void)
     "                           DNS:value\n"            \
     "                           URI:value\n"            \
     "                           RFC822:value\n"         \
-    "                           IP:value (Only IPv4 is supported)\n" \
+    "                           IP:value (IPv4 or IPv6)\n" \
     "                           DN:list of comma separated key=value pairs\n" \
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     mbedtls_x509write_csr req;
     mbedtls_x509_san_list *cur, *prev;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    uint8_t ip[4] = { 0 };
+    uint8_t ip[16] = { 0 };
 #endif
     /*
      * Set to sane values
@@ -268,7 +268,7 @@ usage:
                         goto exit;
                     }
                     cur->node.san.unstructured_name.p = (unsigned char *) ip;
-                    cur->node.san.unstructured_name.len = sizeof(ip);
+                    cur->node.san.unstructured_name.len = ip_addr_len;
                 } else if (strcmp(q, "DN") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_DIRECTORY_NAME;
                     /* Work around an API mismatch between string_to_names() and

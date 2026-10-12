@@ -135,7 +135,7 @@ int main(void)
     "                             DNS:value\n"            \
     "                             URI:value\n"            \
     "                             RFC822:value\n"         \
-    "                             IP:value (Only IPv4 is supported)\n" \
+    "                             IP:value (IPv4 or IPv6)\n" \
     "                             DN:list of comma separated key=value pairs\n" \
     "    authority_identifier=%%s default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
     size_t serial_len;
     mbedtls_asn1_sequence *ext_key_usage;
     mbedtls_x509_san_list *cur, *prev;
-    uint8_t ip[4] = { 0 };
+    uint8_t ip[16] = { 0 };
     /*
      * Set to sane values
      */
@@ -650,7 +650,7 @@ usage:
                         goto exit;
                     }
                     cur->node.san.unstructured_name.p = (unsigned char *) ip;
-                    cur->node.san.unstructured_name.len = sizeof(ip);
+                    cur->node.san.unstructured_name.len = ip_addr_len;
                 } else if (strcmp(q, "DN") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_DIRECTORY_NAME;
                     /* Work around an API mismatch between string_to_names() and

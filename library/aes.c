@@ -51,7 +51,7 @@
 #if defined(MBEDTLS_AESCE_C)
 #include "aesce.h"
 #endif
-
+#include "constant_time_internal.h"
 #include "mbedtls/platform.h"
 #include "ctr.h"
 
@@ -70,6 +70,45 @@
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
 static int aes_padlock_ace = -1;
 #endif
+
+/* 1 if hardware support is present at runtime, 0 otherwise.
+ * Undefined macro if no hardware support code is enabled.
+ *
+ * This macro is only used for re-checking, so it can directly
+ * reference a variable, it doesn't need to call the checking code.
+ */
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
+#define MBEDTLS_AES_HAVE_HARDWARE                       \
+    mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)
+#endif
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
+#define MBEDTLS_AES_HAVE_HARDWARE MBEDTLS_AESCE_HAS_SUPPORT_RECHECK
+#endif
+
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+/* Call this function before executing non-constant-time AES code
+ * (key schedule or block encryption/decryption).
+ *
+ * On platforms with speculative execution, the CPU may start
+ * executing the non-constant-time software fallback speculatively.
+ * This would leak part of the key or plaintext to a powerful local
+ * attacker who can observe precise memory access patterns.
+ *
+ * Calling this function sets `*pkey` to `NULL` if hardware AES
+ * is available.
+ */
+static void mbedtls_aes_block_speculation_of_no_hardware(
+    const unsigned char **pkey)
+{
+#if defined(MBEDTLS_SPECTRE_V1_COUNTERMEASURES) && \
+    defined(MBEDTLS_AES_HAVE_HARDWARE)
+    MBEDTLS_CT_NULLIFY_IF_SPECULATING(*pkey, MBEDTLS_AES_HAVE_HARDWARE ^ 1);
+#else
+    (void) pkey;
+#endif
+
+}
+#endif  /* !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
 
 #if defined(MBEDTLS_AES_ROM_TABLES)
 /*
@@ -610,6 +649,8 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+    mbedtls_aes_block_speculation_of_no_hardware(&key);
+
     for (unsigned int i = 0; i < (keybits >> 5); i++) {
         RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
     }
@@ -726,6 +767,8 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+    mbedtls_aes_block_speculation_of_no_hardware(&key);
+
     SK = cty.buf + cty.rk_offset + cty.nr * 4;
 
     *RK++ = *SK++;
@@ -1053,6 +1096,11 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+    /* AES encryption/decryption combines the input with the key
+     * to calculate the offset at which it accesses the table.
+     * Thus setting input to NULL works to prevent memory accesses
+     * atsecret-dependent offsets. */
+    mbedtls_aes_block_speculation_of_no_hardware(&input);
 #if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     if (mode == MBEDTLS_AES_DECRYPT) {
         return mbedtls_internal_aes_decrypt(ctx, input, output);

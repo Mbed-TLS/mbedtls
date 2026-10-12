@@ -88,13 +88,19 @@ These properties are checked using valgrind and MemSan with the ideas
 behind [ctgrind](https://github.com/agl/ctgrind), see `consttime.sh`.
 
 In addition to avoiding branches and memory accesses depending on secret data,
-p256-m also avoid instructions (or library functions) whose execution time
+p256-m also avoids instructions (or library functions) whose execution time
 depends on the value of operands on cores of interest. Namely, it never uses
 integer division, and for multiplication by default it only uses 16x16->32 bit
-unsigned multiplication. On cores which have a constant-time 32x32->64 bit
-unsigned multiplication instruction, the symbol `MUL64_IS_CONSTANT_TIME` can
-be defined by the user at compile-time to take advantage of it in order to
-improve performance and code size. (On Cortex-M and Cortex-A cores wtih GCC or
+unsigned multiplication.
+
+If the CPU has a constant-time 32x32->64 bit unsigned multiplication instruction
+and the compiler generates constant-time 64-bit addition (or fuses it into
+constant-time multiply-and-accumulate), the symbol `MUL64_IS_CONSTANT_TIME` can
+be defined by the user at compile-time to take advantage of these operations in
+order to improve performance and code size. Check the generated code for
+`u32_muladd64()` and any helper it calls before defining the symbol: there must
+be no secret-dependent branches or memory accesses, and the instructions must
+have operand-independent timing. (On Cortex-M and Cortex-A cores with GCC or
 Clang this is not necessary, since inline assembly is used instead.)
 
 As a result, p256-m should be secure against the following classes of attackers:

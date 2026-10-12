@@ -359,6 +359,9 @@ static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t)
 
 #if !defined(MULADD64_ASM)
 #if defined(MUL64_IS_CONSTANT_TIME)
+/* This path requires constant-time generated code for the full expression,
+ * including any compiler-generated helper functions. The additions may be
+ * fused into a constant-time multiply-and-accumulate instruction. */
 static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t)
 {
     return (uint64_t) x * y + z + t;
@@ -380,13 +383,24 @@ static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t)
     const uint32_t m2 = (uint32_t) xl * yh;
     const uint32_t hi = (uint32_t) xh * yh;
 
-    uint64_t acc = lo + ((uint64_t) (hi + (m1 >> 16) + (m2 >> 16)) << 32);
-    acc += m1 << 16;
-    acc += m2 << 16;
-    acc += z;
-    acc += t;
+    /* Use an accumulator starting with lo + 2**32 hi,
+     * and gradually add the two middle products, then z and t.
+     * x*y+z+t < 2^64, so the high word cannot overflow. */
+    uint32_t acc_lo = lo, acc_hi = hi;
 
-    return acc;
+    /* acc += m1 << 16; */
+    uint32_t carry = u32_addc(acc_lo, m1 << 16, &acc_lo, 0);
+    acc_hi += (m1 >> 16) + carry;
+
+    /* acc += m2 << 16; */
+    carry = u32_addc(acc_lo, m2 << 16, &acc_lo, 0);
+    acc_hi += (m2 >> 16) + carry;
+
+    /* acc += z; acc += t; */
+    acc_hi += u32_addc(acc_lo, z, &acc_lo, 0);
+    acc_hi += u32_addc(acc_lo, t, &acc_lo, 0);
+
+    return ((uint64_t) acc_hi << 32) | acc_lo;
 }
 #endif /* MUL64_IS_CONSTANT_TIME */
 #endif /* MULADD64_ASM */
@@ -431,9 +445,7 @@ static uint32_t u288_muladd(uint32_t z[9], uint32_t x, const uint32_t y[8])
     }
 #endif
 
-    uint64_t sum = (uint64_t) z[8] + carry;
-    z[8] = (uint32_t) sum;
-    carry = (uint32_t) (sum >> 32);
+    carry = u32_addc(z[8], carry, &z[8], 0);
 
     return carry;
 }

@@ -20,4 +20,9 @@ set(libs
 )
 
 add_executable(cmake_subproject cmake_subproject.c)
+if(TF_PSA_CRYPTO_DISPATCH_DIR)
+    # The custom dispatch directory defines verify_custom_dispatch(). Linking
+    # against it checks that TF_PSA_CRYPTO_DISPATCH_DIR was actually used.
+    target_compile_definitions(cmake_subproject PRIVATE TEST_CUSTOM_DISPATCH)
+endif()
 target_link_libraries(cmake_subproject ${libs} ${CMAKE_THREAD_LIBS_INIT})

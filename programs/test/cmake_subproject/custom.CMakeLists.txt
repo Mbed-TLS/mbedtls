@@ -1,3 +1,9 @@
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+# Copyright The Mbed TLS Contributors
+
+# Replaces dispatch/CMakeLists.txt in the custom dispatch directory when running
+# component_test_cmake_as_subdirectory_custom_dispatch.
+
 list(APPEND dispatch_src_files
     "${CMAKE_CURRENT_SOURCE_DIR}/custom_dispatch.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/psa_crypto_driver_wrappers_no_static.c"

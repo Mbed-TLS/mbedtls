@@ -889,6 +889,7 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
 {
     int ret, got_common_suite;
+    mbedtls_ssl_protocol_version client_version;
     size_t i, j;
     size_t ciph_offset, comp_offset, ext_offset;
     size_t msg_len, ciph_len, sess_len, comp_len, ext_len;
@@ -1024,17 +1025,30 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
      */
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello, version", buf, 2);
 
-    ssl->tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(buf,
-                                                                               ssl->conf->transport);
-    ssl->session_negotiate->tls_version = ssl->tls_version;
-    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
+    client_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(
+        buf, ssl->conf->transport);
 
-    if (ssl->tls_version != MBEDTLS_SSL_VERSION_TLS1_2) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("server only supports TLS 1.2"));
+    if (client_version != MBEDTLS_SSL_VERSION_TLS1_2) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1,
+            ("ClientHello legacy_version is not TLS 1.2 - legacy_version: [0x%x]",
+             (unsigned) client_version));
+
+        /* Temporarily use the client's version to encode an alert
+         * that the client can parse. */
+        if (client_version < MBEDTLS_SSL_VERSION_TLS1_2) {
+            ssl->tls_version = client_version;
+        }
         mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                        MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION);
+
+        /* Restore the TLS version under negotiation. */
+        ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
         return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
+
+    ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    ssl->session_negotiate->endpoint = MBEDTLS_SSL_IS_SERVER;
 
     /*
      * Save client random (inc. Unix time)

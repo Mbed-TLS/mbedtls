@@ -381,10 +381,20 @@ static int ssl_tls13_offered_psks_check_identity_match(
         identity_len == ssl->conf->psk_identity_len &&
         mbedtls_ct_memcmp(ssl->conf->psk_identity,
                           identity, identity_len) == 0) {
-        ret = mbedtls_ssl_set_hs_psk(ssl, ssl->conf->psk, ssl->conf->psk_len);
-        if (ret != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
-            return ret;
+        if (!mbedtls_svc_key_id_is_null(ssl->conf->psk_opaque)) {
+            ret = mbedtls_ssl_set_hs_psk_opaque(ssl, ssl->conf->psk_opaque);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk_opaque",
+                                      ret);
+                return ret;
+            }
+        } else {
+            ret = mbedtls_ssl_set_hs_psk(ssl, ssl->conf->psk,
+                                         ssl->conf->psk_len);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
+                return ret;
+            }
         }
         return SSL_TLS1_3_PSK_IDENTITY_MATCH;
     }
@@ -426,9 +436,20 @@ static int ssl_tls13_offered_psks_check_binder_match(
         return ret;
     }
 
-    ret = mbedtls_ssl_tls13_export_handshake_psk(ssl, &psk, &psk_len);
-    if (ret != 0) {
-        return ret;
+    if (psk_type == MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL) {
+        /*
+         * External PSKs may be opaque and non-exportable.
+         * mbedtls_ssl_tls13_create_psk_binder() fetches the key itself
+         * via mbedtls_ssl_get_opaque_psk() for external PSKs, so the
+         * key must not be exported here.
+         */
+        psk = NULL;
+        psk_len = 0;
+    } else {
+        ret = mbedtls_ssl_tls13_export_handshake_psk(ssl, &psk, &psk_len);
+        if (ret != 0) {
+            return ret;
+        }
     }
 
     ret = mbedtls_ssl_tls13_create_psk_binder(ssl, psk_hash_alg,

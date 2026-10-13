@@ -1188,6 +1188,11 @@ int mbedtls_ssl_tls13_compute_early_transform(mbedtls_ssl_context *ssl)
     mbedtls_ssl_transform *transform_earlydata = NULL;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
+    if (handshake->tls13_key_scheduling_stage_completed !=
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
     /* Next evolution in key schedule: Establish early_data secret and
      * key material. */
     ret = ssl_tls13_generate_early_key(ssl, &traffic_keys);
@@ -1214,6 +1219,8 @@ int mbedtls_ssl_tls13_compute_early_transform(mbedtls_ssl_context *ssl)
         goto cleanup;
     }
     handshake->transform_earlydata = transform_earlydata;
+    handshake->tls13_key_scheduling_stage_completed =
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_DATA;
 
 cleanup:
     mbedtls_platform_zeroize(&traffic_keys, sizeof(traffic_keys));
@@ -1235,6 +1242,11 @@ static int ssl_tls13_compute_early_secret(mbedtls_ssl_context *ssl,
     size_t psk_len = 0;
 
     (void) with_psk;
+
+    if (handshake->tls13_key_scheduling_stage_completed !=
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
 
     if (handshake->ciphersuite_info == NULL) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("cipher suite info not found"));
@@ -1266,6 +1278,8 @@ static int ssl_tls13_compute_early_secret(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF(4, "ssl_tls13_compute_early_secret",
                           handshake->tls13_master_secrets.early,
                           PSA_HASH_LENGTH(hash_alg));
+    handshake->tls13_key_scheduling_stage_completed =
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET;
     return 0;
 }
 
@@ -1669,6 +1683,16 @@ int mbedtls_ssl_tls13_compute_handshake_transform(mbedtls_ssl_context *ssl)
     mbedtls_ssl_transform *transform_handshake = NULL;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
+    if (handshake->tls13_key_scheduling_stage_completed !=
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        && handshake->tls13_key_scheduling_stage_completed !=
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_DATA
+#endif
+        ) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
     /* Compute handshake secret */
     ret = ssl_tls13_key_schedule_stage_handshake(ssl);
     if (ret != 0) {
@@ -1702,6 +1726,8 @@ int mbedtls_ssl_tls13_compute_handshake_transform(mbedtls_ssl_context *ssl)
         goto cleanup;
     }
     handshake->transform_handshake = transform_handshake;
+    handshake->tls13_key_scheduling_stage_completed =
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE;
 
 cleanup:
     mbedtls_platform_zeroize(&traffic_keys, sizeof(traffic_keys));
@@ -1761,6 +1787,11 @@ int mbedtls_ssl_tls13_compute_application_transform(mbedtls_ssl_context *ssl)
     mbedtls_ssl_key_set traffic_keys;
     mbedtls_ssl_transform *transform_application = NULL;
 
+    if (ssl->handshake->tls13_key_scheduling_stage_completed !=
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
     ret = ssl_tls13_key_schedule_stage_application(ssl);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1,
@@ -1794,6 +1825,8 @@ int mbedtls_ssl_tls13_compute_application_transform(mbedtls_ssl_context *ssl)
     }
 
     ssl->transform_application = transform_application;
+    ssl->handshake->tls13_key_scheduling_stage_completed =
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION;
 
 cleanup:
 

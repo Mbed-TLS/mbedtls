@@ -194,6 +194,8 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
         }
 
         ssl->handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+        ssl->handshake->tls13_key_exchange_inputs &=
+            ~MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL;
         return 0;
     } else
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */

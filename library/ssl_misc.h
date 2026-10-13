@@ -637,6 +637,16 @@ typedef enum {
     MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION,
 } mbedtls_ssl_tls13_key_scheduling_stage;
 
+typedef enum {
+    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_NONE = 0,
+    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK  = 1 << 0,
+    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PRIVATE = 1 << 1,
+    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PEER = 1 << 2,
+    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL =
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PRIVATE |
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PEER,
+} mbedtls_ssl_tls13_key_exchange_input;
+
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -978,6 +988,7 @@ struct mbedtls_ssl_handshake_params {
      * successfully computing the secret, sub-secrets and keys of the stage.
      */
     mbedtls_ssl_tls13_key_scheduling_stage tls13_key_scheduling_stage_completed;
+    unsigned char tls13_key_exchange_inputs;
     union {
         unsigned char early[MBEDTLS_TLS1_3_MD_MAX_SIZE];
         unsigned char handshake[MBEDTLS_TLS1_3_MD_MAX_SIZE];

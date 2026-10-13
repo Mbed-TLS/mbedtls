@@ -3505,6 +3505,10 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
+            if (ssl->handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = ssl_tls13_write_encrypted_extensions(ssl);
             if (ret != 0) {
                 MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls13_write_encrypted_extensions", ret);
@@ -3547,6 +3551,10 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
         case MBEDTLS_SSL_SERVER_FINISHED:
+            if (ssl->handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = ssl_tls13_write_server_finished(ssl);
             break;
 
@@ -3561,6 +3569,10 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
+            if (ssl->handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = ssl_tls13_handshake_wrapup(ssl);
             break;
 

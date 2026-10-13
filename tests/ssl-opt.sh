@@ -2912,7 +2912,6 @@ run_test    "Certificate verify message with disallowed signature algorithm" \
             -s "send alert level=2 message=40"
 
 requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
-requires_pk_alg ECDSA
 requires_hash_alg SHA_256
 requires_hash_alg SHA_384
 run_test    "Certificate verify message with disallowed hash algorithm" \

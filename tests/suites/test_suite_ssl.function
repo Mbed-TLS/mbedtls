@@ -2188,6 +2188,89 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256 */
+void ssl_tls13_key_schedule_validates_inputs(int endpoint,
+                                             int operation,
+                                             int key_exchange_mode,
+                                             int input_setup,
+                                             int expected_result)
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char master_secrets_before[
+        sizeof(((mbedtls_ssl_handshake_params *) 0)->tls13_master_secrets)];
+
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_config_init(&conf);
+
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf, endpoint,
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                           MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
+
+    ssl.tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
+        MBEDTLS_TLS1_3_AES_128_GCM_SHA256);
+    TEST_ASSERT(ciphersuite_info != NULL);
+    ssl.handshake->ciphersuite_info = ciphersuite_info;
+    ssl.session_negotiate->ciphersuite = ciphersuite_info->id;
+    ssl.handshake->key_exchange_mode = key_exchange_mode;
+    ssl.handshake->tls13_key_exchange_inputs = input_setup;
+    ssl.handshake->tls13_key_scheduling_stage_completed =
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET;
+    memset(&ssl.handshake->tls13_master_secrets, 0x2a,
+           sizeof(ssl.handshake->tls13_master_secrets));
+    memcpy(master_secrets_before, &ssl.handshake->tls13_master_secrets,
+           sizeof(master_secrets_before));
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (operation == TEST_TLS13_KS_OP_EARLY_TRANSFORM) {
+        ret = mbedtls_ssl_tls13_compute_early_transform(&ssl);
+    } else
+#endif
+    if (operation == TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM) {
+        ret = mbedtls_ssl_tls13_compute_handshake_transform(&ssl);
+    } else {
+        TEST_FAIL("Unknown TLS 1.3 key-schedule input operation");
+    }
+
+    TEST_EQUAL(ret, expected_result);
+    if (expected_result == 0) {
+        if (operation == TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM) {
+            TEST_EQUAL(ssl.handshake->tls13_key_scheduling_stage_completed,
+                       MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE);
+            TEST_ASSERT(ssl.handshake->transform_handshake != NULL);
+        }
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        else {
+            TEST_EQUAL(ssl.handshake->tls13_key_scheduling_stage_completed,
+                       MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_DATA);
+            TEST_ASSERT(ssl.handshake->transform_earlydata != NULL);
+        }
+#endif
+    } else {
+        TEST_EQUAL(ssl.handshake->tls13_key_scheduling_stage_completed,
+                   MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET);
+        TEST_ASSERT(ssl.handshake->transform_handshake == NULL);
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        TEST_ASSERT(ssl.handshake->transform_earlydata == NULL);
+#endif
+        TEST_MEMORY_COMPARE(&ssl.handshake->tls13_master_secrets,
+                            sizeof(master_secrets_before),
+                            master_secrets_before, sizeof(master_secrets_before));
+    }
+
+exit:
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED */
 void ssl_tls13_key_schedule_rejects_transition(int operation,
                                                int initial_stage)
@@ -2234,6 +2317,8 @@ void ssl_tls13_key_schedule_rejects_transition(int operation,
     ssl.handshake->key_exchange_mode =
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
     TEST_EQUAL(mbedtls_ssl_set_hs_psk(&ssl, psk, sizeof(psk)), 0);
+    ssl.handshake->tls13_key_exchange_inputs =
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK;
 
     ssl.handshake->tls13_key_scheduling_stage_completed = initial_stage;
     memset(&ssl.handshake->tls13_master_secrets, 0x2a,

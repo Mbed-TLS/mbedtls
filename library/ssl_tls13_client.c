@@ -1930,6 +1930,17 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL)
 #endif
     {
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        if (ssl->early_data_state !=
+            MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT) {
+            if (handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_DATA) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
+            handshake->tls13_key_scheduling_stage_completed =
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE;
+        }
+#endif
         ret = mbedtls_ssl_tls13_compute_early_secret(ssl);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(

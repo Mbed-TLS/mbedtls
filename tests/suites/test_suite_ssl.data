@@ -2818,6 +2818,44 @@ Record crypt, little space, NULL cipher, 1.2, MD5, EtM
 depends_on:MBEDTLS_CIPHER_NULL_CIPHER:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_MD_CAN_MD5:MBEDTLS_SSL_ENCRYPT_THEN_MAC
 ssl_crypt_record_small:MBEDTLS_CIPHER_NULL:MBEDTLS_MD_MD5:1:0:MBEDTLS_SSL_VERSION_TLS1_2:0:0
 
+SSL TLS 1.3 key schedule rejects repeating selected early-secret transition
+ssl_tls13_key_schedule_rejects_transition:TEST_TLS13_KS_OP_SELECTED_EARLY_SECRET:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET
+
+SSL TLS 1.3 key schedule rejects selected early secret after handshake stage
+ssl_tls13_key_schedule_rejects_transition:TEST_TLS13_KS_OP_SELECTED_EARLY_SECRET:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE
+
+SSL TLS 1.3 key schedule rejects provisional early secret after selected early secret
+depends_on:MBEDTLS_SSL_EARLY_DATA
+ssl_tls13_key_schedule_rejects_transition:TEST_TLS13_KS_OP_PROVISIONAL_EARLY_SECRET:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET
+
+SSL TLS 1.3 key schedule rejects provisional early secret after application stage
+depends_on:MBEDTLS_SSL_EARLY_DATA
+ssl_tls13_key_schedule_rejects_transition:TEST_TLS13_KS_OP_PROVISIONAL_EARLY_SECRET:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION
+
+SSL TLS 1.3 key schedule rejects early-data transform before early secret
+depends_on:MBEDTLS_SSL_EARLY_DATA
+ssl_tls13_key_schedule_rejects_transition:TEST_TLS13_KS_OP_EARLY_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE
+
+SSL TLS 1.3 key schedule rejects early-data transform after handshake stage
+depends_on:MBEDTLS_SSL_EARLY_DATA
+ssl_tls13_key_schedule_rejects_transition:TEST_TLS13_KS_OP_EARLY_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE
+
+SSL TLS 1.3 key schedule rejects handshake transform before early secret
+ssl_tls13_key_schedule_rejects_transition:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE
+
+SSL TLS 1.3 key schedule rejects repeating handshake transform
+ssl_tls13_key_schedule_rejects_transition:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE
+
+SSL TLS 1.3 key schedule rejects application transform before handshake keys
+ssl_tls13_key_schedule_rejects_transition:TEST_TLS13_KS_OP_APPLICATION_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET
+
+SSL TLS 1.3 key schedule rejects repeating application transform
+ssl_tls13_key_schedule_rejects_transition:TEST_TLS13_KS_OP_APPLICATION_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION
+
+SSL TLS 1.3 ServerHello post-processing requires early-data stage
+depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls13_postprocess_server_hello_requires_early_data_stage
+
 SSL TLS 1.3 Key schedule: Secret evolution #1
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Initial secret to Early Secret

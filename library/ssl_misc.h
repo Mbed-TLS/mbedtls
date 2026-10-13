@@ -732,6 +732,14 @@ typedef struct {
     unsigned char server_handshake_traffic_secret[MBEDTLS_TLS1_3_MD_MAX_SIZE];
 } mbedtls_ssl_tls13_handshake_secrets;
 
+typedef enum {
+    MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE = 0,
+    MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET,
+    MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_DATA,
+    MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE,
+    MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION,
+} mbedtls_ssl_tls13_key_scheduling_stage;
+
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -1099,6 +1107,12 @@ struct mbedtls_ssl_handshake_params {
 
     /** TLS 1.3 transform for encrypted handshake messages. */
     mbedtls_ssl_transform *transform_handshake;
+    /** TLS 1.3 key scheduling progress.
+     *
+     * The early-data, handshake and application stages are reached after
+     * successfully computing the secret, sub-secrets and keys of the stage.
+     */
+    mbedtls_ssl_tls13_key_scheduling_stage tls13_key_scheduling_stage_completed;
     union {
         unsigned char early[MBEDTLS_TLS1_3_MD_MAX_SIZE];
         unsigned char handshake[MBEDTLS_TLS1_3_MD_MAX_SIZE];

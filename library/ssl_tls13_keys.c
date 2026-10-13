@@ -1245,7 +1245,10 @@ int mbedtls_ssl_tls13_compute_early_transform(mbedtls_ssl_context *ssl)
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     if (handshake->tls13_key_scheduling_stage_completed !=
-        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET) {
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET ||
+        (handshake->tls13_key_exchange_inputs &
+         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK) !=
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK) {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
@@ -1286,7 +1289,33 @@ cleanup:
 
     return ret;
 }
+
 #endif /* MBEDTLS_SSL_EARLY_DATA */
+
+static int ssl_tls13_check_handshake_inputs(
+    const mbedtls_ssl_handshake_params *handshake)
+{
+    unsigned char required_inputs;
+
+    switch (handshake->key_exchange_mode) {
+        case MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK:
+            required_inputs = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK;
+            break;
+        case MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL:
+            required_inputs = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL;
+            break;
+        case MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL:
+            required_inputs = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK |
+                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL;
+            break;
+        default:
+            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    return (handshake->tls13_key_exchange_inputs & required_inputs) ==
+           required_inputs ?
+           0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+}
 
 static int ssl_tls13_compute_early_secret(mbedtls_ssl_context *ssl,
                                           int with_psk)
@@ -1330,6 +1359,14 @@ static int ssl_tls13_compute_early_secret(mbedtls_ssl_context *ssl,
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_evolve_secret", ret);
         return ret;
+    }
+
+    if (with_psk) {
+        handshake->tls13_key_exchange_inputs |=
+            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK;
+    } else {
+        handshake->tls13_key_exchange_inputs &=
+            ~MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK;
     }
 
     MBEDTLS_SSL_DEBUG_BUF(4, "ssl_tls13_compute_early_secret",
@@ -1748,6 +1785,11 @@ int mbedtls_ssl_tls13_compute_handshake_transform(mbedtls_ssl_context *ssl)
 #endif
         ) {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    ret = ssl_tls13_check_handshake_inputs(handshake);
+    if (ret != 0) {
+        return ret;
     }
 
     /* Compute handshake secret */

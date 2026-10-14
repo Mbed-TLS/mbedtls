@@ -17,6 +17,7 @@
 #include "mbedtls/psa_util.h"
 
 #include "ssl_tls13_keys.h"
+#include "ssl_tls13_invasive.h"
 #include "ssl_debug_helpers.h"
 
 /* Define a local translating function to save code size by not using too many
@@ -905,14 +906,16 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
  *  - A negative value for fatal errors.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
-                                          const unsigned char *buf,
-                                          const unsigned char *end)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
+                                           const unsigned char *buf,
+                                           const unsigned char *end)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char const *p = buf;
     unsigned char const *client_shares_end;
     size_t client_shares_len;
+    size_t key_share_count = 0;
 
     /* From RFC 8446:
      *
@@ -954,6 +957,7 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
         key_exchange = p;
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p, client_shares_end, key_exchange_len);
         p += key_exchange_len;
+        key_share_count++;
 
         /* Continue parsing even if we have already found a match,
          * for input validation purposes.
@@ -985,6 +989,21 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
         }
 
         ssl->handshake->offered_group_id = group;
+    }
+
+    /*
+     * When the HRR requests a key share for a selected group, the second
+     * ClientHello must contain exactly one KeyShareEntry (RFC 8446,
+     * Section 4.1.2).
+     */
+    if (ssl->handshake->hello_retry_request_flag &&
+        ssl->handshake->hrr_selected_group != 0 && key_share_count != 1) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("Non-compliant second ClientHello: "
+                "key_share must contain exactly one KeyShareEntry"));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
     if (ssl->handshake->offered_group_id == 0) {
@@ -1570,7 +1589,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                  * contains the endpoint's cryptographic parameters for
                  * ECDHE/DHE key establishment methods.
                  */
-                ret = ssl_tls13_parse_key_shares_ext(
+                ret = mbedtls_ssl_tls13_parse_key_shares_ext(
                     ssl, p, extension_data_end);
                 if (ret == SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH) {
                     MBEDTLS_SSL_DEBUG_MSG(2, ("No usable share for key agreement."));

@@ -72,9 +72,10 @@ static size_t ssl_test_tiny_key_slice_length(size_t slice_idx)
 #define TEST_TLS13_HRR_CH2_SNI_DEFAULT_VERIFY_REQUIRED 1
 #define TEST_TLS13_HRR_CH2_SNI_OVERRIDE_VERIFY_NONE    2
 
-/* Ciphersuite consistency checks after HRR. */
-#define TEST_TLS13_HRR_CH2_CHANGE_CIPHERSUITE                 0
-#define TEST_TLS13_HRR_CH2_RETAIN_CIPHERSUITE                 1
+/* ClientHello consistency checks after HRR. */
+#define TEST_TLS13_HRR_CH2_CHANGE_CIPHERSUITE      0
+#define TEST_TLS13_HRR_CH2_RETAIN_CIPHERSUITE      1
+#define TEST_TLS13_HRR_CH2_CHANGE_KEY_SHARE_GROUP  2
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
@@ -5287,8 +5288,8 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_ECDH:PSA_WANT_ALG_ECDSA_ANY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
-void tls13_hrr_ciphersuite_consistency(int mutation)
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_ECDH:PSA_WANT_ALG_ECDSA_ANY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
+void tls13_hrr_rejects_inconsistent_ch2(int mutation)
 {
     int ret = -1;
     int expect_rejection = 1;
@@ -5297,10 +5298,12 @@ void tls13_hrr_ciphersuite_consistency(int mutation)
     uint16_t client_group_list[] = {
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_X25519,
         MBEDTLS_SSL_IANA_TLS_GROUP_NONE
     };
     uint16_t server_group_list[] = {
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_X25519,
         MBEDTLS_SSL_IANA_TLS_GROUP_NONE
     };
     const int ch2_ciphersuites[] = {
@@ -5318,7 +5321,12 @@ void tls13_hrr_ciphersuite_consistency(int mutation)
     client_options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
     client_options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
     client_options.group_list = client_group_list;
-    client_options.cipher = "TLS1-3-AES-128-GCM-SHA256";
+    if (mutation == TEST_TLS13_HRR_CH2_CHANGE_CIPHERSUITE ||
+        mutation == TEST_TLS13_HRR_CH2_RETAIN_CIPHERSUITE) {
+        client_options.cipher = "TLS1-3-AES-128-GCM-SHA256";
+    } else {
+        TEST_EQUAL(mutation, TEST_TLS13_HRR_CH2_CHANGE_KEY_SHARE_GROUP);
+    }
 
     server_options.pk_alg = MBEDTLS_PK_ECDSA;
     server_options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
@@ -5336,13 +5344,20 @@ void tls13_hrr_ciphersuite_consistency(int mutation)
     TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),
                                                 &(server_ep.socket), 4096), 0);
 
-    /* CH1 offers AES-128-GCM-SHA256 and causes the server to send HRR. */
+    /* CH1 causes the server to send HRR. The ciphersuite case additionally
+     * restricts CH1 to AES-128-GCM-SHA256.
+     */
     ret = mbedtls_test_move_handshake_to_state(
         &(server_ep.ssl), &(client_ep.ssl),
         MBEDTLS_SSL_HELLO_RETRY_REQUEST);
     TEST_EQUAL(ret, 0);
-    TEST_EQUAL(server_ep.ssl.handshake->ciphersuite_info->id,
-               MBEDTLS_TLS1_3_AES_128_GCM_SHA256);
+    TEST_EQUAL(server_ep.ssl.handshake->hrr_selected_group,
+               MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1);
+    if (mutation == TEST_TLS13_HRR_CH2_CHANGE_CIPHERSUITE ||
+        mutation == TEST_TLS13_HRR_CH2_RETAIN_CIPHERSUITE) {
+        TEST_EQUAL(server_ep.ssl.handshake->ciphersuite_info->id,
+                   MBEDTLS_TLS1_3_AES_128_GCM_SHA256);
+    }
 
     TEST_EQUAL(mbedtls_ssl_handshake_step(&(server_ep.ssl)), 0);
     TEST_EQUAL(mbedtls_ssl_flush_output(&(server_ep.ssl)), 0);
@@ -5352,18 +5367,33 @@ void tls13_hrr_ciphersuite_consistency(int mutation)
         MBEDTLS_SSL_CLIENT_HELLO);
     TEST_EQUAL(ret, 0);
     TEST_EQUAL(server_ep.ssl.state, MBEDTLS_SSL_CLIENT_HELLO);
+    /* Positive key-share baseline: after processing HRR, an unmodified CH2
+     * will contain exactly the secp384r1 key share requested by the server.
+     * The unchanged control cases below exercise this path through the final
+     * ServerHello.
+     */
+    TEST_EQUAL(client_ep.ssl.handshake->offered_group_id,
+               MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1);
 
     if (mutation == TEST_TLS13_HRR_CH2_CHANGE_CIPHERSUITE) {
         /* Make CH2 non-compliant by replacing the HRR ciphersuite offer. */
         mbedtls_ssl_conf_ciphersuites(&client_ep.conf, ch2_ciphersuites);
-    } else {
-        TEST_EQUAL(mutation, TEST_TLS13_HRR_CH2_RETAIN_CIPHERSUITE);
+    } else if (mutation == TEST_TLS13_HRR_CH2_RETAIN_CIPHERSUITE) {
         /* Leave the HRR-selected ciphersuite unchanged as a positive control. */
         expect_rejection = 0;
+    } else if (mutation == TEST_TLS13_HRR_CH2_CHANGE_KEY_SHARE_GROUP) {
+        /* Negative key-share case: replace the group requested by HRR with
+         * another group that both peers support, while leaving supported_groups
+         * unchanged. The resulting key share remains in supported_groups and
+         * therefore covers the HRR-specific gap left by PR #1606.
+         */
+        client_ep.ssl.handshake->offered_group_id =
+            MBEDTLS_SSL_IANA_TLS_GROUP_X25519;
     }
 
-    /* A changed ciphersuite is rejected while parsing CH2. The unchanged
-     * ciphersuite control proceeds to the final ServerHello. */
+    /* Inconsistent CH2 values are rejected while parsing CH2. Unchanged
+     * controls proceed to the final ServerHello.
+     */
     ret = mbedtls_test_move_handshake_to_state(
         &(server_ep.ssl), &(client_ep.ssl), MBEDTLS_SSL_SERVER_HELLO);
     if (expect_rejection) {

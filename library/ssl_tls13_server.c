@@ -1699,6 +1699,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                            handshake->received_extensions);
     if (handshake->hello_retry_request_flag) {
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        /* RFC 8446, Section 4.1.2 requires CH2 to retain CH1's server_name.
+         * Check this before invoking the SNI callback for CH2. */
         int sni_name_presence_changed =
             handshake->ch1_sni_name_present != (handshake->sni_name != NULL);
         int sni_name_changed = handshake->sni_name != NULL &&
@@ -1715,7 +1717,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                                          MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
-#endif
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
         if (handshake->hrr_selected_group != 0 &&
             handshake->offered_group_id != handshake->hrr_selected_group) {
@@ -1962,6 +1965,7 @@ static int ssl_tls13_preserve_ch1_sni_name(mbedtls_ssl_handshake_params *handsha
         if (name == NULL) {
             return MBEDTLS_ERR_SSL_ALLOC_FAILED;
         }
+
         memcpy(name, handshake->sni_name, handshake->sni_name_len);
     }
 
@@ -1969,9 +1973,10 @@ static int ssl_tls13_preserve_ch1_sni_name(mbedtls_ssl_handshake_params *handsha
     handshake->ch1_sni_name = name;
     handshake->ch1_sni_name_len = handshake->sni_name_len;
     handshake->ch1_sni_name_present = handshake->sni_name != NULL;
+
     return 0;
 }
-#endif
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
@@ -1993,6 +1998,7 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
             return ret;
         }
     }
+
     ssl->handshake->sni_name = NULL;
     ssl->handshake->sni_name_len = 0;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
@@ -2639,6 +2645,7 @@ int mbedtls_ssl_tls13_reset_handshake_state_for_hrr(mbedtls_ssl_context *ssl)
 
     /* Discard all other state derived while processing CH1. */
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    /* Move ownership out of the handshake state while it is reset. */
     ch1_sni_name = handshake->ch1_sni_name;
     handshake->ch1_sni_name = NULL;
 #endif
@@ -2652,7 +2659,6 @@ int mbedtls_ssl_tls13_reset_handshake_state_for_hrr(mbedtls_ssl_context *ssl)
 
     /* Restore what we saved before resetting the handshake context. */
     handshake = ssl->handshake;
-    /* Move ownership out of the handshake state while it is reset. */
     handshake->ciphersuite_info = ciphersuite_info;
     handshake->hrr_selected_group = selected_group;
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)

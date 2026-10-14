@@ -1215,6 +1215,10 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
                 if (ret != 0) {
                     return ret;
                 }
+                ret = mbedtls_ssl_call_sni_callback(ssl);
+                if (ret != 0) {
+                    return ret;
+                }
                 break;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 

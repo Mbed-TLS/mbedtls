@@ -2606,7 +2606,8 @@ static int ssl_tls13_prepare_hello_retry_request(mbedtls_ssl_context *ssl)
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_reset_handshake_state_for_hrr(mbedtls_ssl_context *ssl)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ssl_tls13_reset_handshake_state_for_hrr(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -2672,6 +2673,7 @@ static int ssl_tls13_reset_handshake_state_for_hrr(mbedtls_ssl_context *ssl)
 
     /* Restore what we saved before resetting the handshake context. */
     handshake = ssl->handshake;
+    /* Move ownership out of the handshake state while it is reset. */
     handshake->ciphersuite_info = ciphersuite_info;
     handshake->hrr_selected_group = selected_group;
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -2753,7 +2755,7 @@ static int ssl_tls13_write_hello_retry_request(mbedtls_ssl_context *ssl)
     /* Process CH2 with fresh handshake and provisional session state. Keep
      * only the state that is intrinsic to the HRR exchange itself. */
     MBEDTLS_SSL_PROC_CHK(
-        ssl_tls13_reset_handshake_state_for_hrr(ssl));
+        mbedtls_ssl_tls13_reset_handshake_state_for_hrr(ssl));
 
     ssl->handshake->hello_retry_request_flag = 1;
 

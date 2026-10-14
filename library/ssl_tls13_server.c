@@ -21,6 +21,7 @@
 #include "ssl_tls13_invasive.h"
 #include "ssl_debug_helpers.h"
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */
 static int local_err_translation(psa_status_t status)
@@ -30,6 +31,7 @@ static int local_err_translation(psa_status_t status)
                                  psa_generic_status_to_mbedtls);
 }
 #define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
+#endif
 
 static const mbedtls_ssl_ciphersuite_t *ssl_tls13_validate_peer_ciphersuite(
     mbedtls_ssl_context *ssl,
@@ -2611,13 +2613,123 @@ static int ssl_tls13_prepare_hello_retry_request(mbedtls_ssl_context *ssl)
     return 0;
 }
 
+/* HRR preparation resets the transcript after TLS 1.3 crypto initialization.
+ * The contexts recreated by the handshake reset therefore use the same
+ * backend as the transcript saved here. */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+static int ssl_tls13_clone_hrr_transcript(
+    mbedtls_ssl_handshake_params *handshake,
+    psa_hash_operation_t *saved_transcript)
+{
+#if defined(MBEDTLS_MD_CAN_SHA384)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+        return PSA_TO_MBEDTLS_ERR(
+            psa_hash_clone(&handshake->fin_sha384_psa, saved_transcript));
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
+        return PSA_TO_MBEDTLS_ERR(
+            psa_hash_clone(&handshake->fin_sha256_psa, saved_transcript));
+    }
+#endif
+    return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+}
+#else
+static int ssl_tls13_clone_hrr_transcript(
+    mbedtls_ssl_handshake_params *handshake,
+    mbedtls_md_context_t *saved_transcript)
+{
+    const mbedtls_md_context_t *transcript = NULL;
+
+#if defined(MBEDTLS_MD_CAN_SHA384)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+        transcript = &handshake->fin_sha384;
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
+        transcript = &handshake->fin_sha256;
+    }
+#endif
+    if (transcript == NULL) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    int ret = mbedtls_md_setup(saved_transcript,
+                               mbedtls_md_info_from_ctx(transcript), 0);
+    if (ret != 0) {
+        return ret;
+    }
+    return mbedtls_md_clone(saved_transcript, transcript);
+}
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+static int ssl_tls13_restore_hrr_transcript(
+    mbedtls_ssl_handshake_params *handshake,
+    psa_hash_operation_t *saved_transcript)
+{
+#if defined(MBEDTLS_MD_CAN_SHA384)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+        psa_status_t status = psa_hash_abort(&handshake->fin_sha384_psa);
+        if (status != PSA_SUCCESS) {
+            return PSA_TO_MBEDTLS_ERR(status);
+        }
+        return PSA_TO_MBEDTLS_ERR(
+            psa_hash_clone(saved_transcript, &handshake->fin_sha384_psa));
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
+        psa_status_t status = psa_hash_abort(&handshake->fin_sha256_psa);
+        if (status != PSA_SUCCESS) {
+            return PSA_TO_MBEDTLS_ERR(status);
+        }
+        return PSA_TO_MBEDTLS_ERR(
+            psa_hash_clone(saved_transcript, &handshake->fin_sha256_psa));
+    }
+#endif
+    return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+}
+#else
+static int ssl_tls13_restore_hrr_transcript(
+    mbedtls_ssl_handshake_params *handshake,
+    mbedtls_md_context_t *saved_transcript)
+{
+    mbedtls_md_context_t *transcript = NULL;
+
+#if defined(MBEDTLS_MD_CAN_SHA384)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+        transcript = &handshake->fin_sha384;
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
+        transcript = &handshake->fin_sha256;
+    }
+#endif
+    if (transcript == NULL) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    mbedtls_md_free(transcript);
+    mbedtls_md_init(transcript);
+    int ret = mbedtls_md_setup(transcript,
+                               mbedtls_md_info_from_ctx(saved_transcript), 0);
+    if (ret != 0) {
+        return ret;
+    }
+    return mbedtls_md_clone(transcript, saved_transcript);
+}
+#endif
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ssl_tls13_reset_handshake_state_for_hrr(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    psa_status_t status;
 
     /* Preserve the handshake and provisional session state needed to process
      * CH2 after sending an HRR: the selected ciphersuite and group,
@@ -2625,8 +2737,11 @@ int mbedtls_ssl_tls13_reset_handshake_state_for_hrr(mbedtls_ssl_context *ssl)
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         handshake->ciphersuite_info;
     uint16_t selected_group = handshake->hrr_selected_group;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_operation_t saved_transcript = PSA_HASH_OPERATION_INIT;
-    psa_hash_operation_t *transcript = NULL;
+#else
+    mbedtls_md_context_t saved_transcript;
+#endif
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     uint8_t ch1_sni_name_present = handshake->ch1_sni_name_present;
     unsigned char *ch1_sni_name = NULL;
@@ -2643,26 +2758,12 @@ int mbedtls_ssl_tls13_reset_handshake_state_for_hrr(mbedtls_ssl_context *ssl)
     uint32_t total_early_data_size = ssl->total_early_data_size;
 #endif
 
-#if defined(PSA_WANT_ALG_SHA_384)
-    if (ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
-        transcript = &handshake->fin_sha384_psa;
-    }
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_md_init(&saved_transcript);
 #endif
-#if defined(PSA_WANT_ALG_SHA_256)
-    if (ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
-        transcript = &handshake->fin_sha256_psa;
-    }
-#endif
-    if (transcript == NULL) {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-        goto cleanup;
-    }
 
-    status = psa_hash_clone(transcript, &saved_transcript);
-    if (status != PSA_SUCCESS) {
-        ret = PSA_TO_MBEDTLS_ERR(status);
-        goto cleanup;
-    }
+    MBEDTLS_SSL_PROC_CHK(
+        ssl_tls13_clone_hrr_transcript(handshake, &saved_transcript));
 
     /* Discard all other state derived while processing CH1. */
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -2694,33 +2795,8 @@ int mbedtls_ssl_tls13_reset_handshake_state_for_hrr(mbedtls_ssl_context *ssl)
     ssl->total_early_data_size = total_early_data_size;
 #endif
 
-    transcript = NULL;
-#if defined(PSA_WANT_ALG_SHA_384)
-    if (ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
-        transcript = &handshake->fin_sha384_psa;
-    }
-#endif
-#if defined(PSA_WANT_ALG_SHA_256)
-    if (ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
-        transcript = &handshake->fin_sha256_psa;
-    }
-#endif
-    if (transcript == NULL) {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-        goto cleanup;
-    }
-
-    status = psa_hash_abort(transcript);
-    if (status != PSA_SUCCESS) {
-        ret = PSA_TO_MBEDTLS_ERR(status);
-        goto cleanup;
-    }
-
-    status = psa_hash_clone(&saved_transcript, transcript);
-    if (status != PSA_SUCCESS) {
-        ret = PSA_TO_MBEDTLS_ERR(status);
-        goto cleanup;
-    }
+    MBEDTLS_SSL_PROC_CHK(
+        ssl_tls13_restore_hrr_transcript(handshake, &saved_transcript));
 
     mbedtls_ssl_optimize_checksum(ssl, ciphersuite_info);
 
@@ -2728,7 +2804,11 @@ cleanup:
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     mbedtls_free(ch1_sni_name);
 #endif
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_abort(&saved_transcript);
+#else
+    mbedtls_md_free(&saved_transcript);
+#endif
     return ret;
 }
 

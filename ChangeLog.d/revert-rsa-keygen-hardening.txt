@@ -1,0 +1,4 @@
+Bugfix
+   * Revert hardening of RSA keygen introduced in the previous release, that
+     caused an unacceptable performance regression on platforms with higher
+     memory latency. #10830

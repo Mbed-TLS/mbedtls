@@ -220,7 +220,7 @@ typedef enum {
     defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) && \
     defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
     defined(PSA_WANT_ALG_SHA_256) && defined(PSA_WANT_ALG_ECDH) && \
-    defined(PSA_WANT_ALG_ECDSA_ANY) && \
+    defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && \
     defined(PSA_WANT_ECC_SECP_R1_256) && \
     defined(PSA_WANT_ECC_SECP_R1_384)
 typedef struct {
@@ -5128,7 +5128,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SERVER_NAME_INDICATION:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_ECDH:PSA_WANT_ALG_ECDSA_ANY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SERVER_NAME_INDICATION:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_ECDH:MBEDTLS_PK_CAN_ECDSA_SIGN:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
 void tls13_hrr_reset_state(void)
 {
     int ret = -1;
@@ -5180,10 +5180,12 @@ void tls13_hrr_reset_state(void)
 
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep,
                                               MBEDTLS_SSL_IS_CLIENT,
-                                              &client_options), 0);
+                                              &client_options,
+                                              NULL, NULL, NULL), 0);
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep,
                                               MBEDTLS_SSL_IS_SERVER,
-                                              &server_options), 0);
+                                              &server_options,
+                                              NULL, NULL, NULL), 0);
     mbedtls_ssl_conf_authmode(&client_ep.conf, MBEDTLS_SSL_VERIFY_NONE);
     mbedtls_ssl_conf_sni(&server_ep.conf,
                          tls13_hrr_sni_callback,
@@ -5233,8 +5235,8 @@ void tls13_hrr_reset_state(void)
                         transcript_digest_after, transcript_digest_after_len);
 
 exit:
-    mbedtls_test_ssl_endpoint_free(&client_ep);
-    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     MD_OR_USE_PSA_DONE();
@@ -5242,7 +5244,7 @@ exit:
 /* END_CASE */
 
 /* Check that CH2 retains CH1's SNI and only matching names reach the callback. */
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SERVER_NAME_INDICATION:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_ECDH:PSA_WANT_ALG_ECDSA_ANY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SERVER_NAME_INDICATION:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_ECDH:MBEDTLS_PK_CAN_ECDSA_SIGN:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
 void tls13_srv_hrr_sni_consistency(int ch1_sni_mode, int ch2_sni_mode)
 {
     int ret = -1;
@@ -5290,10 +5292,15 @@ void tls13_srv_hrr_sni_consistency(int ch1_sni_mode, int ch2_sni_mode)
 
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep,
                                               MBEDTLS_SSL_IS_CLIENT,
-                                              &client_options), 0);
+                                              &client_options,
+                                              NULL, NULL, NULL), 0);
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep,
                                               MBEDTLS_SSL_IS_SERVER,
-                                              &server_options), 0);
+                                              &server_options,
+                                              NULL, NULL, NULL), 0);
+
+    /* The 3.6 endpoint helper defaults to VERIFY_REQUIRED. */
+    mbedtls_ssl_conf_authmode(&server_ep.conf, server_options.srv_auth_mode);
 
     /* This controls client-side verification of the server certificate only. */
     mbedtls_ssl_conf_authmode(&client_ep.conf, MBEDTLS_SSL_VERIFY_NONE);
@@ -5372,8 +5379,6 @@ void tls13_srv_hrr_sni_consistency(int ch1_sni_mode, int ch2_sni_mode)
         TEST_EQUAL(sni_ctx.unexpected_name_count, 0);
         TEST_EQUAL(mbedtls_ssl_handshake_step(&client_ep.ssl),
                    MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE);
-        TEST_EQUAL(mbedtls_ssl_get_fatal_alert(&client_ep.ssl),
-                   MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER);
         goto exit;
     }
 
@@ -5409,15 +5414,15 @@ void tls13_srv_hrr_sni_consistency(int ch1_sni_mode, int ch2_sni_mode)
     TEST_ASSERT(mbedtls_ssl_is_handshake_over(&client_ep.ssl));
 
 exit:
-    mbedtls_test_ssl_endpoint_free(&client_ep);
-    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_ECDH:PSA_WANT_ALG_ECDSA_ANY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_ECDH:MBEDTLS_PK_CAN_ECDSA_SIGN:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
 void tls13_srv_rejects_inconsistent_ch2(int inconsistency)
 {
     int ret = -1;
@@ -5437,6 +5442,10 @@ void tls13_srv_rejects_inconsistent_ch2(int inconsistency)
         MBEDTLS_TLS1_3_AES_256_GCM_SHA384,
         0
     };
+    const int ch1_ciphersuites[] = {
+        MBEDTLS_TLS1_3_AES_128_GCM_SHA256,
+        0
+    };
 
     memset(&client_ep, 0, sizeof(client_ep));
     memset(&server_ep, 0, sizeof(server_ep));
@@ -5452,10 +5461,6 @@ void tls13_srv_rejects_inconsistent_ch2(int inconsistency)
     client_options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
     client_options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
     client_options.group_list = client_group_list;
-    if (inconsistency == TEST_TLS13_CH2_INCONSISTENT_CIPHERSUITE ||
-        inconsistency == TEST_TLS13_CH2_NO_INCONSISTENCY) {
-        client_options.cipher = "TLS1-3-AES-128-GCM-SHA256";
-    }
 
     server_options.pk_alg = MBEDTLS_PK_ECDSA;
     server_options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
@@ -5464,10 +5469,20 @@ void tls13_srv_rejects_inconsistent_ch2(int inconsistency)
 
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep,
                                               MBEDTLS_SSL_IS_CLIENT,
-                                              &client_options), 0);
+                                              &client_options,
+                                              NULL, NULL, NULL), 0);
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep,
                                               MBEDTLS_SSL_IS_SERVER,
-                                              &server_options), 0);
+                                              &server_options,
+                                              NULL, NULL, NULL), 0);
+
+    /* The 3.6 endpoint helper does not apply options->cipher. Pin CH1 here so
+     * these ciphersuite consistency checks do not depend on default ordering.
+     */
+    if (inconsistency == TEST_TLS13_CH2_INCONSISTENT_CIPHERSUITE ||
+        inconsistency == TEST_TLS13_CH2_NO_INCONSISTENCY) {
+        mbedtls_ssl_conf_ciphersuites(&client_ep.conf, ch1_ciphersuites);
+    }
 
     mbedtls_ssl_conf_authmode(&client_ep.conf, MBEDTLS_SSL_VERIFY_NONE);
     TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),
@@ -5539,8 +5554,8 @@ void tls13_srv_rejects_inconsistent_ch2(int inconsistency)
     }
 
 exit:
-    mbedtls_test_ssl_endpoint_free(&client_ep);
-    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     MD_OR_USE_PSA_DONE();

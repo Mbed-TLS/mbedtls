@@ -96,7 +96,7 @@ static void u256_set32(uint32_t z[8], uint32_t x)
  * in: x, y in [0, 2^32)
  *     carry in [0, 1]
  * out: z = (x + y + carry) mod 2^32
- *      c = (x + y + carry) div 2^32
+ * ret: c = (x + y + carry) div 2^32
  * That is, z + c * 2^32 = x + y + carry (and c is either 0 or 1)
  */
 static uint32_t u32_addc(uint32_t x, uint32_t y, uint32_t *z, uint32_t carry)
@@ -118,7 +118,7 @@ static uint32_t u32_addc(uint32_t x, uint32_t y, uint32_t *z, uint32_t carry)
  *
  * in: x, y in [0, 2^256)
  * out: z = (x + y) mod 2^256
- *      c = (x + y) div 2^256
+ * ret: c = (x + y) div 2^256
  * That is, z + c * 2^256 = x + y (and c is either 0 or 1)
  *
  * Note: as a memory area, z must be either equal to x or y, or not overlap.
@@ -141,7 +141,7 @@ static uint32_t u256_add(uint32_t z[8],
  * in: x, y in [0, 2^32)
  *     carry in [0, 1]
  * out: z = (x - y - carry) mod 2^32
- *      c = 0 if x >= y + carry, 1 otherwise
+ * ret: c = 0 if x >= y + carry, 1 otherwise
  * That is, z = c * 2^32 + x - y - carry
  */
 static uint32_t u32_subc(uint32_t x, uint32_t y, uint32_t *z, uint32_t carry)
@@ -163,7 +163,7 @@ static uint32_t u32_subc(uint32_t x, uint32_t y, uint32_t *z, uint32_t carry)
  *
  * in: x, y in [0, 2^256)
  * out: z = (x - y) mod 2^256
- *      c = 0 if x >= y, 1 otherwise
+ * ret: c = 0 if x >= y, 1 otherwise
  * That is, z = c * 2^256 + x - y
  *
  * Note: as a memory area, z must be either equal to x or y, or not overlap.
@@ -202,7 +202,7 @@ static void u256_cmov(uint32_t z[8], const uint32_t x[8], uint32_t c)
  *
  * in: x in [0, 2^256)
  *     y in [0, 2^256)
- * out: 0 if x == y, unspecified non-zero otherwise
+ * ret: 0 if x == y, unspecified non-zero otherwise
  */
 static uint32_t u256_diff(const uint32_t x[8], const uint32_t y[8])
 {
@@ -217,7 +217,7 @@ static uint32_t u256_diff(const uint32_t x[8], const uint32_t y[8])
  * 256-bit compare to zero
  *
  * in: x in [0, 2^256)
- * out: 0 if x == 0, unspecified non-zero otherwise
+ * ret: 0 if x == 0, unspecified non-zero otherwise
  */
 static uint32_t u256_diff0(const uint32_t x[8])
 {
@@ -232,7 +232,7 @@ static uint32_t u256_diff0(const uint32_t x[8])
  * 32 x 32 -> 64-bit multiply-and-accumulate
  *
  * in: x, y, z, t in [0, 2^32)
- * out: x * y + z + t in [0, 2^64)
+ * ret: x * y + z + t in [0, 2^64)
  *
  * Note: this computation cannot overflow.
  *
@@ -411,8 +411,8 @@ static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t)
  * in: x in [0, 2^32)
  *     y in [0, 2^256)
  *     z in [0, 2^288)
- * out: z_out = z_in + x * y mod 2^288
- *      c     = z_in + x * y div 2^288
+ * out: z_out = (z_in + x * y) mod 2^288
+ * ret: c     = (z_in + x * y) div 2^288
  * That is, z_out + c * 2^288 = z_in + x * y
  *
  * Note: as a memory area, z must be either equal to y, or not overlap.
@@ -790,11 +790,11 @@ static void m256_inv(uint32_t z[8], const uint32_t x[8],
 /*
  * Import modular integer from bytes to Montgomery domain
  *
- * in: p = p0, ..., p32
+ * in: p = p0, ..., p31
  *     mod must point to a valid m256_mod structure
  * out: z = (p0 * 2^248 + ... + p31) * 2^256 mod m, in [0, m)
- *      return 0 if the number was already in [0, m), or -1.
- *      z may be incorrect and must be discared when -1 is returned.
+ *      z may be incorrect and must be discarded when -1 is returned.
+ * ret: 0 if the number was already in [0, m), or -1.
  */
 static int m256_from_bytes(uint32_t z[8],
                            const uint8_t p[32], const m256_mod *mod)
@@ -887,7 +887,7 @@ static const uint32_t p256_gy[8] = { /* G_y * 2^256 mod p */
  * Point-on-curve check - do the coordinates satisfy the curve's equation?
  *
  * in: x, y in [0, p)   (Montgomery domain)
- * out: 0 if the point lies on the curve and is not 0,
+ * ret: 0 if the point lies on the curve and is not 0,
  *      unspecified non-zero otherwise
  */
 static uint32_t point_check(const uint32_t x[8], const uint32_t y[8])
@@ -1074,11 +1074,11 @@ static void point_add_or_double_leaky(
  * Import curve point from bytes
  *
  * in: p = (x, y) concatenated, fixed-width 256-bit big-endian integers
- * out: x, y in Mongomery domain
- *      return 0 if x and y are both in [0, p)
- *                  and (x, y) is on the curve and not 0
- *             unspecified non-zero otherwise.
+ * out: x, y in Montgomery domain
  *      x and y are unspecified and must be discarded if returning non-zero.
+ * ret: 0 if x and y are both in [0, p)
+ *      and (x, y) is on the curve and not 0,
+ *      unspecified non-zero otherwise.
  */
 static int point_from_bytes(uint32_t x[8], uint32_t y[8], const uint8_t p[64])
 {
@@ -1204,7 +1204,7 @@ static void scalar_mult(uint32_t rx[8], uint32_t ry[8],
  *
  * in: p = p0, ..., p31
  * out: s = p0 * 2^248 + p1 * 2^240 + ... + p30 * 2^8 + p31
- *      return 0 if s in [1, n-1],
+ * ret: 0 if s in [1, n-1],
  *            -1 otherwise.
  */
 static int scalar_from_bytes(uint32_t s[8], const uint8_t p[32])
@@ -1243,8 +1243,8 @@ int p256_generate_random(uint8_t *output, unsigned output_size)
  * out: sbytes the big-endian bytes representation of the scalar
  *      s its u256 representation
  *      x, y the affine coordinates of s * G (Montgomery domain)
- *      return 0 if OK, -1 on failure
  *      sbytes, s, x, y must be discarded when returning non-zero.
+ * ret: 0 if OK, -1 on failure
  */
 static int scalar_gen_with_pub(uint8_t sbytes[32], uint32_t s[8],
                                uint32_t x[8], uint32_t y[8])

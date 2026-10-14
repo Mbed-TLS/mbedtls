@@ -9597,7 +9597,6 @@ int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
                                       const unsigned char *buf,
                                       const unsigned char *end)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
     size_t server_name_list_len, hostname_len;
     const unsigned char *server_name_list_end;
@@ -9617,6 +9616,29 @@ int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
                                      hostname_len + 3);
 
         if (p[0] == MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME) {
+            if (hostname_len == 0) {
+                MBEDTLS_SSL_DEBUG_MSG(
+                    1, ("Invalid zero-length ServerName hostname"));
+                MBEDTLS_SSL_PEND_FATAL_ALERT(
+                    MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                    MBEDTLS_ERR_SSL_DECODE_ERROR);
+                return MBEDTLS_ERR_SSL_DECODE_ERROR;
+            }
+            /*
+             * RFC 6066 requires host_name to contain an actual DNS hostname in
+             * ASCII form, without a trailing dot. The limit below therefore does
+             * not exclude any valid host_name, although the TLS vector encoding
+             * itself permits a larger value.
+             */
+            if (hostname_len > MBEDTLS_SSL_MAX_HOST_NAME_LEN) {
+                MBEDTLS_SSL_DEBUG_MSG(
+                    1, ("Invalid ServerName hostname length"));
+                MBEDTLS_SSL_PEND_FATAL_ALERT(
+                    MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                    MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+                return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+            }
+
             /* sni_name is intended to be used only during the parsing of the
              * ClientHello message (it is reset to NULL before the end of
              * the message parsing). Thus it is ok to just point to the

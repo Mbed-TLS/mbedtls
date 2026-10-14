@@ -5465,6 +5465,26 @@ void tls13_srv_rejects_hrr_ch2_key_share_count(int count_mutation)
                    &ssl, key_share, key_share + key_share_len),
                MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
     TEST_EQUAL(ssl.alert_type, MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER);
+/* A ServerNameList with one host_name entry whose hostname length is zero. */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SERVER_NAME_INDICATION */
+void ssl_server_name_rejects_empty_hostname(void)
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_handshake_params handshake;
+    const unsigned char server_name[] = {
+        0x00, 0x03, /* ServerNameList length */
+        MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME,
+        0x00, 0x00  /* host_name length */
+    };
+
+    memset(&ssl, 0, sizeof(ssl));
+    memset(&handshake, 0, sizeof(handshake));
+    ssl.handshake = &handshake;
+
+    TEST_EQUAL(mbedtls_ssl_parse_server_name_ext(
+                   &ssl, server_name, server_name + sizeof(server_name)),
+               MBEDTLS_ERR_SSL_DECODE_ERROR);
+    TEST_EQUAL(ssl.alert_type, MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
 
 exit:
     return;

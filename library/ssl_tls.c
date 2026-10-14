@@ -4512,6 +4512,14 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
     }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    mbedtls_free(handshake->ch1_sni_name);
+    handshake->ch1_sni_name = NULL;
+    handshake->ch1_sni_name_len = 0;
+    handshake->ch1_sni_name_present = 0;
+#endif
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     /*
@@ -8414,21 +8422,32 @@ int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
              */
             ssl->handshake->sni_name = p + 3;
             ssl->handshake->sni_name_len = hostname_len;
-            if (ssl->conf->f_sni == NULL) {
-                return 0;
-            }
-            ret = ssl->conf->f_sni(ssl->conf->p_sni,
-                                   ssl, p + 3, hostname_len);
-            if (ret != 0) {
-                MBEDTLS_SSL_DEBUG_RET(1, "ssl_sni_wrapper", ret);
-                MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME,
-                                             MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME);
-                return MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME;
-            }
             return 0;
         }
 
         p += hostname_len + 3;
+    }
+
+    return 0;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_call_sni_callback(mbedtls_ssl_context *ssl)
+{
+    int ret;
+
+    if (ssl->handshake->sni_name == NULL || ssl->conf->f_sni == NULL) {
+        return 0;
+    }
+
+    ret = ssl->conf->f_sni(ssl->conf->p_sni, ssl,
+                           ssl->handshake->sni_name,
+                           ssl->handshake->sni_name_len);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "ssl_sni_wrapper", ret);
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME,
+                                     MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME);
+        return MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME;
     }
 
     return 0;

@@ -74,7 +74,8 @@ static void u256_set32(uint32_t z[8], uint32_t x)
     }
 }
 
-/* Use 64-bit arithmetic where it is native or the CPU has a carry flag.
+/* Use 64-bit arithmetic where it is native or the CPU has an
+ * add-with-carry instruction.
  * Otherwise, split each limb into 16-bit halves to avoid variable-time
  * compiler-generated 64-bit addition and subtraction. */
 #if UINTPTR_MAX > UINT32_MAX || defined(__arm__) || defined(__aarch64__) || \

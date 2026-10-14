@@ -859,7 +859,6 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
     p += 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, named_group_list_len);
     named_group_list_end = p + named_group_list_len;
-    ssl->handshake->hrr_selected_group = 0;
 
     while (p < named_group_list_end) {
         uint16_t named_group;
@@ -872,7 +871,13 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
                                mbedtls_ssl_named_group_to_str(named_group),
                                named_group));
 
-        if (!mbedtls_ssl_named_group_is_offered(ssl, named_group) ||
+        /* No need to select a group for an HRR if one has already been sent.
+         * This also preserves the group selected for the HRR, allowing us to
+         * check that the key_share extension in the second ClientHello is
+         * consistent with it.
+         */
+        if (ssl->handshake->hello_retry_request_flag ||
+            !mbedtls_ssl_named_group_is_offered(ssl, named_group) ||
             !mbedtls_ssl_named_group_is_supported(named_group) ||
             ssl->handshake->hrr_selected_group != 0) {
             continue;
@@ -1694,6 +1699,19 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_PRINT_EXTS(3, MBEDTLS_SSL_HS_CLIENT_HELLO,
                            handshake->received_extensions);
+    if (handshake->hello_retry_request_flag) {
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
+        if (handshake->hrr_selected_group != 0 &&
+            handshake->offered_group_id != handshake->hrr_selected_group) {
+            MBEDTLS_SSL_DEBUG_MSG(
+                1, ("Non-compliant second ClientHello: "
+                    "key share group does not match HRR"));
+            MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                         MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        }
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
+    }
     ret = mbedtls_ssl_add_hs_hdr_to_checksum(ssl,
                                              MBEDTLS_SSL_HS_CLIENT_HELLO,
                                              p - buf);

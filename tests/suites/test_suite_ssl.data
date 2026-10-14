@@ -3388,6 +3388,9 @@ tls13_server_certificate_msg_invalid_vector_len
 TLS 1.3 cli rejects HRR selecting an un-offered group
 reject_hrr_selecting_unoffered_group
 
+TLS 1.3 server resets CH1-derived state before CH2
+tls13_hrr_reset_state
+
 TLS 1.3 HRR: no SNI remains absent in CH2
 tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_NONE:TEST_TLS13_HRR_SNI_NONE
 

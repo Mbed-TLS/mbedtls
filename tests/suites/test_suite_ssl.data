@@ -3448,26 +3448,46 @@ tls13_server_certificate_msg_invalid_vector_len
 TLS 1.3 cli rejects HRR selecting an un-offered group
 reject_hrr_selecting_unoffered_group
 
-TLS 1.3 HRR clears stale SNI authmode when CH2 omits SNI
-tls13_hrr_sni_authmode_carryover:TEST_TLS13_HRR_CH2_SNI_OMITTED
+TLS 1.3 HRR: no SNI remains absent in CH2
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_NONE:TEST_TLS13_HRR_SNI_NONE
 
-TLS 1.3 HRR clears stale SNI authmode when CH2 uses default-authmode SNI
-tls13_hrr_sni_authmode_carryover:TEST_TLS13_HRR_CH2_SNI_DEFAULT_VERIFY_REQUIRED
+TLS 1.3 HRR: CH2 cannot add SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_NONE:TEST_TLS13_HRR_SNI_OPEN
 
-TLS 1.3 HRR reapplies SNI authmode when CH2 retains SNI
-tls13_hrr_sni_authmode_carryover:TEST_TLS13_HRR_CH2_SNI_OVERRIDE_VERIFY_NONE
+TLS 1.3 HRR: CH2 cannot add closed SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_NONE:TEST_TLS13_HRR_SNI_CLOSED
 
-TLS 1.3 server rejects CH2 changing the HRR ciphersuite
-depends_on:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256:MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
-tls13_hrr_rejects_inconsistent_ch2:TEST_TLS13_HRR_CH2_CHANGE_CIPHERSUITE
+TLS 1.3 HRR: open SNI remains unchanged in CH2
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_OPEN
 
-TLS 1.3 server accepts CH2 retaining the HRR ciphersuite
+TLS 1.3 HRR: CH2 cannot omit open SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_NONE
+
+TLS 1.3 HRR: CH2 cannot change open SNI to closed
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_CLOSED
+
+TLS 1.3 HRR: CH2 cannot change open SNI to an equal-length name
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_OTHER
+
+TLS 1.3 HRR: closed SNI remains unchanged in CH2
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_CLOSED
+
+TLS 1.3 HRR: CH2 cannot omit closed SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_NONE
+
+TLS 1.3 HRR: CH2 cannot change closed SNI to open
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_OPEN
+
+TLS 1.3 server accepts compliant CH2, sanity check tls13_srv_rejects_inconsistent_ch2
 depends_on:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256
-tls13_hrr_rejects_inconsistent_ch2:TEST_TLS13_HRR_CH2_RETAIN_CIPHERSUITE
+tls13_srv_rejects_inconsistent_ch2:TEST_TLS13_CH2_NO_INCONSISTENCY
 
-TLS 1.3 server rejects CH2 changing the HRR-selected key share group
-depends_on:PSA_WANT_ECC_MONTGOMERY_255
-tls13_hrr_rejects_inconsistent_ch2:TEST_TLS13_HRR_CH2_CHANGE_KEY_SHARE_GROUP
+TLS 1.3 server rejects CH2 inducing a change of handshake ciphersuite
+depends_on:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256:MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
+tls13_srv_rejects_inconsistent_ch2:TEST_TLS13_CH2_INCONSISTENT_CIPHERSUITE
+
+TLS 1.3 server rejects CH2 proposing a group different from the one in the HRR
+tls13_srv_rejects_inconsistent_ch2:TEST_TLS13_CH2_INCONSISTENT_KEY_SHARE_GROUP
 
 TLS 1.3 server rejects an empty CH2 key_share extension after HRR
 tls13_srv_rejects_hrr_ch2_key_share_count:TEST_TLS13_HRR_CH2_EMPTY_KEY_SHARE

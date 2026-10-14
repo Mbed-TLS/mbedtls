@@ -42,6 +42,9 @@
 #define TEST_TLS13_HRR_CH2_RETAIN_CIPHERSUITE      1
 #define TEST_TLS13_HRR_CH2_CHANGE_KEY_SHARE_GROUP  2
 
+#define TEST_TLS13_HRR_CH2_EMPTY_KEY_SHARE      0
+#define TEST_TLS13_HRR_CH2_MULTIPLE_KEY_SHARES  1
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C) && \
@@ -4892,6 +4895,56 @@ exit:
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* Verify RFC 8446's exact-one-key-share requirement after an HRR. */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
+void tls13_srv_rejects_hrr_ch2_key_share_count(int count_mutation)
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    mbedtls_ssl_handshake_params handshake;
+    uint16_t group_list[] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_NONE
+    };
+    const unsigned char empty_key_share[] = { 0x00, 0x00 };
+    const unsigned char multiple_key_shares[] = {
+        0x00, 0x0a,
+        0xff, 0xff, 0x00, 0x01, 0x00,
+        0xff, 0xff, 0x00, 0x01, 0x00
+    };
+    const unsigned char *key_share;
+    size_t key_share_len;
+
+    TEST_ASSERT(count_mutation == TEST_TLS13_HRR_CH2_EMPTY_KEY_SHARE ||
+                count_mutation == TEST_TLS13_HRR_CH2_MULTIPLE_KEY_SHARES);
+
+    if (count_mutation == TEST_TLS13_HRR_CH2_EMPTY_KEY_SHARE) {
+        key_share = empty_key_share;
+        key_share_len = sizeof(empty_key_share);
+    } else {
+        key_share = multiple_key_shares;
+        key_share_len = sizeof(multiple_key_shares);
+    }
+
+    memset(&ssl, 0, sizeof(ssl));
+    memset(&conf, 0, sizeof(conf));
+    memset(&handshake, 0, sizeof(handshake));
+    ssl.conf = &conf;
+    ssl.handshake = &handshake;
+    conf.group_list = group_list;
+    handshake.hello_retry_request_flag = 1;
+    handshake.hrr_selected_group = MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1;
+
+    TEST_EQUAL(mbedtls_ssl_tls13_parse_key_shares_ext(
+                   &ssl, key_share, key_share + key_share_len),
+               MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+    TEST_EQUAL(ssl.alert_type, MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER);
+
+exit:
+    return;
 }
 /* END_CASE */
 

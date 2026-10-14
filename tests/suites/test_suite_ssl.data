@@ -3409,6 +3409,12 @@ TLS 1.3 server rejects CH2 changing the HRR-selected key share group
 depends_on:PSA_WANT_ECC_MONTGOMERY_255
 tls13_hrr_rejects_inconsistent_ch2:TEST_TLS13_HRR_CH2_CHANGE_KEY_SHARE_GROUP
 
+TLS 1.3 server rejects an empty CH2 key_share extension after HRR
+tls13_srv_rejects_hrr_ch2_key_share_count:TEST_TLS13_HRR_CH2_EMPTY_KEY_SHARE
+
+TLS 1.3 server rejects CH2 with multiple key shares after HRR
+tls13_srv_rejects_hrr_ch2_key_share_count:TEST_TLS13_HRR_CH2_MULTIPLE_KEY_SHARES
+
 EC-JPAKE read round rejects a missing length byte
 depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 ssl_ecjpake_read_round:0:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE

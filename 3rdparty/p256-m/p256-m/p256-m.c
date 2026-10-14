@@ -78,11 +78,13 @@ static void u256_set32(uint32_t z[8], uint32_t x)
  * add-with-carry instruction.
  * Otherwise, split each limb into 16-bit halves to avoid variable-time
  * compiler-generated 64-bit addition and subtraction. */
-#if UINTPTR_MAX > UINT32_MAX || defined(__arm__) || defined(__aarch64__) || \
-    defined(_M_ARM) || defined(_M_ARM64) || \
-    defined(__i386__) || defined(__x86_64__) || \
-    defined(_M_IX86) || defined(_M_X64) || \
-    defined(__powerpc__) || defined(__powerpc64__) || \
+#if defined(__x86_64__) || defined(_M_X64) || \
+    defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC) || \
+    defined(__powerpc64__) || defined(__ppc64__) || defined(__mips64) || \
+    (defined(__riscv_xlen) && __riscv_xlen == 64) || \
+    defined(__arm__) || defined(_M_ARM) || \
+    defined(__i386__) || defined(_M_IX86) || \
+    defined(__powerpc__) || \
     defined(__ppc__) || defined(__PPC__) || defined(_ARCH_PPC) || \
     defined(__m68k__) || defined(__mc68000__) || \
     defined(__RX__) || defined(__RX) || defined(__sh__) || \

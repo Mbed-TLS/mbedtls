@@ -38,6 +38,11 @@
 #define TEST_SSL_CONTEXT_LOAD_OOB_OUT_CID  1
 #define TEST_SSL_CONTEXT_LOAD_OOB_ALPN     2
 
+/* SNI behavior in the second ClientHello after HRR. */
+#define TEST_TLS13_HRR_CH2_SNI_OMITTED                 0
+#define TEST_TLS13_HRR_CH2_SNI_DEFAULT_VERIFY_REQUIRED 1
+#define TEST_TLS13_HRR_CH2_SNI_OVERRIDE_VERIFY_NONE    2
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C) && \
@@ -189,6 +194,59 @@ exit:
 typedef enum {
     PRE_HANDSHAKE_BADMAC_SEEN = 1u << 0,
 } pre_handshake_tweaks_t;
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
+    defined(MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE) && \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(PSA_WANT_ALG_SHA_256) && defined(PSA_WANT_ALG_ECDH) && \
+    defined(PSA_WANT_ALG_ECDSA_ANY) && \
+    defined(PSA_WANT_ECC_SECP_R1_256) && \
+    defined(PSA_WANT_ECC_SECP_R1_384)
+typedef struct {
+    unsigned open_example_count;
+    unsigned closed_example_count;
+    unsigned unexpected_name_count;
+    unsigned callback_sni_mismatch_count;
+} tls13_hrr_sni_authmode_context;
+
+static int tls13_hrr_sni_authmode_callback(void *p_info,
+                                           mbedtls_ssl_context *ssl,
+                                           const unsigned char *name,
+                                           size_t name_len)
+{
+    tls13_hrr_sni_authmode_context *ctx = p_info;
+    const char open_name[] = "open.example";
+    const char closed_name[] = "closed.example";
+    size_t hs_name_len = 0;
+    const unsigned char *hs_name = mbedtls_ssl_get_hs_sni(ssl, &hs_name_len);
+
+    if (hs_name == NULL ||
+        hs_name_len != name_len ||
+        memcmp(hs_name, name, name_len) != 0) {
+        ctx->callback_sni_mismatch_count++;
+    }
+
+    if (name_len == sizeof(open_name) - 1 &&
+        memcmp(name, open_name, sizeof(open_name) - 1) == 0) {
+        ctx->open_example_count++;
+        mbedtls_ssl_set_hs_authmode(ssl, MBEDTLS_SSL_VERIFY_NONE);
+        return 0;
+    }
+
+    if (name_len == sizeof(closed_name) - 1 &&
+        memcmp(name, closed_name, sizeof(closed_name) - 1) == 0) {
+        ctx->closed_example_count++;
+        /* Deliberately rely on the server's default authentication mode. */
+        return 0;
+    }
+
+    ctx->unexpected_name_count++;
+    return 0;
+}
+#endif
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
     defined(PSA_HAVE_ALG_SOME_RSA_SIGN) && \
@@ -5060,6 +5118,173 @@ exit:
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold(0);
 #endif /* MBEDTLS_DEBUG_C */
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SERVER_NAME_INDICATION:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_ECDH:PSA_WANT_ALG_ECDSA_ANY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
+void tls13_hrr_sni_authmode_carryover(int ch2_sni_mode)
+{
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options, server_options;
+    tls13_hrr_sni_authmode_context sni_ctx;
+    int certificate_request_sent = 0;
+    int sni_authmode = MBEDTLS_SSL_VERIFY_UNSET;
+
+    uint16_t client_group_list[] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_NONE
+    };
+    uint16_t server_group_list[] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_NONE
+    };
+
+    /*
+     * The server's default client-authentication policy is VERIFY_REQUIRED,
+     * while open.example overrides it to VERIFY_NONE. Force HRR, then check
+     * that CH2 alone determines the final authentication policy.
+     */
+    memset(&client_ep, 0, sizeof(client_ep));
+    memset(&server_ep, 0, sizeof(server_ep));
+    memset(&sni_ctx, 0, sizeof(sni_ctx));
+
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+    MD_OR_USE_PSA_INIT();
+
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    client_options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    client_options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    client_options.group_list = client_group_list;
+
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    server_options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    server_options.group_list = server_group_list;
+    server_options.srv_auth_mode = MBEDTLS_SSL_VERIFY_REQUIRED;
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep,
+                                              MBEDTLS_SSL_IS_CLIENT,
+                                              &client_options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep,
+                                              MBEDTLS_SSL_IS_SERVER,
+                                              &server_options), 0);
+
+    /* This controls client-side verification of the server certificate only. */
+    mbedtls_ssl_conf_authmode(&client_ep.conf, MBEDTLS_SSL_VERIFY_NONE);
+
+    mbedtls_ssl_conf_sni(&server_ep.conf,
+                         tls13_hrr_sni_authmode_callback,
+                         &sni_ctx);
+
+    TEST_EQUAL(mbedtls_ssl_set_hostname(&client_ep.ssl, "open.example"), 0);
+
+    /* Force the client to send no certificate if the server requests one. */
+    TEST_ASSERT(client_ep.conf.key_cert != NULL);
+    client_ep.conf.key_cert->cert = NULL;
+
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                                &(server_ep.socket), 4096), 0);
+
+    ret = mbedtls_test_move_handshake_to_state(
+        &(server_ep.ssl), &(client_ep.ssl),
+        MBEDTLS_SSL_HELLO_RETRY_REQUEST);
+    TEST_EQUAL(ret, 0);
+    /* CH1 must invoke the callback exactly once, for open.example. */
+    TEST_EQUAL(sni_ctx.open_example_count, 1);
+    TEST_EQUAL(sni_ctx.closed_example_count, 0);
+    TEST_EQUAL(sni_ctx.unexpected_name_count, 0);
+    TEST_EQUAL(sni_ctx.callback_sni_mismatch_count, 0);
+    TEST_EQUAL(server_ep.ssl.handshake->sni_authmode, MBEDTLS_SSL_VERIFY_NONE);
+
+    TEST_EQUAL(mbedtls_ssl_handshake_step(&(server_ep.ssl)), 0);
+    TEST_EQUAL(mbedtls_ssl_flush_output(&(server_ep.ssl)), 0);
+
+    ret = mbedtls_test_move_handshake_to_state(
+        &(client_ep.ssl), &(server_ep.ssl),
+        MBEDTLS_SSL_CLIENT_HELLO);
+    TEST_EQUAL(ret, 0);
+    TEST_EQUAL(server_ep.ssl.state, MBEDTLS_SSL_CLIENT_HELLO);
+
+    /*
+     * Deliberately make CH2 inconsistent with CH1 for the first two modes.
+     * Although such a CH2 violates RFC 8446, processing it must not retain
+     * security-sensitive SNI state selected while parsing CH1.
+     */
+    if (ch2_sni_mode == TEST_TLS13_HRR_CH2_SNI_OMITTED) {
+        TEST_EQUAL(mbedtls_ssl_set_hostname(&client_ep.ssl, NULL), 0);
+    } else if (ch2_sni_mode ==
+               TEST_TLS13_HRR_CH2_SNI_DEFAULT_VERIFY_REQUIRED) {
+        TEST_EQUAL(mbedtls_ssl_set_hostname(&client_ep.ssl, "closed.example"), 0);
+    } else {
+        TEST_EQUAL(ch2_sni_mode,
+                   TEST_TLS13_HRR_CH2_SNI_OVERRIDE_VERIFY_NONE);
+        TEST_EQUAL(mbedtls_ssl_set_hostname(&client_ep.ssl, "open.example"), 0);
+    }
+
+    ret = mbedtls_test_move_handshake_to_state(
+        &(server_ep.ssl), &(client_ep.ssl),
+        MBEDTLS_SSL_SERVER_CERTIFICATE);
+    TEST_EQUAL(ret, 0);
+
+    /* Confirm exactly which SNI callback, if any, CH2 invoked. */
+    if (ch2_sni_mode == TEST_TLS13_HRR_CH2_SNI_OMITTED) {
+        TEST_EQUAL(sni_ctx.open_example_count, 1);
+        TEST_EQUAL(sni_ctx.closed_example_count, 0);
+        TEST_ASSERT((server_ep.ssl.handshake->received_extensions &
+                     MBEDTLS_SSL_EXT_MASK(SERVERNAME)) == 0);
+    } else if (ch2_sni_mode ==
+               TEST_TLS13_HRR_CH2_SNI_DEFAULT_VERIFY_REQUIRED) {
+        TEST_EQUAL(sni_ctx.open_example_count, 1);
+        TEST_EQUAL(sni_ctx.closed_example_count, 1);
+        TEST_ASSERT((server_ep.ssl.handshake->received_extensions &
+                     MBEDTLS_SSL_EXT_MASK(SERVERNAME)) != 0);
+    } else {
+        TEST_EQUAL(ch2_sni_mode,
+                   TEST_TLS13_HRR_CH2_SNI_OVERRIDE_VERIFY_NONE);
+        TEST_EQUAL(sni_ctx.open_example_count, 2);
+        TEST_EQUAL(sni_ctx.closed_example_count, 0);
+        TEST_ASSERT((server_ep.ssl.handshake->received_extensions &
+                     MBEDTLS_SSL_EXT_MASK(SERVERNAME)) != 0);
+    }
+    /* No callback may observe an unexpected or inconsistent SNI name. */
+    TEST_EQUAL(sni_ctx.unexpected_name_count, 0);
+    TEST_EQUAL(sni_ctx.callback_sni_mismatch_count, 0);
+    /* sni_name is a transient callback input and is cleared after CH parsing. */
+    TEST_ASSERT(server_ep.ssl.handshake->sni_name == NULL);
+    TEST_EQUAL(server_ep.ssl.handshake->sni_name_len, 0);
+
+    /* Save the CH2 policy decision before driving the handshake to completion. */
+    certificate_request_sent =
+        server_ep.ssl.handshake->certificate_request_sent;
+    sni_authmode = server_ep.ssl.handshake->sni_authmode;
+
+    ret = mbedtls_test_move_handshake_to_state(
+        &(server_ep.ssl), &(client_ep.ssl),
+        MBEDTLS_SSL_HANDSHAKE_OVER);
+    /* The fix must discard CH1's VERIFY_NONE unless CH2 reapplies it. */
+    if (ch2_sni_mode == TEST_TLS13_HRR_CH2_SNI_OVERRIDE_VERIFY_NONE) {
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(certificate_request_sent, 0);
+        TEST_EQUAL(sni_authmode, MBEDTLS_SSL_VERIFY_NONE);
+        TEST_ASSERT(mbedtls_ssl_is_handshake_over(&server_ep.ssl));
+        TEST_ASSERT(mbedtls_ssl_is_handshake_over(&client_ep.ssl));
+    } else {
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE);
+        TEST_EQUAL(certificate_request_sent, 1);
+        TEST_EQUAL(sni_authmode, MBEDTLS_SSL_VERIFY_UNSET);
+        TEST_ASSERT(!mbedtls_ssl_is_handshake_over(&server_ep.ssl));
+        TEST_ASSERT(!mbedtls_ssl_is_handshake_over(&client_ep.ssl));
+    }
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */

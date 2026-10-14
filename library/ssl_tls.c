@@ -967,7 +967,7 @@ void mbedtls_ssl_session_init(mbedtls_ssl_session *session)
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_handshake_init(mbedtls_ssl_context *ssl)
+int mbedtls_ssl_handshake_init(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -1223,7 +1223,7 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
     memset(&ssl->dtls_srtp_info, 0, sizeof(ssl->dtls_srtp_info));
 #endif
 
-    if ((ret = ssl_handshake_init(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_handshake_init(ssl)) != 0) {
         goto error;
     }
 
@@ -1403,7 +1403,7 @@ int mbedtls_ssl_session_reset_int(mbedtls_ssl_context *ssl, int partial)
     }
 #endif
 
-    if ((ret = ssl_handshake_init(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_handshake_init(ssl)) != 0) {
         return ret;
     }
 
@@ -4358,7 +4358,7 @@ int mbedtls_ssl_start_renegotiation(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> renegotiate"));
 
-    if ((ret = ssl_handshake_init(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_handshake_init(ssl)) != 0) {
         return ret;
     }
 
@@ -4954,7 +4954,7 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
     session_len = MBEDTLS_GET_UINT32_BE(p, 0);
     p += 4;
 
-    /* This has been allocated by ssl_handshake_init(), called by
+    /* This has been allocated by mbedtls_ssl_handshake_init(), called by
      * by either mbedtls_ssl_session_reset_int() or mbedtls_ssl_setup(). */
     ssl->session = ssl->session_negotiate;
     ssl->session_in = ssl->session;
@@ -4977,7 +4977,7 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
      * Transform
      */
 
-    /* This has been allocated by ssl_handshake_init(), called by
+    /* This has been allocated by mbedtls_ssl_handshake_init(), called by
      * by either mbedtls_ssl_session_reset_int() or mbedtls_ssl_setup(). */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     ssl->transform = ssl->transform_negotiate;

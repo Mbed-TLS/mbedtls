@@ -35,7 +35,6 @@ for field in ('handshake', 'session_negotiate', 'user_data'):
 
 # ALPN is the one CH1-derived value stored directly in mbedtls_ssl_context.
 RULES['alpn_chosen'] = ssl_session_reset_check.ResetBehavior.RESET
-RULES['unused'] = ssl_session_reset_check.ResetBehavior.IGNORE
 
 SPECIAL_BEHAVIORS = {
     'handshake': [
@@ -72,20 +71,32 @@ SPECIAL_BEHAVIORS = {
         'normalized_handshake.ch1_sni_name_len = ' +
         'initial.handshake->ch1_sni_name_len;',
         '#endif',
-        '#if defined(PSA_WANT_ALG_SHA_256)',
+        '#if defined(MBEDTLS_MD_CAN_SHA256)',
+        '#if defined(MBEDTLS_USE_PSA_CRYPTO)',
         'normalized_handshake.fin_sha256_psa = ' +
         'initial.handshake->fin_sha256_psa;',
+        '#else',
+        'normalized_handshake.fin_sha256 = ' +
+        'initial.handshake->fin_sha256;',
         '#endif',
-        '#if defined(PSA_WANT_ALG_SHA_384)',
+        '#endif',
+        '#if defined(MBEDTLS_MD_CAN_SHA384)',
+        '#if defined(MBEDTLS_USE_PSA_CRYPTO)',
         'normalized_handshake.fin_sha384_psa = ' +
         'initial.handshake->fin_sha384_psa;',
+        '#else',
+        'normalized_handshake.fin_sha384 = ' +
+        'initial.handshake->fin_sha384;',
+        '#endif',
         '#endif',
         '#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)',
+        '#if defined(MBEDTLS_USE_PSA_CRYPTO)',
         '/* Ignore unspecified inactive union storage in the opaque PAKE ' +
         'operation. */',
         'memcpy(&normalized_handshake.psa_pake_ctx, ' +
         '&initial.handshake->psa_pake_ctx, ' +
         'sizeof(normalized_handshake.psa_pake_ctx));',
+        '#endif',
         '#endif',
         'TEST_MEMORY_COMPARE(&normalized_handshake, ' +
         'sizeof(normalized_handshake), initial.handshake, ' +
@@ -188,7 +199,7 @@ def main():
         raise Exception("The script must be launched from the root path of Mbed TLS")
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', dest='output_file',
-                        default='tests/src/ssl_hrr_reset_verifier.c')
+                        default='tests/src/test_helpers/ssl_hrr_reset_verifier.c')
     args = parser.parse_args()
     with open(args.output_file, 'wt', encoding='utf-8') as output:
         HRRSSLContextStruct(FIELDS_INFO).write_check_function(output)

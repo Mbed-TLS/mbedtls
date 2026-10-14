@@ -36,7 +36,6 @@ int mbedtls_test_ssl_check_context_after_hrr_reset(
     /* *INDENT-OFF* */
     TEST_ASSERT(before->conf == after->conf);
     TEST_EQUAL(before->state, after->state);
-    TEST_EQUAL(before->flags, after->flags);
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     TEST_EQUAL(before->renego_status, after->renego_status);
 #endif
@@ -47,7 +46,7 @@ int mbedtls_test_ssl_check_context_after_hrr_reset(
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
     TEST_EQUAL(before->early_data_state, after->early_data_state);
 #endif
-    TEST_EQUAL(before->badmac_seen, after->badmac_seen);
+    TEST_EQUAL(before->badmac_seen_or_in_hsfraglen, after->badmac_seen_or_in_hsfraglen);
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     TEST_ASSERT(before->f_vrfy == after->f_vrfy);
 #endif
@@ -89,15 +88,25 @@ int mbedtls_test_ssl_check_context_after_hrr_reset(
     normalized_handshake.ch1_sni_name = initial.handshake->ch1_sni_name;
     normalized_handshake.ch1_sni_name_len = initial.handshake->ch1_sni_name_len;
 #endif
-#if defined(PSA_WANT_ALG_SHA_256)
+#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     normalized_handshake.fin_sha256_psa = initial.handshake->fin_sha256_psa;
+#else
+    normalized_handshake.fin_sha256 = initial.handshake->fin_sha256;
 #endif
-#if defined(PSA_WANT_ALG_SHA_384)
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     normalized_handshake.fin_sha384_psa = initial.handshake->fin_sha384_psa;
+#else
+    normalized_handshake.fin_sha384 = initial.handshake->fin_sha384;
+#endif
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     /* Ignore unspecified inactive union storage in the opaque PAKE operation. */
     memcpy(&normalized_handshake.psa_pake_ctx, &initial.handshake->psa_pake_ctx, sizeof(normalized_handshake.psa_pake_ctx));
+#endif
 #endif
     TEST_MEMORY_COMPARE(&normalized_handshake, sizeof(normalized_handshake), initial.handshake, sizeof(*initial.handshake));
     TEST_ASSERT(before->transform_in == after->transform_in);
@@ -141,11 +150,8 @@ int mbedtls_test_ssl_check_context_after_hrr_reset(
     TEST_EQUAL(before->in_window, after->in_window);
 #endif
     TEST_EQUAL(before->in_hslen, after->in_hslen);
-    TEST_EQUAL(before->in_hsfraglen, after->in_hsfraglen);
     TEST_EQUAL(before->nb_zero, after->nb_zero);
     TEST_EQUAL(before->keep_current_message, after->keep_current_message);
-    TEST_EQUAL(before->in_fatal_alert_recv, after->in_fatal_alert_recv);
-    TEST_EQUAL(before->in_fatal_alert_type, after->in_fatal_alert_type);
     TEST_EQUAL(before->send_alert, after->send_alert);
     TEST_EQUAL(before->alert_type, after->alert_type);
     TEST_EQUAL(before->alert_reason, after->alert_reason);
@@ -217,7 +223,6 @@ int mbedtls_test_ssl_check_context_after_hrr_reset(
     TEST_ASSERT(before->f_export_keys == after->f_export_keys);
     TEST_ASSERT(before->p_export_keys == after->p_export_keys);
     TEST_EQUAL(before->user_data.n, after->user_data.n);
-    /* unused is ignored */
     /* *INDENT-ON* */
 
     ret = 0;

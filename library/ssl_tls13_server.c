@@ -1271,6 +1271,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     const unsigned char *supported_versions_data;
     const unsigned char *supported_versions_data_end;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    uint16_t hrr_ciphersuite_id = handshake->hello_retry_request_flag ?
+                                  handshake->ciphersuite_info->id : 0;
     int hrr_required = 0;
     int no_usable_share_for_key_agreement = 0;
 
@@ -1803,6 +1805,18 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         }
     }
 #endif
+
+    /* RFC 8446, Section 4.1.4 requires the server to negotiate the same
+     * ciphersuite after a HelloRetryRequest. */
+    if (handshake->hello_retry_request_flag &&
+        handshake->ciphersuite_info->id != hrr_ciphersuite_id) {
+        MBEDTLS_SSL_DEBUG_MSG(1,
+                              ("Non-compliant second ClientHello: "
+                               "the selected ciphersuite has changed."));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+    }
 
     mbedtls_ssl_optimize_checksum(ssl, handshake->ciphersuite_info);
 

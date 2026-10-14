@@ -1417,6 +1417,13 @@ void mbedtls_ssl_transform_free(mbedtls_ssl_transform *transform);
  */
 void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl);
 
+/**
+ * Reinitialize the handshake negotiation state, including the provisional
+ * session, without resetting the record and message layers.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_handshake_init(mbedtls_ssl_context *ssl);
+
 /* set inbound transform of ssl context */
 void mbedtls_ssl_set_inbound_transform(mbedtls_ssl_context *ssl,
                                        mbedtls_ssl_transform *transform);

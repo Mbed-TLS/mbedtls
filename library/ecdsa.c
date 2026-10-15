@@ -18,6 +18,7 @@
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/asn1write.h"
 #include "bignum_internal.h"
+#include "ecp_invasive.h"
 
 #include <string.h>
 
@@ -237,6 +238,25 @@ int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 }
 
 #if !defined(MBEDTLS_ECDSA_SIGN_ALT)
+MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
+                                                    const mbedtls_mpi *d,
+                                                    const mbedtls_mpi *k,
+                                                    mbedtls_mpi *e,
+                                                    const mbedtls_mpi *r,
+                                                    mbedtls_mpi *s)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(s, r, d));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(e, e, s));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(NULL, s, k, N));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(s, s, e));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(s, s, N));
+
+cleanup:
+    return ret;
+}
+
 /*
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
@@ -343,11 +363,8 @@ modn:
         /*
          * Step 6: compute s = (e + r * d) / k
          */
-        MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(s, pr, d));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&e, &e, s));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(NULL, s, pk, &grp->N));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(s, s, &e));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(s, s, &grp->N));
+        MBEDTLS_MPI_CHK(mbedtls_ecdsa_compute_s(&grp->N, d, pk,
+                                                &e, pr, s));
     } while (mbedtls_mpi_cmp_int(s, 0) == 0);
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)

@@ -18,6 +18,7 @@
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/asn1write.h"
 #include "bignum_internal.h"
+#include "bignum_core.h"
 #include "ecp_invasive.h"
 
 #include <string.h>
@@ -224,6 +225,16 @@ cleanup:
 }
 #endif /* ECDSA_DETERMINISTIC || !ECDSA_SIGN_ALT || !ECDSA_VERIFY_ALT */
 
+/* Copy an MPI into a zero-padded, fixed-width limb array. */
+static void ecdsa_copy_limbs(mbedtls_mpi_uint *x, size_t limbs,
+                             const mbedtls_mpi *a)
+{
+    if (a->p != NULL) {
+        size_t copy_limbs = a->n < limbs ? a->n : limbs;
+        memcpy(x, a->p, copy_limbs * sizeof(*x));
+    }
+}
+
 int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 {
     switch (gid) {
@@ -246,14 +257,82 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
                                                     mbedtls_mpi *s)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    const size_t limbs = (mbedtls_mpi_core_bitlen(N->p, N->n) +
+                          8 * sizeof(mbedtls_mpi_uint) - 1) /
+                         (8 * sizeof(mbedtls_mpi_uint));
+    /* Modular inversion needs five limbs of workspace per N limb. */
+    const size_t working_limbs = 5 * limbs;
+    mbedtls_mpi_uint *scratch = NULL;
+    mbedtls_mpi_uint *rr, *dd, *ee, *kk, *ss, *reduced, *working;
+    mbedtls_mpi mont_r2, fixed_N = *N;
+    mbedtls_mpi_uint mm, carry, borrow;
 
-    MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(s, r, d));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(e, e, s));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(NULL, s, k, N));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(s, s, e));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(s, s, N));
+    /* The Montgomery radix is based on the significant limb count. */
+    fixed_N.n = limbs;
+    mbedtls_mpi_init(&mont_r2);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_core_get_mont_r2_unsafe(&mont_r2,
+                                                        &fixed_N));
+    mm = mbedtls_mpi_core_montmul_init(N->p);
+
+    scratch = mbedtls_calloc(6 * limbs + working_limbs, sizeof(*scratch));
+    if (scratch == NULL) {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
+
+    rr = scratch;
+    dd = rr + limbs;
+    ee = dd + limbs;
+    kk = ee + limbs;
+    ss = kk + limbs;
+    reduced = ss + limbs;
+    working = reduced + limbs;
+
+    ecdsa_copy_limbs(rr, limbs, r);
+    ecdsa_copy_limbs(dd, limbs, d);
+    ecdsa_copy_limbs(ee, limbs, e);
+    ecdsa_copy_limbs(kk, limbs, k);
+
+    /* Invert the nonce at the fixed width of the group N. */
+    mbedtls_mpi_core_gcd_modinv_odd(ss, kk, kk, limbs, N->p,
+                                    limbs, working);
+    (void) mbedtls_mpi_core_sub_int(ss, ss, 1, limbs);
+    if (mbedtls_mpi_core_check_zero_ct(ss, limbs) != MBEDTLS_CT_FALSE) {
+        ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+        goto cleanup;
+    }
+
+    mbedtls_mpi_core_to_mont_rep(rr, rr, N->p, limbs, mm,
+                                 mont_r2.p, working);
+    mbedtls_mpi_core_to_mont_rep(dd, dd, N->p, limbs, mm,
+                                 mont_r2.p, working);
+    mbedtls_mpi_core_to_mont_rep(ee, ee, N->p, limbs, mm,
+                                 mont_r2.p, working);
+    mbedtls_mpi_core_to_mont_rep(kk, kk, N->p, limbs, mm,
+                                 mont_r2.p, working);
+
+    mbedtls_mpi_core_montmul(ss, rr, dd, limbs, N->p, limbs,
+                             mm, working);
+    carry = mbedtls_mpi_core_add(ss, ss, ee, limbs);
+    borrow = mbedtls_mpi_core_sub(reduced, ss, N->p, limbs);
+    mbedtls_mpi_core_cond_assign(ss, reduced, limbs,
+                                 mbedtls_ct_bool(carry | (borrow ^ 1)));
+    mbedtls_mpi_core_montmul(ss, ss, kk, limbs, N->p, limbs,
+                             mm, working);
+    mbedtls_mpi_core_from_mont_rep(ss, ss, N->p, limbs, mm,
+                                   working);
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(s, limbs));
+    memset(s->p, 0, s->n * sizeof(*s->p));
+    memcpy(s->p, ss, limbs * sizeof(*s->p));
+    s->s = 1;
 
 cleanup:
+    if (scratch != NULL) {
+        mbedtls_zeroize_and_free(scratch,
+                                 (6 * limbs + working_limbs) * sizeof(*scratch));
+    }
+    mbedtls_mpi_free(&mont_r2);
     return ret;
 }
 

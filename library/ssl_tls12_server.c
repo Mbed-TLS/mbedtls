@@ -3591,6 +3591,10 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_CLIENT_FINISHED:
+            if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = mbedtls_ssl_parse_finished(ssl);
             break;
 
@@ -3609,6 +3613,10 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_SERVER_FINISHED:
+            if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = mbedtls_ssl_write_finished(ssl);
             break;
 
@@ -3618,6 +3626,10 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
+            if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             mbedtls_ssl_handshake_wrapup(ssl);
             break;
 

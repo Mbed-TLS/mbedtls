@@ -6515,6 +6515,12 @@ int mbedtls_ssl_derive_keys(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> derive keys"));
 
+    if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_NONE) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("invalid TLS 1.2 key schedule transition"));
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
     required_input = ssl->handshake->resume != 0 ?
                      MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_RESUMPTION :
                      MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_PREMASTER;
@@ -6567,6 +6573,9 @@ int mbedtls_ssl_derive_keys(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls12_populate_transform", ret);
         return ret;
     }
+
+    ssl->handshake->tls12_key_scheduling_stage_completed =
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS;
 
     /* We no longer need Server/ClientHello.random values */
     mbedtls_platform_zeroize(ssl->handshake->randbytes,

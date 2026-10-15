@@ -225,16 +225,6 @@ cleanup:
 }
 #endif /* ECDSA_DETERMINISTIC || !ECDSA_SIGN_ALT || !ECDSA_VERIFY_ALT */
 
-/* Copy an MPI into a zero-padded, fixed-width limb array. */
-static void ecdsa_copy_limbs(mbedtls_mpi_uint *x, size_t limbs,
-                             const mbedtls_mpi *a)
-{
-    if (a->p != NULL) {
-        size_t copy_limbs = a->n < limbs ? a->n : limbs;
-        memcpy(x, a->p, copy_limbs * sizeof(*x));
-    }
-}
-
 int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 {
     switch (gid) {
@@ -249,6 +239,19 @@ int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 }
 
 #if !defined(MBEDTLS_ECDSA_SIGN_ALT)
+/* Copy an MPI into a zero-padded, fixed-width limb array. */
+static void ecdsa_copy_limbs(mbedtls_mpi_uint *x, size_t limbs,
+                             const mbedtls_mpi *a)
+{
+    if (a->n == 0) {
+        /* This shouldn't happen, but to be on the safe side,
+         * avoid undefined behavior if a is 0 with a->p==NULL. */
+        return;
+    }
+    size_t copy_limbs = a->n < limbs ? a->n : limbs;
+    memcpy(x, a->p, copy_limbs * sizeof(*x));
+}
+
 MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
                                                     const mbedtls_mpi *d,
                                                     const mbedtls_mpi *k,
@@ -257,22 +260,24 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
                                                     mbedtls_mpi *s)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const size_t limbs = (mbedtls_mpi_core_bitlen(N->p, N->n) +
-                          8 * sizeof(mbedtls_mpi_uint) - 1) /
-                         (8 * sizeof(mbedtls_mpi_uint));
+
+    /* The group order N may have leading zeros. Here, we need to know
+     * its size without leading zeros. */
+    mbedtls_mpi trimmed_N = *N;
+    while (trimmed_N.p[trimmed_N.n - 1] == 0) {
+        --trimmed_N.n;
+    }
+    const size_t limbs = trimmed_N.n;
+
     /* Modular inversion needs five limbs of workspace per N limb. */
     const size_t working_limbs = 5 * limbs;
     mbedtls_mpi_uint *scratch = NULL;
-    mbedtls_mpi_uint *rr, *dd, *ee, *kk, *ss, *reduced, *working;
-    mbedtls_mpi mont_r2, fixed_N = *N;
-    mbedtls_mpi_uint mm, carry, borrow;
+    mbedtls_mpi mont_r2 = *N;
+    mbedtls_mpi_init(&mont_r2);
 
     /* The Montgomery radix is based on the significant limb count. */
-    fixed_N.n = limbs;
-    mbedtls_mpi_init(&mont_r2);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_core_get_mont_r2_unsafe(&mont_r2,
-                                                        &fixed_N));
-    mm = mbedtls_mpi_core_montmul_init(N->p);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_core_get_mont_r2_unsafe(&mont_r2, &trimmed_N));
+    mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init(N->p);
 
     scratch = mbedtls_calloc(6 * limbs + working_limbs, sizeof(*scratch));
     if (scratch == NULL) {
@@ -280,13 +285,13 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
         goto cleanup;
     }
 
-    rr = scratch;
-    dd = rr + limbs;
-    ee = dd + limbs;
-    kk = ee + limbs;
-    ss = kk + limbs;
-    reduced = ss + limbs;
-    working = reduced + limbs;
+    mbedtls_mpi_uint *rr = scratch;
+    mbedtls_mpi_uint *dd = rr + limbs;
+    mbedtls_mpi_uint *ee = dd + limbs;
+    mbedtls_mpi_uint *kk = ee + limbs;
+    mbedtls_mpi_uint *ss = kk + limbs;
+    mbedtls_mpi_uint *reduced = ss + limbs;
+    mbedtls_mpi_uint *working = reduced + limbs;
 
     ecdsa_copy_limbs(rr, limbs, r);
     ecdsa_copy_limbs(dd, limbs, d);
@@ -313,8 +318,8 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
 
     mbedtls_mpi_core_montmul(ss, rr, dd, limbs, N->p, limbs,
                              mm, working);
-    carry = mbedtls_mpi_core_add(ss, ss, ee, limbs);
-    borrow = mbedtls_mpi_core_sub(reduced, ss, N->p, limbs);
+    mbedtls_mpi_uint carry = mbedtls_mpi_core_add(ss, ss, ee, limbs);
+    mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub(reduced, ss, N->p, limbs);
     mbedtls_mpi_core_cond_assign(ss, reduced, limbs,
                                  mbedtls_ct_bool(carry | (borrow ^ 1)));
     mbedtls_mpi_core_montmul(ss, ss, kk, limbs, N->p, limbs,

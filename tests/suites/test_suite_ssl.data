@@ -2659,6 +2659,21 @@ Record crypt, little space, NULL cipher, 1.2, MD5, EtM
 depends_on:MBEDTLS_SSL_NULL_CIPHERSUITES:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ALG_MD5:MBEDTLS_SSL_ENCRYPT_THEN_MAC
 ssl_crypt_record_small:MBEDTLS_CIPHER_NULL:MBEDTLS_MD_MD5:1:0:MBEDTLS_SSL_VERSION_TLS1_2:0:0
 
+SSL TLS 1.2 client fresh key schedule requires premaster input
+depends_on:MBEDTLS_SSL_CLI_C
+ssl_tls12_key_schedule_rejects_missing_input:MBEDTLS_SSL_IS_CLIENT:0:MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_RESUMPTION
+
+SSL TLS 1.2 client resumed key schedule requires resumption input
+depends_on:MBEDTLS_SSL_CLI_C
+ssl_tls12_key_schedule_rejects_missing_input:MBEDTLS_SSL_IS_CLIENT:1:MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_PREMASTER
+
+SSL TLS 1.2 server fresh key schedule requires premaster input
+depends_on:MBEDTLS_SSL_SRV_C
+ssl_tls12_key_schedule_rejects_missing_input:MBEDTLS_SSL_IS_SERVER:0:MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_RESUMPTION
+
+SSL TLS 1.2 server resumed key schedule requires resumption input
+depends_on:MBEDTLS_SSL_SRV_C
+ssl_tls12_key_schedule_rejects_missing_input:MBEDTLS_SSL_IS_SERVER:1:MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_PREMASTER
 SSL TLS 1.3 early-data transform requires PSK input
 depends_on:MBEDTLS_SSL_EARLY_DATA
 ssl_tls13_key_schedule_validates_inputs:MBEDTLS_SSL_IS_CLIENT:TEST_TLS13_KS_OP_EARLY_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_NONE:MBEDTLS_ERR_SSL_INTERNAL_ERROR

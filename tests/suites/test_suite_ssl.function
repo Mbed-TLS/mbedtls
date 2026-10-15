@@ -2096,7 +2096,8 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2 */
 void ssl_tls12_key_schedule_rejects_missing_input(int endpoint,
                                                   int resume,
-                                                  int input_setup)
+                                                  int input_setup,
+                                                  int initial_stage)
 {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
@@ -2115,12 +2116,80 @@ void ssl_tls12_key_schedule_rejects_missing_input(int endpoint,
     ssl.tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
     ssl.handshake->resume = resume;
     ssl.handshake->tls12_key_exchange_inputs = input_setup;
+    ssl.handshake->tls12_key_scheduling_stage_completed = initial_stage;
 
     TEST_EQUAL(mbedtls_ssl_derive_keys(&ssl),
                MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+    TEST_EQUAL(ssl.handshake->tls12_key_scheduling_stage_completed,
+               initial_stage);
+
 exit:
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+void ssl_tls12_state_rejects_invalid_stage(int endpoint,
+                                           int target_state)
+{
+    enum { BUFFSIZE = 16384 };
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_ssl_endpoint client;
+    mbedtls_test_ssl_endpoint server;
+    mbedtls_test_ssl_endpoint *target;
+    mbedtls_test_ssl_endpoint *peer;
+    int ret;
+
+    memset(&client, 0, sizeof(client));
+    memset(&server, 0, sizeof(server));
+    mbedtls_test_init_handshake_options(&options);
+    options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &client, MBEDTLS_SSL_IS_CLIENT, &options,
+                   NULL, NULL, NULL), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &server, MBEDTLS_SSL_IS_SERVER, &options,
+                   NULL, NULL, NULL), 0);
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&client.socket,
+                                                &server.socket,
+                                                BUFFSIZE), 0);
+
+    if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        target = &client;
+        peer = &server;
+    } else {
+        TEST_EQUAL(endpoint, MBEDTLS_SSL_IS_SERVER);
+        target = &server;
+        peer = &client;
+    }
+
+    ret = mbedtls_test_move_handshake_to_state(&target->ssl, &peer->ssl,
+                                               target_state);
+    TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+    TEST_EQUAL(target->ssl.state, target_state);
+
+    target->ssl.handshake->tls12_key_scheduling_stage_completed =
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_NONE;
+
+    ret = endpoint == MBEDTLS_SSL_IS_CLIENT ?
+          mbedtls_ssl_handshake_client_step(&target->ssl) :
+          mbedtls_ssl_handshake_server_step(&target->ssl);
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+    TEST_EQUAL(target->ssl.state, target_state);
+
+exit:
+    mbedtls_test_free_handshake_options(&options);
+    mbedtls_test_ssl_endpoint_free(&client, NULL);
+    mbedtls_test_ssl_endpoint_free(&server, NULL);
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */

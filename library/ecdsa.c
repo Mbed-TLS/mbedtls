@@ -269,8 +269,6 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
     }
     const size_t limbs = trimmed_N.n;
 
-    /* Modular inversion needs five limbs of workspace per N limb. */
-    const size_t working_limbs = 5 * limbs;
     mbedtls_mpi_uint *scratch = NULL;
     mbedtls_mpi mont_r2 = *N;
     mbedtls_mpi_init(&mont_r2);
@@ -279,63 +277,76 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
     MBEDTLS_MPI_CHK(mbedtls_mpi_core_get_mont_r2_unsafe(&mont_r2, &trimmed_N));
     mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init(N->p);
 
-    scratch = mbedtls_calloc(6 * limbs + working_limbs, sizeof(*scratch));
+    /* Beyond this point, we may have allocated memory, so cleanup
+     * is needed on error. */
+
+    /* Make sure s has room for the number of limbs we're working with.
+     * Zero it out, because later we'll focus on `limbs` limbs and
+     * we won't touch the other limbs if there are more. */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(s, limbs));
+    mbedtls_mpi_lset(s, 0);
+
+    /* e may be smaller than N when signing a smaller hash. Grow it
+     * to the size we use here. */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(e, limbs));
+
+    /* Get room for 3 temporaries (r_mont, d_mont, inv_k_mont),
+     * plus the workspace for modular inversion (5 * limbs). */
+    size_t scratch_limbs = (3 + 5) * limbs;
+    scratch = mbedtls_calloc(scratch_limbs, sizeof(*scratch));
     if (scratch == NULL) {
         ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
         goto cleanup;
     }
 
-    mbedtls_mpi_uint *rr = scratch;
-    mbedtls_mpi_uint *dd = rr + limbs;
-    mbedtls_mpi_uint *ee = dd + limbs;
-    mbedtls_mpi_uint *kk = ee + limbs;
-    mbedtls_mpi_uint *ss = kk + limbs;
-    mbedtls_mpi_uint *reduced = ss + limbs;
-    mbedtls_mpi_uint *working = reduced + limbs;
+    mbedtls_mpi_uint *r_mont = scratch; /* 0 */
+    mbedtls_mpi_uint *d_mont = r_mont + limbs; /* 1 */
+    mbedtls_mpi_uint *inv_k_mont = d_mont + limbs; /* 2 */
+    mbedtls_mpi_uint *working = inv_k_mont + limbs;    /* 3-7 */
 
-    ecdsa_copy_limbs(rr, limbs, r);
-    ecdsa_copy_limbs(dd, limbs, d);
-    ecdsa_copy_limbs(ee, limbs, e);
-    ecdsa_copy_limbs(kk, limbs, k);
-
-    /* Invert the nonce at the fixed width of the group N. */
-    mbedtls_mpi_core_gcd_modinv_odd(ss, kk, kk, limbs, N->p,
-                                    limbs, working);
-    (void) mbedtls_mpi_core_sub_int(ss, ss, 1, limbs);
-    if (mbedtls_mpi_core_check_zero_ct(ss, limbs) != MBEDTLS_CT_FALSE) {
-        ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
-        goto cleanup;
-    }
-
-    mbedtls_mpi_core_to_mont_rep(rr, rr, N->p, limbs, mm,
-                                 mont_r2.p, working);
-    mbedtls_mpi_core_to_mont_rep(dd, dd, N->p, limbs, mm,
-                                 mont_r2.p, working);
-    mbedtls_mpi_core_to_mont_rep(ee, ee, N->p, limbs, mm,
-                                 mont_r2.p, working);
-    mbedtls_mpi_core_to_mont_rep(kk, kk, N->p, limbs, mm,
+    /* Invert the nonce at the fixed width of the group N.
+     * We already know that k is in the range [1, N-1] and is represented
+     * with as many limbs as N.
+     * Convert the result to Montgomery representation.
+     */
+    mbedtls_mpi_core_gcd_modinv_odd(s->p, inv_k_mont, k->p, limbs, N->p, limbs, working);
+    mbedtls_mpi_core_to_mont_rep(inv_k_mont, inv_k_mont, N->p, limbs, mm,
                                  mont_r2.p, working);
 
-    mbedtls_mpi_core_montmul(ss, rr, dd, limbs, N->p, limbs,
+    /* Make a copy of r in Montgomery representation. */
+    ecdsa_copy_limbs(r_mont, limbs, r);
+    mbedtls_mpi_core_to_mont_rep(r_mont, r_mont, N->p, limbs, mm,
+                                 mont_r2.p, working);
+
+    /* Make a copy of d in Montgomery representation. */
+    ecdsa_copy_limbs(d_mont, limbs, d);
+    mbedtls_mpi_core_to_mont_rep(d_mont, d_mont, N->p, limbs, mm,
+                                 mont_r2.p, working);
+
+    /* Convert e to Montgomery representation in place. */
+    mbedtls_mpi_core_to_mont_rep(e->p, e->p, N->p, limbs, mm,
+                                 mont_r2.p, working);
+
+    /* s := r * d mod N */
+    mbedtls_mpi_core_montmul(s->p, r_mont, d_mont, limbs, N->p, limbs,
                              mm, working);
-    mbedtls_mpi_uint carry = mbedtls_mpi_core_add(ss, ss, ee, limbs);
-    mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub(reduced, ss, N->p, limbs);
-    mbedtls_mpi_core_cond_assign(ss, reduced, limbs,
+
+    /* s := r * d + e mod N */
+    mbedtls_mpi_uint carry = mbedtls_mpi_core_add(s->p, s->p, e->p, limbs);
+    mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub(e->p, s->p, N->p, limbs);
+    mbedtls_mpi_core_cond_assign(s->p, e->p, limbs,
                                  mbedtls_ct_bool(carry | (borrow ^ 1)));
-    mbedtls_mpi_core_montmul(ss, ss, kk, limbs, N->p, limbs,
-                             mm, working);
-    mbedtls_mpi_core_from_mont_rep(ss, ss, N->p, limbs, mm,
-                                   working);
 
-    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(s, limbs));
-    memset(s->p, 0, s->n * sizeof(*s->p));
-    memcpy(s->p, ss, limbs * sizeof(*s->p));
-    s->s = 1;
+    /* s := (r * d + e) * k^-1 mod N */
+    mbedtls_mpi_core_montmul(s->p, s->p, inv_k_mont, limbs, N->p, limbs,
+                             mm, working);
+
+    /* Convert the output from Montgomery to standard representation. */
+    mbedtls_mpi_core_from_mont_rep(s->p, s->p, N->p, limbs, mm, working);
 
 cleanup:
     if (scratch != NULL) {
-        mbedtls_zeroize_and_free(scratch,
-                                 (6 * limbs + working_limbs) * sizeof(*scratch));
+        mbedtls_zeroize_and_free(scratch, scratch_limbs * sizeof(*scratch));
     }
     mbedtls_mpi_free(&mont_r2);
     return ret;

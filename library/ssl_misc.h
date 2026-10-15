@@ -733,6 +733,12 @@ typedef struct {
 } mbedtls_ssl_tls13_handshake_secrets;
 
 typedef enum {
+    MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_NONE = 0,
+    MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_PREMASTER = 1 << 0,
+    MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_RESUMPTION = 1 << 1,
+} mbedtls_ssl_tls12_key_exchange_input;
+
+typedef enum {
     MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE = 0,
     MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET,
     MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_DATA,
@@ -1104,6 +1110,8 @@ struct mbedtls_ssl_handshake_params {
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
     /*!<  premaster secret        */
     size_t pmslen;                      /*!<  premaster length        */
+
+    unsigned char tls12_key_exchange_inputs;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

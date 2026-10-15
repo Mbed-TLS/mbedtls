@@ -1,3 +1,4 @@
 Bugfix
-   Add extern "C" guard to constant_time.h. Fixes https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/930.
+   * Add extern "C" guard to constant_time.h. Fixes
+     https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/930.
 

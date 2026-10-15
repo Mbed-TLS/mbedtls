@@ -1,0 +1,5 @@
+Security
+   * Fix a Spectre v1 side channel in ECDSA signature that may leak
+     the secret key to powerful local attackers. Reported by Oleksii
+     Oleksenko (Azure Research, Microsoft) and Alvise de Faveri Tron
+     (Vrije Universiteit Amsterdam). CVE-2026-93835

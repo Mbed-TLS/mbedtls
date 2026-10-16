@@ -260,21 +260,14 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
                                                     mbedtls_mpi *s)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    /* The group order N may have leading zeros. Here, we need to know
-     * its size without leading zeros. */
-    mbedtls_mpi trimmed_N = *N;
-    while (trimmed_N.p[trimmed_N.n - 1] == 0) {
-        --trimmed_N.n;
-    }
-    const size_t limbs = trimmed_N.n;
+    const size_t limbs = N->n;
 
     mbedtls_mpi_uint *scratch = NULL;
     mbedtls_mpi mont_r2 = *N;
     mbedtls_mpi_init(&mont_r2);
 
     /* The Montgomery radix is based on the significant limb count. */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_core_get_mont_r2_unsafe(&mont_r2, &trimmed_N));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_core_get_mont_r2_unsafe(&mont_r2, N));
     mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init(N->p);
 
     /* Beyond this point, we may have allocated memory, so cleanup

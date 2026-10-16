@@ -307,6 +307,8 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 /** Compute s = (e + r * d) / k mod N in ECDSA.
  *
  * \param[in] N         Group order.
+ *                      It must not have a leading zero limb.
+ *                      It must be odd.
  * \param[in] d         Private key.
  *                      It must be between 1 and N-1.
  * \param[in] k         The nonce k.

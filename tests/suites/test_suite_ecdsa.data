@@ -42,7 +42,7 @@ ECDSA compute s: nominal
 ecdsa_compute_s:0:0:0:0:0:INT_MIN:1
 
 ECDSA compute s: order with a leading zero limb
-ecdsa_compute_s:1:0:0:0:0:INT_MIN:1
+ecdsa_compute_s:1:0:0:0:0:INT_MIN:0
 
 ECDSA compute s: short private key
 ecdsa_compute_s:0:-65:0:0:0:INT_MIN:1

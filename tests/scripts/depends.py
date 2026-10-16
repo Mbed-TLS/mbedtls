@@ -59,6 +59,7 @@ from mbedtls_framework import c_build_helper
 from mbedtls_framework import crypto_knowledge
 from mbedtls_framework import psa_information
 
+
 class Colors: # pylint: disable=too-few-public-methods
     """Minimalistic support for colored output.
 Each field of an object of this class is either None if colored output
@@ -188,15 +189,13 @@ If what is False, announce that the job has failed.'''
             header += f'defined({option})\n'
             header += f'#error "{option}"\n'
             header += '#endif\n'
-        include_path = ['include', 'tf-psa-crypto/include',
-                        'tf-psa-crypto/drivers/builtin/include']
 
         try:
             # Generate a C file, build and run it
             c_file, c_name, exe_name = c_build_helper.create_c_file(self.name)
             c_build_helper.generate_c_file(c_file, 'depends.py', header, lambda x: '')
             c_file.close()
-            c_build_helper.compile_c_file(c_name, exe_name, include_path)
+            c_build_helper.compile_c_file(c_name, exe_name)
             return True
 
         except c_build_helper.CompileError as e:

@@ -38,6 +38,54 @@ ECDSA primitive random #5
 depends_on:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 ecdsa_prim_random:MBEDTLS_ECP_DP_SECP521R1
 
+ECDSA compute s: nominal
+ecdsa_compute_s:0:0:0:0:0:INT_MIN:1
+
+ECDSA compute s: order with a leading zero limb
+ecdsa_compute_s:1:0:0:0:0:INT_MIN:1
+
+ECDSA compute s: short private key
+ecdsa_compute_s:0:-65:0:0:0:INT_MIN:1
+
+ECDSA compute s: empty private key
+ecdsa_compute_s:0:INT_MIN:0:0:0:INT_MIN:0
+
+ECDSA compute s: long private key
+ecdsa_compute_s:0:64:0:0:0:INT_MIN:0
+
+ECDSA compute s: short k
+ecdsa_compute_s:0:-65:0:0:0:INT_MIN:0
+
+ECDSA compute s: empty k
+ecdsa_compute_s:0:INT_MIN:0:0:0:INT_MIN:0
+
+ECDSA compute s: long k
+ecdsa_compute_s:0:64:0:0:0:INT_MIN:0
+
+ECDSA compute s: short e
+ecdsa_compute_s:0:0:0:-65:0:INT_MIN:1
+
+ECDSA compute s: empty e
+ecdsa_compute_s:0:0:0:INT_MIN:0:INT_MIN:1
+
+ECDSA compute s: long e
+ecdsa_compute_s:0:0:0:64:0:INT_MIN:0
+
+ECDSA compute s: short r
+ecdsa_compute_s:0:0:0:0:-65:INT_MIN:1
+
+ECDSA compute s: empty r
+ecdsa_compute_s:0:0:0:0:INT_MIN:INT_MIN:0
+
+ECDSA compute s: long r
+ecdsa_compute_s:0:0:0:0:64:INT_MIN:0
+
+ECDSA compute s: s allocated on entry
+ecdsa_compute_s:0:0:0:0:0:0:1
+
+ECDSA compute s: s larger on entry
+ecdsa_compute_s:0:0:0:0:0:1:1
+
 ECDSA primitive rfc 4754 p256
 depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 ecdsa_prim_test_vectors:MBEDTLS_ECP_DP_SECP256R1:"DC51D3866A15BACDE33D96F992FCA99DA7E6EF0934E7097559C27F1614C88A7F":"2442A5CC0ECD015FA3CA31DC8E2BBC70BF42D60CBCA20085E0822CB04235E970":"6FC98BD7E50211A4A27102FA3549DF79EBCB4BF246B80945CDDFE7D509BBFD7D":"9E56F509196784D963D1C0A401510EE7ADA3DCC5DEE04B154BF61AF1D5A6DECE":"BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD":"CB28E0999B9C7715FD0A80D8E47A77079716CBBF917DD72E97566EA1C066957C":"86FA3BB4E26CAD5BF90B7F81899256CE7594BB1EA0C89212748BFF3B3D5B0315":0

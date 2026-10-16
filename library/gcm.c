@@ -68,7 +68,7 @@ static void mbedtls_gcm_block_speculation_of_no_hardware(
 {
 #if defined(MBEDTLS_SPECTRE_V1_COUNTERMEASURES) && \
     defined(MBEDTLS_GCM_HAVE_HARDWARE)
-    MBEDTLS_CT_NULLIFY_IF_SPECULATING(*pctx, MBEDTLS_GCM_HAVE_HARDWARE ^ 1);
+    MBEDTLS_CT_NULLIFY_IF_SPECULATING_EQ(*pctx, MBEDTLS_GCM_HAVE_HARDWARE, 0);
 #else
     (void) pctx;
 #endif

@@ -102,7 +102,7 @@ static void mbedtls_aes_block_speculation_of_no_hardware(
 {
 #if defined(MBEDTLS_SPECTRE_V1_COUNTERMEASURES) && \
     defined(MBEDTLS_AES_HAVE_HARDWARE)
-    MBEDTLS_CT_NULLIFY_IF_SPECULATING(*pkey, MBEDTLS_AES_HAVE_HARDWARE ^ 1);
+    MBEDTLS_CT_NULLIFY_IF_SPECULATING_EQ(*pkey, MBEDTLS_AES_HAVE_HARDWARE, 0);
 #else
     (void) pkey;
 #endif
@@ -1099,7 +1099,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
     /* AES encryption/decryption combines the input with the key
      * to calculate the offset at which it accesses the table.
      * Thus setting input to NULL works to prevent memory accesses
-     * atsecret-dependent offsets. */
+     * at secret-dependent offsets. */
     mbedtls_aes_block_speculation_of_no_hardware(&input);
 #if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     if (mode == MBEDTLS_AES_DECRYPT) {

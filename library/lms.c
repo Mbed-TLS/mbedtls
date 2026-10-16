@@ -178,6 +178,9 @@ static int create_merkle_internal_value(const mbedtls_lms_parameters_t *params,
     size_t output_hash_len;
     unsigned char r_node_idx_bytes[4];
 
+    /* Always zeroize the output buffer because it may contain data from the previous invocation */
+    memset(out, 0, MBEDTLS_LMS_M_NODE_BYTES(params->type));
+
     op = psa_hash_operation_init();
     status = psa_hash_setup(&op, PSA_ALG_SHA_256);
     if (status != PSA_SUCCESS) {

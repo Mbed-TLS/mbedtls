@@ -518,17 +518,19 @@ static int x509_get_basic_constraints(unsigned char **p,
     }
 
     if ((ret = mbedtls_asn1_get_bool(p, end, ca_istrue)) != 0) {
-        /* If the SEQUENCE starts with an INTEGER and not a BOOLEAN,
-         * according to RFC 5280, it's syntactically valid, but it's
-         * something that a CA MUST NOT produce. So we reject it.
+        /* cA is DEFAULT FALSE. If it is absent, the first element must
+         * be pathLenConstraint. Keep cA false and let the INTEGER parser
+         * below validate the element.
          *
          * Note: historically, from XySSL 0.9 to Mbed TLS 3.6.6/4.1.0,
          * `SEQUENCE { INTEGER n }` was interpreted as cA=FALSE if n == 0
          * and cA=TRUE if n != 0. This was dangerous since
          * `SEQUENCE { INTEGER n }` should be parsed as cA=FALSE
-         * according to RFC 5280, so we stopped doing it.
+         * according to RFC 5280.
          */
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        }
     }
     /* `SEQUENCE { BOOLEAN FALSE }` is not DER since default-value fields
      * must be omitted in DER. But it seems harmless, and Mbed TLS has

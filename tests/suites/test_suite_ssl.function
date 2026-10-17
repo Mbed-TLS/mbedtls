@@ -4302,27 +4302,21 @@ void cookie_write_bounds(int out_len, int exp_ret)
 {
     mbedtls_ssl_cookie_ctx ctx;
     const unsigned char cli_id[] = { 0x7f, 0x00, 0x00, 0x01, 0x12, 0x34 };
-    const size_t guard_len = 64;
     unsigned char *buf = NULL;
     unsigned char *p;
-    size_t i;
 
     mbedtls_ssl_cookie_init(&ctx);
     PSA_INIT();
 
-    TEST_CALLOC(buf, out_len + guard_len);
-    memset(buf, 0x5a, out_len + guard_len);
+    /* Allocate exactly out_len bytes so that Asan catches any write past
+     * the end of the output buffer. */
+    TEST_CALLOC(buf, out_len);
 
     TEST_EQUAL(mbedtls_ssl_cookie_setup(&ctx), 0);
 
     p = buf;
     TEST_EQUAL(mbedtls_ssl_cookie_write(&ctx, &p, buf + out_len,
                                         cli_id, sizeof(cli_id)), exp_ret);
-
-    /* Nothing may be written past the end of the output buffer */
-    for (i = out_len; i < out_len + guard_len; i++) {
-        TEST_EQUAL(buf[i], 0x5a);
-    }
 
     if (exp_ret == 0) {
         TEST_EQUAL(p - buf, out_len);

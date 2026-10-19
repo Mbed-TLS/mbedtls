@@ -2566,6 +2566,8 @@ run_test    "Unique IV in GCM" \
             -U "IV used"
 
 # Test for correctness of sent single supported algorithm
+# Force a ciphersuite with a matching PRF to satisfy our TLS 1.2 client
+# See the comments in ssl_write_certificate_verify()
 requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -2574,8 +2576,10 @@ requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 run_test    "Single supported algorithm sending: mbedtls client" \
-            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
-            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp256r1_sha256 debug_level=3" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
+                    sig_algs=ecdsa_secp256r1_sha256 debug_level=3 \
+                    key_file=$DATA_FILES_PATH/ecdsa_secp256r1.key crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt" \
             0 \
             -c "Supported Signature Algorithm found: 04 03"
 
@@ -2588,6 +2592,39 @@ run_test    "Single supported algorithm sending: openssl client" \
             "$O_CLI -cert $DATA_FILES_PATH/server6.crt \
                     -key $DATA_FILES_PATH/server6.key" \
             0
+
+# To test the behaviour of the server, the client needs to send a certificate
+# that doesn't match any of the requested signature algorithms.
+# Our client does this, as it ignores the server's preferences
+# - see the documentation of mbedtls_ssl_conf_own_cert()
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_pk_alg ECDSA
+requires_hash_alg SHA_256
+run_test    "Certificate verify message with disallowed signature algorithm" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
+            sig_algs=ecdsa_secp256r1_sha256 \
+                    key_file=$DATA_FILES_PATH/cli-rsa.key crt_file=$DATA_FILES_PATH/cli-rsa-sha256.crt" \
+            1 \
+            -s "requested sig_alg \[403\] ecdsa_secp256r1_sha256" \
+            -s "received sig_alg \[401\] rsa_pkcs1_sha256" \
+            -s "peer not adhering to requested sig_alg for verify message" \
+            -s "send alert level=2 message=40"
+
+requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_hash_alg SHA_256
+requires_hash_alg SHA_384
+run_test    "Certificate verify message with disallowed hash algorithm" \
+            "$P_SRV sig_algs=rsa_pkcs1_sha384 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256 \
+                    sig_algs=rsa_pkcs1_sha384 \
+                    key_file=$DATA_FILES_PATH/cli-rsa.key crt_file=$DATA_FILES_PATH/cli-rsa-sha256.crt" \
+            1 \
+            -s "requested sig_alg \[501\] rsa_pkcs1_sha384" \
+            -s "received sig_alg \[401\] rsa_pkcs1_sha256" \
+            -s "peer not adhering to requested sig_alg for verify message" \
+            -s "send alert level=2 message=40"
 
 # Tests for certificate verification callback
 run_test    "Configuration-specific CRT verification callback" \

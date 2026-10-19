@@ -1,6 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecdsa.h"
 #include "ecp_invasive.h"
+#include <test/constant_flow.h>
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /** Set an MPI with the given bit-size.
@@ -178,8 +179,17 @@ void ecdsa_compute_s(int N_extra_limbs,
         TEST_EQUAL(mbedtls_mpi_mul_mpi(&expected_s, &expected_s, &inverse_k), 0);
         TEST_EQUAL(mbedtls_mpi_mod_mpi(&expected_s, &expected_s, &N), 0);
 
-        /* Call the function and check the output. */
+        /* Call the function and check the output.
+         * Assert that the timing does not depend on secret inputs.
+         * d and k are definitely secret. e and r are generally not secret,
+         * but it's better to process them in constant time as well.
+         */
+        TEST_CF_SECRET(d.p, d.n * sizeof(*d.p));
+        TEST_CF_SECRET(k.p, k.n * sizeof(*k.p));
+        TEST_CF_SECRET(e.p, e.n * sizeof(*e.p));
+        TEST_CF_SECRET(r.p, r.n * sizeof(*r.p));
         TEST_EQUAL(mbedtls_ecdsa_compute_s(&N, &d, &k, &e, &r, &s), 0);
+        TEST_CF_PUBLIC(s.p, s.n * sizeof(*s.p));
         TEST_EQUAL(mbedtls_mpi_cmp_mpi(&s, &expected_s), 0);
     } else {
         /* We just want it not to corrupt memory or crash */

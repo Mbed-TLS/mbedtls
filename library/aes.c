@@ -97,7 +97,7 @@ static int aes_padlock_ace = -1;
  * Calling this function sets `*pkey` to `NULL` if hardware AES
  * is available.
  */
-static void mbedtls_aes_block_speculation_of_no_hardware(
+static void mbedtls_aes_key_block_speculation_of_no_hardware(
     const unsigned char **pkey)
 {
 #if defined(MBEDTLS_SPECTRE_V1_COUNTERMEASURES) && \
@@ -106,7 +106,25 @@ static void mbedtls_aes_block_speculation_of_no_hardware(
 #else
     (void) pkey;
 #endif
+}
 
+/* Same as mbedtls_aes_key_block_speculation_of_no_hardware(),
+ * but acts on a pointer to a context, not to a key.
+ *
+ * (The two functions are extremeley likely to have exactly the same code,
+ * but they act on pointers to different types, which are not compatible
+ * according to C rules, and lying about it could confuse the compiler's
+ * aliasing detection.)
+ */
+static void mbedtls_aes_ctx_block_speculation_of_no_hardware(
+    mbedtls_aes_context **pctx)
+{
+#if defined(MBEDTLS_SPECTRE_V1_COUNTERMEASURES) && \
+    defined(MBEDTLS_AES_HAVE_HARDWARE)
+    MBEDTLS_CT_NULLIFY_IF_SPECULATING_EQ(*pctx, MBEDTLS_AES_HAVE_HARDWARE, 0);
+#else
+    (void) pctx;
+#endif
 }
 #endif  /* !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
 
@@ -649,7 +667,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-    mbedtls_aes_block_speculation_of_no_hardware(&key);
+    mbedtls_aes_key_block_speculation_of_no_hardware(&key);
 
     for (unsigned int i = 0; i < (keybits >> 5); i++) {
         RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
@@ -767,7 +785,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-    mbedtls_aes_block_speculation_of_no_hardware(&key);
+    mbedtls_aes_key_block_speculation_of_no_hardware(&key);
 
     SK = cty.buf + cty.rk_offset + cty.nr * 4;
 
@@ -1096,11 +1114,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-    /* AES encryption/decryption combines the input with the key
-     * to calculate the offset at which it accesses the table.
-     * Thus setting input to NULL works to prevent memory accesses
-     * at secret-dependent offsets. */
-    mbedtls_aes_block_speculation_of_no_hardware(&input);
+    mbedtls_aes_ctx_block_speculation_of_no_hardware(&ctx);
 #if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     if (mode == MBEDTLS_AES_DECRYPT) {
         return mbedtls_internal_aes_decrypt(ctx, input, output);

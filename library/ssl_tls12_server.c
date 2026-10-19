@@ -500,9 +500,8 @@ static int ssl_parse_session_ticket_ext(mbedtls_ssl_context *ssl,
     /*
      * Failures are ok: just ignore the ticket and proceed.
      */
-    if ((ret = ssl->conf->f_ticket_parse(ssl->conf->p_ticket, &session,
-                                         buf, len)) != 0) {
-        mbedtls_ssl_session_free(&session);
+    ret = ssl->conf->f_ticket_parse(ssl->conf->p_ticket, &session, buf, len);
+    if (ret != 0) {
 
         if (ret == MBEDTLS_ERR_SSL_INVALID_MAC) {
             MBEDTLS_SSL_DEBUG_MSG(3, ("ticket is not authentic"));
@@ -512,7 +511,12 @@ static int ssl_parse_session_ticket_ext(mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_ticket_parse", ret);
         }
 
-        return 0;
+        goto cleanup;
+    }
+
+    if (session.tls_version != MBEDTLS_SSL_VERSION_TLS1_2) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Ticket TLS version is not 1.2."));
+        goto cleanup;
     }
 
     /*
@@ -535,6 +539,10 @@ static int ssl_parse_session_ticket_ext(mbedtls_ssl_context *ssl,
     /* Don't send a new ticket after all, this one is OK */
     ssl->handshake->new_session_ticket = 0;
 
+    return 0;
+
+cleanup:
+    mbedtls_ssl_session_free(&session);
     return 0;
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */

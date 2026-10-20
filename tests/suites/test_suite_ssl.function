@@ -241,7 +241,11 @@ static void resize_with_pending_output(mbedtls_test_ssl_endpoint *client,
 
     TEST_ASSERT(ssl->out_buf_len < MBEDTLS_SSL_OUT_BUFFER_LEN);
     TEST_EQUAL(ssl->out_left, 0);
-    ssl->out_hdr = ssl->out_buf + 24;
+    /* The two below values are completely abitrary, they similate the
+     * witholding of bytes in the handshake in order to test the exact
+     * circumstances under which the bug can be recreated. They do not need to
+     * be the same and can be anywhere in the range of 1 to 845 */
+    ssl->out_hdr = ssl->out_buf + 48;
     ssl->out_left = 24;
     TEST_EQUAL(mbedtls_ssl_renegotiate(ssl), MBEDTLS_ERR_SSL_WANT_READ);
     TEST_EQUAL(ssl->renego_status, MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS);

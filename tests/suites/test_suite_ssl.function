@@ -2393,6 +2393,8 @@ void ssl_tls13_create_psk_binder(int hash_alg,
                                  data_t *binder_expected)
 {
     unsigned char binder[MBEDTLS_MD_MAX_SIZE];
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t psk_key = MBEDTLS_SVC_KEY_ID_INIT;
 
     /* Double-check that we've passed sane parameters. */
     psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
@@ -2414,7 +2416,30 @@ void ssl_tls13_create_psk_binder(int hash_alg,
     TEST_MEMORY_COMPARE(binder, hash_len,
                         binder_expected->x, binder_expected->len);
 
+    /* Repeat the computation through the opaque-key path: import the
+     * same PSK as a non-exportable PSA key and check that the binder
+     * is unchanged. */
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, PSA_ALG_HKDF_EXTRACT(alg));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_DERIVE);
+    PSA_ASSERT(psa_import_key(&attributes, psk->x, psk->len, &psk_key));
+
+    memset(binder, 0, sizeof(binder));
+
+    TEST_EQUAL(mbedtls_ssl_tls13_create_psk_binder(
+                   NULL,   /* SSL context for debugging only */
+                   alg,
+                   NULL, 0,
+                   psk_type,
+                   psk_key,
+                   transcript->x,
+                   binder),  0);
+
+    TEST_MEMORY_COMPARE(binder, hash_len,
+                        binder_expected->x, binder_expected->len);
+
 exit:
+    psa_destroy_key(psk_key);
     PSA_DONE();
 }
 /* END_CASE */
@@ -3652,6 +3677,55 @@ void handshake_psk_cipher(char *cipher, int pk_alg, data_t *psk_str, int dtls)
     options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
+    mbedtls_test_ssl_perform_handshake(&options);
+
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+
+exit:
+    mbedtls_test_free_handshake_options(&options);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED:PSA_WANT_ALG_SHA_256:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE */
+/* Handshake with a TLS 1.3 PSK key exchange mode, with full control of
+ * the PSK used on each endpoint: either raw bytes (alg PSA_ALG_NONE) or
+ * an opaque PSA key imported from those bytes with the given algorithm
+ * and usage. The PSK identity is the same ("foo") on both endpoints, so
+ * a difference in the keys leads to a binder mismatch and the server
+ * rejecting the handshake.
+ *
+ * \p kex_mode must be MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK or
+ * MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL.
+ */
+void handshake_tls13_psk(int kex_mode, int cli_alg, int cli_usage,
+                         int srv_alg, int srv_usage, data_t *cli_psk,
+                         data_t *srv_psk, int expected_handshake_result)
+{
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_init_handshake_options(&options);
+
+    TEST_ASSERT(kex_mode == MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK ||
+                kex_mode ==
+                MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL);
+    TEST_ASSERT(cli_psk != NULL && cli_psk->len > 0);
+    TEST_ASSERT(srv_psk != NULL && srv_psk->len > 0);
+
+    options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.expected_handshake_result = expected_handshake_result;
+
+    options.tls13_kex_mode = kex_mode;
+    options.cli_psk.psk_str = cli_psk;
+    options.cli_psk.psk_alg = (psa_algorithm_t) cli_alg;
+    options.cli_psk.psk_usage = cli_usage;
+    options.srv_psk.psk_str = srv_psk;
+    options.srv_psk.psk_alg = (psa_algorithm_t) srv_alg;
+    options.srv_psk.psk_usage = srv_usage;
 
     mbedtls_test_ssl_perform_handshake(&options);
 

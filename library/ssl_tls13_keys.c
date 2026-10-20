@@ -1158,6 +1158,8 @@ static int ssl_tls13_generate_early_key(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> ssl_tls13_generate_early_key"));
 
+    memset(traffic_keys, 0, sizeof(*traffic_keys));
+
     ret = ssl_tls13_get_cipher_key_info(ciphersuite_info, &key_len, &iv_len);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls13_get_cipher_key_info", ret);

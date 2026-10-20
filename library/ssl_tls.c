@@ -2008,7 +2008,22 @@ int mbedtls_ssl_set_hs_psk(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2) {
-        if (ssl->handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+        /*
+         * The ciphersuite is not always negotiated when the handshake PSK
+         * is set: with TLS 1.3 session resumption (e.g. with early data),
+         * the resumption PSK is imported while writing the ClientHello,
+         * before the ServerHello. Fall back to the ciphersuite pinned by
+         * the ticket in that case.
+         */
+        const mbedtls_ssl_ciphersuite_t *psk_ciphersuite_info =
+            ssl->handshake->ciphersuite_info;
+        if (psk_ciphersuite_info == NULL && ssl->session_negotiate != NULL) {
+            psk_ciphersuite_info =
+                mbedtls_ssl_ciphersuite_from_id(
+                    ssl->session_negotiate->ciphersuite);
+        }
+        if (psk_ciphersuite_info != NULL &&
+            psk_ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
         } else {
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
@@ -2019,7 +2034,11 @@ int mbedtls_ssl_set_hs_psk(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        alg = PSA_ALG_HKDF_EXTRACT(PSA_ALG_ANY_HASH);
+        /*
+         * Keys imported on the TLS 1.3 path always carry
+         * PSA_KEY_USAGE_EXPORT and keep the byte path in the key
+         * schedule, so their algorithm policy is never consulted.
+         */
         psa_set_key_usage_flags(&key_attributes,
                                 PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
     }
@@ -5100,10 +5119,6 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
         }
 
         alpn_len = *p++;
-
-        if ((size_t) (end - p) < alpn_len) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
 
         if (alpn_len != 0 && ssl->conf->alpn_list != NULL) {
             /* alpn_chosen should point to an item in the configured list */

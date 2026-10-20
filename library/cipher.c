@@ -1680,6 +1680,16 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
         mbedtls_nist_kw_mode_t mode =
             (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) ?
             MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
+        if (MBEDTLS_CT_SPEC_RISKY_BOOL(mode == MBEDTLS_KW_MODE_KW)) {
+            MBEDTLS_CT_NULLIFY_IF_SPECULATING_EQ(ctx,
+                                                 ctx->cipher_info->mode,
+                                                 MBEDTLS_MODE_KW);
+        }
+        if (MBEDTLS_CT_SPEC_RISKY_BOOL(mode == MBEDTLS_KW_MODE_KWP)) {
+            MBEDTLS_CT_NULLIFY_IF_SPECULATING_EQ(ctx,
+                                                 ctx->cipher_info->mode,
+                                                 MBEDTLS_MODE_KWP);
+        }
 
         /* There is no iv, tag or ad associated with KW and KWP,
          * so these length should be 0 as documented. */
@@ -1726,6 +1736,16 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
         mbedtls_nist_kw_mode_t mode =
             (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) ?
             MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
+        if (MBEDTLS_CT_SPEC_RISKY_BOOL(mode == MBEDTLS_KW_MODE_KW)) {
+            MBEDTLS_CT_NULLIFY_IF_SPECULATING_EQ(ctx,
+                                                 ctx->cipher_info->mode,
+                                                 MBEDTLS_MODE_KW);
+        }
+        if (MBEDTLS_CT_SPEC_RISKY_BOOL(mode == MBEDTLS_KW_MODE_KWP)) {
+            MBEDTLS_CT_NULLIFY_IF_SPECULATING_EQ(ctx,
+                                                 ctx->cipher_info->mode,
+                                                 MBEDTLS_MODE_KWP);
+        }
 
         /* There is no iv, tag or ad associated with KW and KWP,
          * so these length should be 0 as documented. */

@@ -395,10 +395,20 @@ static int ssl_tls13_offered_psks_check_identity_match(
         identity_len == ssl->conf->psk_identity_len &&
         mbedtls_ct_memcmp(ssl->conf->psk_identity,
                           identity, identity_len) == 0) {
-        ret = mbedtls_ssl_set_hs_psk(ssl, ssl->conf->psk, ssl->conf->psk_len);
-        if (ret != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
-            return ret;
+        if (!mbedtls_svc_key_id_is_null(ssl->conf->psk_opaque)) {
+            ret = mbedtls_ssl_set_hs_psk_opaque(ssl, ssl->conf->psk_opaque);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk_opaque",
+                                      ret);
+                return ret;
+            }
+        } else {
+            ret = mbedtls_ssl_set_hs_psk(ssl, ssl->conf->psk,
+                                         ssl->conf->psk_len);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
+                return ret;
+            }
         }
         return SSL_TLS1_3_PSK_IDENTITY_MATCH;
     }

@@ -329,10 +329,11 @@ int mbedtls_ssl_tls13_derive_secret(
 
 }
 
-int mbedtls_ssl_tls13_evolve_secret(
+static int ssl_tls13_evolve_secret_internal(
     psa_algorithm_t hash_alg,
     const unsigned char *secret_old,
     const unsigned char *input, size_t input_len,
+    mbedtls_svc_key_id_t input_key,
     unsigned char *secret_new)
 {
     int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
@@ -342,7 +343,7 @@ int mbedtls_ssl_tls13_evolve_secret(
     unsigned char tmp_secret[PSA_MAC_MAX_SIZE] = { 0 };
     const unsigned char all_zeroes_input[MBEDTLS_TLS1_3_MD_MAX_SIZE] = { 0 };
     const unsigned char *l_input = NULL;
-    size_t l_input_len;
+    size_t l_input_len = 0;
 
     psa_key_derivation_operation_t operation =
         PSA_KEY_DERIVATION_OPERATION_INIT;
@@ -370,12 +371,14 @@ int mbedtls_ssl_tls13_evolve_secret(
 
     ret = 0;
 
-    if (input != NULL && input_len != 0) {
-        l_input = input;
-        l_input_len = input_len;
-    } else {
-        l_input = all_zeroes_input;
-        l_input_len = hlen;
+    if (mbedtls_svc_key_id_is_null(input_key)) {
+        if (input != NULL && input_len != 0) {
+            l_input = input;
+            l_input_len = input_len;
+        } else {
+            l_input = all_zeroes_input;
+            l_input_len = hlen;
+        }
     }
 
     status = psa_key_derivation_setup(&operation,
@@ -394,9 +397,18 @@ int mbedtls_ssl_tls13_evolve_secret(
         goto cleanup;
     }
 
-    status = psa_key_derivation_input_bytes(&operation,
-                                            PSA_KEY_DERIVATION_INPUT_SECRET,
-                                            l_input, l_input_len);
+    if (!mbedtls_svc_key_id_is_null(input_key)) {
+        status = psa_key_derivation_input_key(
+            &operation,
+            PSA_KEY_DERIVATION_INPUT_SECRET,
+            input_key);
+    } else {
+        status = psa_key_derivation_input_bytes(
+            &operation,
+            PSA_KEY_DERIVATION_INPUT_SECRET,
+            l_input,
+            l_input_len);
+    }
 
     if (status != PSA_SUCCESS) {
         goto cleanup;
@@ -416,6 +428,21 @@ cleanup:
     ret = (ret == 0 ? PSA_TO_MBEDTLS_ERR(status) : ret);
     mbedtls_platform_zeroize(tmp_secret, sizeof(tmp_secret));
     return ret;
+}
+
+int mbedtls_ssl_tls13_evolve_secret(
+    psa_algorithm_t hash_alg,
+    const unsigned char *secret_old,
+    const unsigned char *input, size_t input_len,
+    unsigned char *secret_new)
+{
+    return ssl_tls13_evolve_secret_internal(
+        hash_alg,
+        secret_old,
+        input,
+        input_len,
+        MBEDTLS_SVC_KEY_ID_INIT,
+        secret_new);
 }
 
 int mbedtls_ssl_tls13_derive_early_secrets(

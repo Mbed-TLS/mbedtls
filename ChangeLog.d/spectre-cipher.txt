@@ -3,3 +3,6 @@ Security
      leak many key bits to powerful local attackers. Reported by Oleksii
      Oleksenko (Azure Research, Microsoft) and Alvise de Faveri Tron
      (Vrije Universiteit Amsterdam). CVE-2026-93833
+   * Fix possible Spectre v1 side channels in mbedtls_cipher_setkey(),
+     mbedtls_cipher_crypt(), mbedtls_cipher_auth_encrypt_ext() and
+     mbedtls_cipher_auth_decrypt_ext() when MBEDTLS_USE_PSA_CRYPTO is enabled.

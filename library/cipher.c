@@ -319,7 +319,8 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ctx->psa_enabled == 1) {
+    if (MBEDTLS_CT_SPEC_RISKY_BOOL(ctx->psa_enabled)) {
+        MBEDTLS_CT_NULLIFY_IF_SPECULATING(ctx, ctx->psa_enabled);
         mbedtls_cipher_context_psa * const cipher_psa =
             (mbedtls_cipher_context_psa *) ctx->cipher_ctx;
 
@@ -1376,7 +1377,8 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
     size_t finish_olen;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ctx->psa_enabled == 1) {
+    if (MBEDTLS_CT_SPEC_RISKY_BOOL(ctx->psa_enabled)) {
+        MBEDTLS_CT_NULLIFY_IF_SPECULATING(ctx, ctx->psa_enabled);
         /* As in the non-PSA case, we don't check that
          * a key has been set. If not, the key slot will
          * still be in its default state of 0, which is
@@ -1474,7 +1476,8 @@ static int mbedtls_cipher_aead_encrypt(mbedtls_cipher_context_t *ctx,
                                        unsigned char *tag, size_t tag_len)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ctx->psa_enabled == 1) {
+    if (MBEDTLS_CT_SPEC_RISKY_BOOL(ctx->psa_enabled)) {
+        MBEDTLS_CT_NULLIFY_IF_SPECULATING(ctx, ctx->psa_enabled);
         /* As in the non-PSA case, we don't check that
          * a key has been set. If not, the key slot will
          * still be in its default state of 0, which is
@@ -1551,7 +1554,8 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
                                        const unsigned char *tag, size_t tag_len)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ctx->psa_enabled == 1) {
+    if (MBEDTLS_CT_SPEC_RISKY_BOOL(ctx->psa_enabled)) {
+        MBEDTLS_CT_NULLIFY_IF_SPECULATING(ctx, ctx->psa_enabled);
         /* As in the non-PSA case, we don't check that
          * a key has been set. If not, the key slot will
          * still be in its default state of 0, which is

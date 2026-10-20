@@ -1310,8 +1310,10 @@ static int ssl_tls13_compute_early_secret(mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t hash_alg;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     unsigned char *psk = NULL;
     size_t psk_len = 0;
+#endif
 
     (void) with_psk;
 
@@ -1328,22 +1330,53 @@ static int ssl_tls13_compute_early_secret(mbedtls_ssl_context *ssl,
     hash_alg = mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) handshake->ciphersuite_info->mac);
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     if (with_psk) {
-        ret = mbedtls_ssl_tls13_export_handshake_psk(ssl, &psk, &psk_len);
+        /*
+         * In TLS 1.3 the handshake PSK is always stored as a PSA key.
+         * Exportable PSKs (in particular raw PSKs imported by
+         * mbedtls_ssl_set_hs_psk()) take the byte path, which works
+         * with whatever hash the negotiated ciphersuite requires.
+         * Non-exportable opaque PSKs are consumed directly by HKDF,
+         * without ever exporting them to raw bytes.
+         */
+        mbedtls_svc_key_id_t psk_opaque = MBEDTLS_SVC_KEY_ID_INIT;
+        psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+        status = psa_get_key_attributes(handshake->psk_opaque,
+                                        &key_attributes);
+        if (status != PSA_SUCCESS) {
+            MBEDTLS_SSL_DEBUG_RET(1, "psa_get_key_attributes", status);
+            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        }
+        if (psa_get_key_usage_flags(&key_attributes) &
+            PSA_KEY_USAGE_EXPORT) {
+            ret = mbedtls_ssl_tls13_export_handshake_psk(ssl, &psk, &psk_len);
+        } else {
+            psk_opaque = handshake->psk_opaque;
+            ret = 0;
+        }
+        psa_reset_key_attributes(&key_attributes);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_export_handshake_psk",
                                   ret);
             return ret;
         }
-    }
-#endif
 
-    ret = mbedtls_ssl_tls13_evolve_secret(hash_alg, NULL, psk, psk_len,
-                                          handshake->tls13_master_secrets.early);
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
-    mbedtls_free((void *) psk);
+        ret = ssl_tls13_evolve_secret_internal(
+            hash_alg,
+            NULL,                    /* Old secret */
+            psk, psk_len,            /* Raw input, if used */
+            psk_opaque,              /* Opaque PSA input, if used */
+            handshake->tls13_master_secrets.early);
+        mbedtls_free((void *) psk);
+    } else
 #endif
+    {
+        ret = mbedtls_ssl_tls13_evolve_secret(hash_alg, NULL, NULL, 0,
+                                              handshake->tls13_master_secrets.early);
+    }
     if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_evolve_secret", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "TLS 1.3: evolve early secret", ret);
         return ret;
     }
 

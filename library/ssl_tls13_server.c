@@ -416,9 +416,10 @@ static int ssl_tls13_offered_psks_check_binder_match(
 
     unsigned char transcript[PSA_HASH_MAX_SIZE];
     size_t transcript_len;
-    unsigned char *psk;
-    size_t psk_len;
+    unsigned char *psk = NULL;
+    size_t psk_len = 0;
     unsigned char server_computed_binder[PSA_HASH_MAX_SIZE];
+    mbedtls_svc_key_id_t psk_key = MBEDTLS_SVC_KEY_ID_INIT;
 
     if (binder_len != PSA_HASH_LENGTH(psk_hash_alg)) {
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
@@ -432,13 +433,53 @@ static int ssl_tls13_offered_psks_check_binder_match(
         return ret;
     }
 
-    ret = mbedtls_ssl_tls13_export_handshake_psk(ssl, &psk, &psk_len);
-    if (ret != 0) {
-        return ret;
+    if (psk_type == MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL) {
+        /*
+         * External PSKs may be opaque and non-exportable, in which case
+         * mbedtls_ssl_tls13_create_psk_binder() consumes the key directly
+         * via psa_key_derivation_input_key(). Exportable PSKs (in
+         * particular raw PSKs imported by mbedtls_ssl_set_hs_psk()) take
+         * the byte path instead, which works with whatever hash the
+         * negotiated ciphersuite requires.
+         */
+        psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+        status = psa_get_key_attributes(ssl->handshake->psk_opaque,
+                                        &key_attributes);
+        if (status != PSA_SUCCESS) {
+            MBEDTLS_SSL_DEBUG_RET(1, "psa_get_key_attributes", status);
+            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        }
+        if (psa_get_key_usage_flags(&key_attributes) &
+            PSA_KEY_USAGE_EXPORT) {
+            ret = mbedtls_ssl_tls13_export_handshake_psk(ssl, &psk, &psk_len);
+            if (ret != 0) {
+                psa_reset_key_attributes(&key_attributes);
+                return ret;
+            }
+        }
+        psa_reset_key_attributes(&key_attributes);
+    } else {
+        ret = mbedtls_ssl_tls13_export_handshake_psk(ssl, &psk, &psk_len);
+        if (ret != 0) {
+            return ret;
+        }
     }
 
+    /* The binder is computed over the key selected by the identity
+     * match (or the f_psk callback), which lives in the handshake.
+     * When the raw PSK bytes could not be exported, the opaque key is
+     * consumed directly by mbedtls_ssl_tls13_create_psk_binder(), so
+     * that exactly one of the raw and opaque forms is passed. */
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
+    if (psk == NULL) {
+        psk_key = ssl->handshake->psk_opaque;
+    }
+#endif
     ret = mbedtls_ssl_tls13_create_psk_binder(ssl, psk_hash_alg,
                                               psk, psk_len, psk_type,
+                                              psk_key,
                                               transcript,
                                               server_computed_binder);
     mbedtls_free((void *) psk);

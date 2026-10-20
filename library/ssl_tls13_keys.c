@@ -860,6 +860,7 @@ int mbedtls_ssl_tls13_create_psk_binder(mbedtls_ssl_context *ssl,
                                         const psa_algorithm_t hash_alg,
                                         unsigned char const *psk, size_t psk_len,
                                         int psk_type,
+                                        mbedtls_svc_key_id_t psk_opaque,
                                         unsigned char const *transcript,
                                         unsigned char *result)
 {
@@ -880,6 +881,15 @@ int mbedtls_ssl_tls13_create_psk_binder(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
+    /* The PSK must be passed in exactly one form: either as raw bytes,
+     * or as an opaque key consumed directly via
+     * psa_key_derivation_input_key(), which is the only option for
+     * non-exportable keys. The caller knows which form is in use. */
+    if ((psk == NULL) ==
+        mbedtls_svc_key_id_is_null(psk_opaque)) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
     /*
      *            0
      *            |
@@ -891,12 +901,14 @@ int mbedtls_ssl_tls13_create_psk_binder(mbedtls_ssl_context *ssl,
      *            v
      */
 
-    ret = mbedtls_ssl_tls13_evolve_secret(hash_alg,
-                                          NULL,           /* Old secret */
-                                          psk, psk_len,   /* Input      */
-                                          early_secret);
+    ret = ssl_tls13_evolve_secret_internal(
+        hash_alg,
+        NULL,           /* Old secret */
+        psk, psk_len,   /* Raw input, if used */
+        psk_opaque,     /* Opaque PSA input, if used */
+        early_secret);
     if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_evolve_secret", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls13_evolve_secret_internal", ret);
         goto exit;
     }
 

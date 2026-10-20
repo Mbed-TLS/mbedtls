@@ -86,6 +86,8 @@ static int aes_padlock_ace = -1;
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) ||                             \
+    (!defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT))
 /* Call this function before executing non-constant-time AES code
  * (key schedule or block encryption/decryption).
  *
@@ -107,6 +109,7 @@ static void mbedtls_aes_key_block_speculation_of_no_hardware(
     (void) pkey;
 #endif
 }
+#endif /* have setkey_enc or setkey_dec */
 
 /* Same as mbedtls_aes_key_block_speculation_of_no_hardware(),
  * but acts on a pointer to a context, not to a key.

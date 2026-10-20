@@ -99,6 +99,14 @@ psa_status_t mbedtls_psa_ecp_load_representation(
     size_t curve_bytes = data_length;
     int explicit_bits = (curve_bits != 0);
 
+    /* Avoid potentially leaking information through the timing of the
+     * parsing of the key material if this function was called
+     * speculatively and the key is actually of a different type. */
+    MBEDTLS_CT_NULLIFY_IF_SPECULATING_EQ(data,
+                                         type & ~(PSA_KEY_TYPE_ECC_CURVE_MASK |
+                                                  PSA_KEY_TYPE_CATEGORY_FLAG_PAIR),
+                                         PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE);
+
     if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type) &&
         PSA_KEY_TYPE_ECC_GET_FAMILY(type) != PSA_ECC_FAMILY_MONTGOMERY) {
         /* A Weierstrass public key is represented as:

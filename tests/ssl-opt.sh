@@ -14297,6 +14297,29 @@ run_test    "TLS 1.3: no HRR in case of PSK key exchange mode" \
             -c "Selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
 
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_384
+run_test    "Server certificate with disallowed curve" \
+            "$P_SRV debug_level=4 \
+                    key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt" \
+            "$P_CLI debug_level=4 groups=secp384r1 force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
+            1 \
+            -c "bad certificate (EC key curve)" \
+            -c "send alert level=2 message=43" \
+            -c "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
+
+
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_384
+run_test    "Certificate verify message with disallowed curve" \
+            "$P_SRV groups=secp384r1 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 \
+                    key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt" \
+            1 \
+            -s "bad certificate (EC key curve)" \
+            -s "send alert level=2 message=43" \
+            -s "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
+
 # Legacy_compression_methods testing
 
 requires_gnutls

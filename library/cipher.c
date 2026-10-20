@@ -1647,6 +1647,24 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_CIPHER_MODE_AEAD */
 
 #if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+#if defined(MBEDTLS_NIST_KW_C)
+static int mbedtls_cipher_context_is_kw(const mbedtls_cipher_context_t *ctx)
+{
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+    if (ctx->psa_enabled) {
+        return 0;
+    }
+#endif
+    switch (ctx->cipher_info->mode) {
+        case MBEDTLS_MODE_KW:
+        case MBEDTLS_MODE_KWP:
+            return 1;
+        default:
+            return 0;
+    }
+}
+#endif /* MBEDTLS_NIST_KW_C */
+
 /*
  * Packet-oriented encryption for AEAD/NIST_KW: public function.
  */
@@ -1658,12 +1676,7 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
                                     size_t *olen, size_t tag_len)
 {
 #if defined(MBEDTLS_NIST_KW_C)
-    if (
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-        ctx->psa_enabled == 0 &&
-#endif
-        (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
-         MBEDTLS_MODE_KWP == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode))) {
+    if (mbedtls_cipher_context_is_kw(ctx)) {
         mbedtls_nist_kw_mode_t mode =
             (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) ?
             MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
@@ -1709,12 +1722,7 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
                                     size_t *olen, size_t tag_len)
 {
 #if defined(MBEDTLS_NIST_KW_C)
-    if (
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-        ctx->psa_enabled == 0 &&
-#endif
-        (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
-         MBEDTLS_MODE_KWP == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode))) {
+    if (mbedtls_cipher_context_is_kw(ctx)) {
         mbedtls_nist_kw_mode_t mode =
             (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) ?
             MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;

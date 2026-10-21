@@ -91,6 +91,10 @@ void mbedtls_pem_init(mbedtls_pem_context *ctx);
  *              significant improvement on the weaknesses of PEM encryption,
  *              and works equally well with PEM and binary (DER) encoding.
  *
+ * \deprecated  Encrypted PEM (with a non-null password) is deprecated, and
+ *              should only be used to access legacy data in environemnts
+ *              where it is safe.
+ *
  * \param ctx       context to use
  * \param header    header string to seek and expect
  * \param footer    footer string to seek and expect

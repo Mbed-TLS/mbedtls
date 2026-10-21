@@ -96,16 +96,18 @@ can identify the client through the PSK identity.
 ### Considerations about the current implementation
 
 The `MBEDTLS_SSL_KEEP_PEER_CERTIFICATE` configuration option allows the server
-to retain the client's certificate chain after completion of the handshake and
-to include it in session and ticket data. When this option is enabled, a server
-can therefore identify a client after session resumption through the same
-certificate information that was available in the original session.
+to retain the client's end-entity certificate after completion of the handshake
+and to include it in session and ticket data. When this option is enabled, a
+server can therefore identify a client after session resumption through the same
+end-entity certificate that was available in the original session. However,
+Mbed TLS does not currently include the peer certificate in TLS 1.3 tickets.
 
-When this option is disabled, there does not appear to be any mechanism for
-retaining either the client's certificate chain or the identity derived by the
-application from that certificate. Consequently, there does not appear to be
-any mechanism for a server to identify a client that was originally
-authenticated through a certificate-based handshake after session resumption.
+When this option is disabled, there is no mechanism for retaining either the
+client's certificate or the identity derived by the application from that
+certificate after completion of the handshake. In that configuration, a server
+cannot identify a certificate-authenticated client after completion of the
+handshake, nor after future resumption of a session established under that
+context.
 
 Likewise, there does not appear to be any mechanism for a server to identify a
 client that was originally authenticated through a PSK-based handshake after

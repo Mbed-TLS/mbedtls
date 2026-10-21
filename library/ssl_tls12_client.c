@@ -2217,7 +2217,7 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
     buf = ssl->in_msg;
 
     /* certificate_types */
-    if (ssl->in_hslen <= mbedtls_ssl_hs_hdr_len(ssl)) {
+    if (ssl->in_hslen < mbedtls_ssl_hs_hdr_len(ssl) + 1) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate request message"));
         mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
@@ -2227,16 +2227,10 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
     n = cert_type_len;
 
     /*
-     * In the subsequent code there are two paths that read from buf:
-     *     * the length of the signature algorithms field (if minor version of
-     *       SSL is 3),
-     *     * distinguished name length otherwise.
-     * Both reach at most the index:
-     *    ...hdr_len + 2 + n,
-     * therefore the buffer length at this point must be greater than that
-     * regardless of the actual code path.
+     * The two-byte supported_signature_algorithms length is read next,
+     * at offset ...hdr_len + 1 + n.
      */
-    if (ssl->in_hslen <= mbedtls_ssl_hs_hdr_len(ssl) + 2 + n) {
+    if (ssl->in_hslen < mbedtls_ssl_hs_hdr_len(ssl) + 1 + n + 2) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate request message"));
         mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
@@ -2247,18 +2241,13 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
     sig_alg_len = MBEDTLS_GET_UINT16_BE(buf, mbedtls_ssl_hs_hdr_len(ssl) + 1 + n);
 
     /*
-     * The furthest access in buf is in the loop few lines below:
-     *     sig_alg[i + 1],
-     * where:
-     *     sig_alg = buf + ...hdr_len + 3 + n,
-     *     max(i) = sig_alg_len - 1.
-     * Therefore the furthest access is:
-     *     buf[...hdr_len + 3 + n + sig_alg_len - 1 + 1],
-     * which reduces to:
-     *     buf[...hdr_len + 3 + n + sig_alg_len],
-     * which is one less than we need the buf to be.
+     * The list is a sequence of two-byte values, so its length must be
+     * even. The message must have room for the list itself, plus the
+     * two-byte certificate_authorities length that follows it and is
+     * read below.
      */
-    if (ssl->in_hslen <= mbedtls_ssl_hs_hdr_len(ssl) + 3 + n + sig_alg_len) {
+    if (sig_alg_len % 2 != 0 ||
+        ssl->in_hslen < mbedtls_ssl_hs_hdr_len(ssl) + 1 + n + 2 + sig_alg_len + 2) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate request message"));
         mbedtls_ssl_send_alert_message(
             ssl,

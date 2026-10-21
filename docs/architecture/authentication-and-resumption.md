@@ -1,10 +1,12 @@
 ## Client authentication
 During a certificate-based handshake, a TLS server authenticates a client by
 verifying the certificate chain provided by the client against a
-certificate-authentication context. In Mbed TLS, the certificate-authentication
-context consists of the certificate verification profile, the trusted CA
-certificate chain, the CRLs, and the authentication mode, which together
-determine the outcome of client certificate verification.
+certificate-authentication context, and by verifying that the client possesses
+the private key associated with the leaf (end-entity) certificate. In
+Mbed TLS, the certificate-authentication context consists of the certificate
+verification profile, the trusted CA certificate chain, the CRLs, and the
+authentication mode, which together determine the outcome of client certificate
+verification.
 
 During a PSK-based handshake, a TLS server authenticates a client by verifying
 its knowledge of a pre-shared key associated with a PSK identity. In a PSK-based
@@ -119,10 +121,11 @@ authentication: it is the single PSK selected by the application for the server.
 The server authenticates itself by proving knowledge of that PSK.
 
 For certificate-based server authentication, the TLS client verifies the server
-certificate chain against a server certificate-authentication context. This
-context consists of the same elements as the certificate-authentication context
-used for client authentication, plus the expected server name checked during
-certificate verification.
+certificate chain against a server certificate-authentication context, and
+verifies that the server possesses the private key associated with the
+leaf (end-entity) certificate. This context consists of the same elements as
+the certificate-authentication context used for client authentication, plus the
+expected server name checked during certificate verification.
 
 ### Server authentication and session resumption
 

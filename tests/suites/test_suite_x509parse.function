@@ -933,9 +933,8 @@ void mbedtls_x509_dn_gets(char *crt_file, char *entity, char *result_str)
     }
 
     TEST_CALLOC(buf, output_length + 1);
-    int res = mbedtls_x509_dn_gets(buf, output_length + 1, dn);
-    TEST_ASSERT(res != -1);
-    TEST_ASSERT(res != -2);
+    TEST_EQUAL(mbedtls_x509_dn_gets(buf, output_length + 1, dn),
+               output_length);
     TEST_EQUAL(strcmp(buf, result_str), 0);
     mbedtls_free(buf);
     buf = NULL;

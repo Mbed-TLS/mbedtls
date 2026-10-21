@@ -932,6 +932,7 @@ void mbedtls_x509_dn_gets(char *crt_file, char *entity, char *result_str)
         TEST_FAIL("Unknown entity");
     }
 
+    /* Nominal case */
     TEST_CALLOC(buf, output_length + 1);
     memset(buf, '~', output_length + 1);
     TEST_EQUAL(mbedtls_x509_dn_gets(buf, output_length + 1, dn),
@@ -941,6 +942,18 @@ void mbedtls_x509_dn_gets(char *crt_file, char *entity, char *result_str)
                         result_str, output_length);
     mbedtls_free(buf);
     buf = NULL;
+
+    /* Output buffer too small */
+    /* Note that we go up to and including output_length, which is the case
+     * where all that's missing is room for the terminating null byte. */
+    for (size_t output_size = 0; output_size <= output_length; output_size++) {
+        TEST_CALLOC(buf, output_size);
+        TEST_EQUAL(mbedtls_x509_dn_gets(buf, output_size, dn),
+                   MBEDTLS_ERR_X509_BUFFER_TOO_SMALL);
+        /* The output buffer content is indeterminate */
+        mbedtls_free(buf);
+        buf = NULL;
+    }
 
 exit:
     mbedtls_free(buf);

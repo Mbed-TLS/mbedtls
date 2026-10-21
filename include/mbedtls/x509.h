@@ -510,5 +510,17 @@ size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst);
  */
 int mbedtls_x509_oid_get_md_alg(const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_alg);
 
+/**
+ * \brief	       Translate a signature algorithm OID and parameters into PK sigalg
+ *
+ * \param sig_oid      OID of the signature algorithm from the AlgorithmIdentifier type
+ * \param sig_params   Signature parameters from the AlgorithmIdentifier type
+ * \param[out] md_alg  The hash algorithm component of the signature algorithm (if any)
+ * \param[out] pk_alg  The PK algorithm that corresponds to the signature algorithm
+ *
+ * \return	       0 if successful, or a negative error code on failure
+ */
+int mbedtls_x509_get_sig_alg(const mbedtls_x509_buf *sig_oid, const mbedtls_x509_buf *sig_params,
+                             mbedtls_md_type_t *md_alg, mbedtls_pk_sigalg_t *pk_alg);
 
 #endif /* MBEDTLS_X509_H */

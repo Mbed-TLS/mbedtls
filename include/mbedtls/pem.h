@@ -79,10 +79,6 @@ void mbedtls_pem_init(mbedtls_pem_context *ctx);
  *                  MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT, use_len is
  *                  the length to skip.
  *
- * \note            Attempts to check password correctness by verifying if
- *                  the decrypted text starts with an ASN.1 sequence of
- *                  appropriate length
- *
  * \note            \c mbedtls_pem_free must be called on PEM context before
  *                  the PEM context can be reused in another call to
  *                  \c mbedtls_pem_read_buffer

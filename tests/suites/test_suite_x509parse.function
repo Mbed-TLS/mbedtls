@@ -923,8 +923,8 @@ void mbedtls_x509_dn_gets(char *crt_file, char *entity, char *result_str)
 {
     mbedtls_x509_crt crt;
     mbedtls_x509_crt_init(&crt);
-    char buf[2000];
-    memset(buf, 0, sizeof(buf));
+    size_t output_length = strlen(result_str);
+    char *buf = NULL;
 
     USE_PSA_INIT();
     TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, crt_file), 0);
@@ -938,12 +938,16 @@ void mbedtls_x509_dn_gets(char *crt_file, char *entity, char *result_str)
         TEST_FAIL("Unknown entity");
     }
 
-    int res = mbedtls_x509_dn_gets(buf, sizeof(buf), dn);
+    TEST_CALLOC(buf, output_length + 1);
+    int res = mbedtls_x509_dn_gets(buf, output_length + 1, dn);
     TEST_ASSERT(res != -1);
     TEST_ASSERT(res != -2);
     TEST_EQUAL(strcmp(buf, result_str), 0);
+    mbedtls_free(buf);
+    buf = NULL;
 
 exit:
+    mbedtls_free(buf);
     mbedtls_x509_crt_free(&crt);
     USE_PSA_DONE();
 }

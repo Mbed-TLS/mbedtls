@@ -46,11 +46,11 @@ the library and therefore cannot be compared by it. Consequently, only the
 application can ensure that the conditions required for preserving the original
 certificate-authentication guarantees still hold. In practice, this can be
 achieved by resetting the session cache and invalidating previously issued
-session tickets (for example by rotating the ticket key) whenever the
-certificate-authentication context is modified. Since the lifetime of cached
-sessions and session tickets is generally much shorter than the timescale over
-which certificate-authentication contexts change, this requirement is not
-expected to significantly reduce the effectiveness of session resumption.
+session tickets whenever the certificate-authentication context is modified.
+Since the lifetime of cached sessions and session tickets is generally much
+shorter than the timescale over which certificate-authentication contexts
+change, this requirement is not expected to significantly reduce the
+effectiveness of session resumption.
 
 Taken together, these considerations suggest that the application should be
 responsible for resetting the session cache and invalidating previously issued
@@ -219,6 +219,14 @@ The minimum required changes are:
 PSK-authentication contexts, document that any modification of such a context
 should result in resetting the associated session cache and invalidating tickets
 issued under the associated session-ticket context.
+
+An `mbedtls_ssl_cache_context` can be reset by calling
+`mbedtls_ssl_cache_free()` followed by `mbedtls_ssl_cache_init()`. An
+`mbedtls_ssl_ticket_context` can be reset by calling `mbedtls_ssl_ticket_free()`
+followed by `mbedtls_ssl_ticket_init()` and `mbedtls_ssl_ticket_setup()`. Note
+that calling `mbedtls_ssl_ticket_rotate()` is not sufficient for this purpose:
+normal ticket-key rotation is designed to preserve the ability to decrypt
+recently issued tickets.
 
 * Add one or more APIs, following the model of `mbedtls_ssl_set_hs_authmode()`
 and `mbedtls_ssl_set_hs_ca_chain()`, allowing the application to override,

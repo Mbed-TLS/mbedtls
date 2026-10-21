@@ -921,27 +921,26 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void mbedtls_x509_dn_gets(char *crt_file, char *entity, char *result_str)
 {
-    mbedtls_x509_crt   crt;
-    char buf[2000];
-    int res = 0;
-
+    mbedtls_x509_crt crt;
     mbedtls_x509_crt_init(&crt);
+    char buf[2000];
+    memset(buf, 0, sizeof(buf));
+
     USE_PSA_INIT();
-
-    memset(buf, 0, 2000);
-
     TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, crt_file), 0);
+
+    const mbedtls_x509_name *dn = NULL;
     if (strcmp(entity, "subject") == 0) {
-        res =  mbedtls_x509_dn_gets(buf, 2000, &crt.subject);
+        dn = &crt.subject;
     } else if (strcmp(entity, "issuer") == 0) {
-        res =  mbedtls_x509_dn_gets(buf, 2000, &crt.issuer);
+        dn = &crt.issuer;
     } else {
         TEST_FAIL("Unknown entity");
     }
 
+    int res = mbedtls_x509_dn_gets(buf, sizeof(buf), dn);
     TEST_ASSERT(res != -1);
     TEST_ASSERT(res != -2);
-
     TEST_EQUAL(strcmp(buf, result_str), 0);
 
 exit:

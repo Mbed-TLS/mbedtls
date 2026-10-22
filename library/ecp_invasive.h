@@ -313,8 +313,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
  *                      It must be between 1 and N-1.
  * \param[in] k         The nonce k.
  *                      It must be between 1 and N-1.
- *                      `k->n` must be at least as large as the number of
- *                      significant limbs of N.
+ *                      `k->n` must be at least as large as `N->n`.
  * \param[in,out] e     On input, the normalized message hash.
  *                      It must be between 0 and N-1.
  *                      Clobbered on output.

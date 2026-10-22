@@ -263,7 +263,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
     const size_t limbs = N->n;
 
     mbedtls_mpi_uint *scratch = NULL;
-    mbedtls_mpi mont_r2 = *N;
+    mbedtls_mpi mont_r2;
     mbedtls_mpi_init(&mont_r2);
 
     /* The Montgomery radix is based on the significant limb count. */
@@ -292,10 +292,10 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ecdsa_compute_s(const mbedtls_mpi *N,
         goto cleanup;
     }
 
-    mbedtls_mpi_uint *r_mont = scratch; /* 0 */
-    mbedtls_mpi_uint *d_mont = r_mont + limbs; /* 1 */
-    mbedtls_mpi_uint *inv_k_mont = d_mont + limbs; /* 2 */
-    mbedtls_mpi_uint *working = inv_k_mont + limbs;    /* 3-7 */
+    mbedtls_mpi_uint *r_mont = scratch;             /* 0 */
+    mbedtls_mpi_uint *d_mont = r_mont + limbs;      /* 1 */
+    mbedtls_mpi_uint *inv_k_mont = d_mont + limbs;  /* 2 */
+    mbedtls_mpi_uint *working = inv_k_mont + limbs; /* 3-7 */
 
     /* Invert the nonce at the fixed width of the group N.
      * We already know that k is in the range [1, N-1] and is represented

@@ -886,8 +886,8 @@ void mbedtls_ecp_group_metadata(int id, int bit_size, int crv_type,
      * removed. This applies to P as well.
      *
      * At the time of writing, the only place where this is known to matter
-     * is mbedtls_ecdsa_compute_s(), which does not work correctly if N
-     * has a leading 0 limb.
+     * is mbedtls_ecdsa_compute_s(), which is not guaranteed to work correctly
+     * if N has a leading 0 limb.
      */
     if (crv_type != MBEDTLS_ECP_TYPE_MONTGOMERY) {
         TEST_ASSERT(grp.N.p[grp.N.n - 1] != 0);

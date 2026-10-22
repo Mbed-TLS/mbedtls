@@ -8,20 +8,20 @@
  *
  * If \p bits_delta == 0, set \p X to a value less than \p N.
  *
- * \param[in] N         An MPI. It must have a positive value.
+ * \param[in] N         An MPI. Its value must be at least 256.
  * \param bits_delta    Difference between the number of significant bits
  *                      of \p X and \p N. For example, \p bits_delta == -1
  *                      makes \p X smaller than \p N by one bit.
  *                      If this brings the bit-size of \p X below 0,
  *                      \p X is left unchanged.
  * \param filler        A value to set in unconstrained bytes of \p X.
- *                      Choose different fillter values for different
+ *                      Choose different filler values for different
  *                      MPI used in the same test to facilitate debugging.
  * \param[in,out] X     The MPI object to set.
  */
 static int set_mpi_by_size(const mbedtls_mpi *N,
                            int bits_delta,
-                           char filler,
+                           unsigned char filler,
                            mbedtls_mpi *X)
 {
     mbedtls_test_set_step(filler);
@@ -29,14 +29,20 @@ static int set_mpi_by_size(const mbedtls_mpi *N,
     mbedtls_mpi_free(X);
 
     if (bits_delta == 0) {
-        TEST_EQUAL(mbedtls_mpi_sub_int(X, N, 1), 0);
+        /* low byte = filler, rest = N */
+        unsigned value_delta = 0x100 + (N->p[0] & 0xff) - filler;
+        TEST_EQUAL(mbedtls_mpi_sub_int(X, N, value_delta), 0);
     } else if (bits_delta <= -(int) N_bits) {
         /* Leave X having the value 0 with no limbs */
     } else {
-        /* X may be smaller or larger than N */
+        /* The value of X may be smaller or larger than N.
+         * All bytes except the highest significant byte are set to filler. */
         TEST_LE_S(-bits_delta, N_bits - 1);
-        TEST_EQUAL(mbedtls_mpi_set_bit(X, N_bits + bits_delta, 1), 0);
-        memset(X->p, filler, mbedtls_mpi_size(X) - 1);
+        TEST_EQUAL(mbedtls_mpi_set_bit(X, N_bits - 1 + bits_delta, 1), 0);
+        size_t m = (bits_delta > 0 ? N->n : X->n);
+        memset(X->p, filler, (m - 1) * sizeof(mbedtls_mpi_uint));
+        /* Sanity check */
+        TEST_EQUAL(mbedtls_mpi_bitlen(X), N_bits + bits_delta);
     }
 
     mbedtls_test_set_step(-1L);

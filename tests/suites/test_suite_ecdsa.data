@@ -38,8 +38,11 @@ ECDSA primitive random #5
 depends_on:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 ecdsa_prim_random:MBEDTLS_ECP_DP_SECP521R1
 
-ECDSA compute s: nominal
+ECDSA compute s: nominal (d, k, r, e all close to N)
 ecdsa_compute_s:0:0:0:0:0:INT_MIN:1
+
+ECDSA compute s: nominal (d, k, r, e all 1 bit shorter than N)
+ecdsa_compute_s:0:-1:-1:-1:-1:INT_MIN:1
 
 ECDSA compute s: order with a leading zero limb
 ecdsa_compute_s:1:0:0:0:0:INT_MIN:0

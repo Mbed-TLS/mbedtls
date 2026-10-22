@@ -138,14 +138,14 @@ even a remote. The attacks can result in key recovery.
 
 **Workarounds:**
 
-- Turn on hardware acceleration for AES. This is supported only on selected
-  architectures and currently only available for AES. See configuration options
-  `MBEDTLS_AESCE_C`, `MBEDTLS_AESNI_C` and `MBEDTLS_PADLOCK_C` for details.
-  For GCM, the implementation must also use hardware acceleration for GHASH to
-  avoid its software lookup tables.
+- Turn on hardware acceleration for AES and GCM. This is supported only on
+  selected architectures. See configuration options `MBEDTLS_AESCE_C`,
+  `MBEDTLS_AESNI_C` and `MBEDTLS_PADLOCK_C` for details. `MBEDTLS_PADLOCK_C`
+  accelerates AES but not GCM.
 - Add a secure alternative implementation (typically hardware acceleration) for
-  the vulnerable cipher. See the [Alternative Implementations
-Guide](docs/architecture/alternative-implementations.md) for more information.
+  the vulnerable cipher (and GHASH if using GCM). See the [Alternative
+  Implementations Guide](docs/architecture/alternative-implementations.md) for
+  more information.
 - Use cryptographic mechanisms that are not based on block ciphers. In
   particular, for authenticated encryption, use ChaCha20/Poly1305 instead of
   block cipher modes. For random generation, use HMAC\_DRBG instead of CTR\_DRBG.

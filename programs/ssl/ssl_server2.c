@@ -2377,13 +2377,36 @@ usage:
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
         if (opt.psk_opaque != 0 || opt.psk_list_opaque != 0) {
-            /* Determine KDF algorithm the opaque PSK will be used in. */
+            /*
+             * Determine the KDF algorithm the opaque PSK will be used in.
+             *
+             * TLS 1.3 consumes the PSK directly as the secret input to
+             * HKDF-Extract. Keep the key non-exportable: DERIVE
+             * permission is sufficient.
+             */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+            if (ciphersuite_info->min_tls_version ==
+                MBEDTLS_SSL_VERSION_TLS1_3) {
 #if defined(PSA_WANT_ALG_SHA_384)
-            if (ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
-                alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
-            } else
+                if (ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+                    alg = PSA_ALG_HKDF_EXTRACT(PSA_ALG_SHA_384);
+                } else
 #endif /* PSA_WANT_ALG_SHA_384 */
-            alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
+                {
+                    alg = PSA_ALG_HKDF_EXTRACT(PSA_ALG_SHA_256);
+                }
+            } else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+            {
+#if defined(PSA_WANT_ALG_SHA_384)
+                if (ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+                    alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
+                } else
+#endif /* PSA_WANT_ALG_SHA_384 */
+                {
+                    alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
+                }
+            }
         }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
     }

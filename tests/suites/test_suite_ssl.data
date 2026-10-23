@@ -3653,4 +3653,5 @@ depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:MBEDTLS_USE_PSA_CRYPTO:PSA_WANT_
 ssl_ecjpake_write_round_buffer_overflow:330:0
 
 TLS 1.2 renegotiation with pending output after buffer resize (ASan)
+depends_on:MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 resize_pending_output_asan:

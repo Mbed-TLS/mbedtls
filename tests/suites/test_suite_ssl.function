@@ -191,7 +191,8 @@ static void pre_handshake_tweak_contexts(mbedtls_test_ssl_endpoint *client,
     defined(MBEDTLS_ECP_HAVE_SECP256R1) && \
     defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
     defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && \
-    defined(MBEDTLS_MD_CAN_SHA256)
+    defined(MBEDTLS_MD_CAN_SHA256) && \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static void resize_with_pending_output(mbedtls_test_ssl_endpoint *client,
                                        mbedtls_test_ssl_endpoint *server,
                                        void *param)
@@ -3747,7 +3748,7 @@ void resize_buffers_renegotiate_mfl(int mfl, int legacy_renegotiation,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_MD_CAN_SHA256 */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_MD_CAN_SHA256:MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 void resize_pending_output_asan()
 {
     mbedtls_test_handshake_test_options options;

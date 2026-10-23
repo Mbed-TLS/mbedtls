@@ -1034,6 +1034,8 @@ int mbedtls_ssl_tls13_populate_transform(
                                      &transform->psa_key_dec)) != PSA_SUCCESS) {
             MBEDTLS_SSL_DEBUG_RET(
                 1, "psa_import_key", PSA_TO_MBEDTLS_ERR(status));
+            psa_destroy_key(transform->psa_key_enc);
+            transform->psa_key_enc = MBEDTLS_SVC_KEY_ID_INIT;
             return PSA_TO_MBEDTLS_ERR(status);
         }
     }

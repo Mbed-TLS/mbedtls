@@ -1,0 +1,4 @@
+Bugfix
+   * Fix resource leaks in TLS 1.3 transform setup when a setup step fails
+     after allocating cipher contexts or importing the encryption traffic key.
+     Fixes #10917.

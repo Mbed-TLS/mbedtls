@@ -39,8 +39,7 @@ static int set_mpi_by_size(const mbedtls_mpi *N,
          * All bytes except the highest significant byte are set to filler. */
         TEST_LE_S(-bits_delta, N_bits - 1);
         TEST_EQUAL(mbedtls_mpi_set_bit(X, N_bits - 1 + bits_delta, 1), 0);
-        size_t m = (bits_delta > 0 ? N->n : X->n);
-        memset(X->p, filler, (m - 1) * sizeof(mbedtls_mpi_uint));
+        memset(X->p, filler, (X->n - 1) * sizeof(mbedtls_mpi_uint));
         /* Sanity check */
         TEST_EQUAL(mbedtls_mpi_bitlen(X), N_bits + bits_delta);
     }

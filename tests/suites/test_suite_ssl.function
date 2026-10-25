@@ -4608,7 +4608,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_TLS1_3 */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 void tls13_server_parse_supported_groups_ext(data_t *ext, int expected_result,
                                              int expected_alert)
 {

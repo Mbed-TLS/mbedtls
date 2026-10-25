@@ -17,6 +17,7 @@
 #include "mbedtls/psa_util.h"
 
 #include "ssl_tls13_keys.h"
+#include "ssl_tls13_invasive.h"
 #include "ssl_debug_helpers.h"
 
 
@@ -891,9 +892,10 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
  *  - A negative value for fatal errors.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
-                                          const unsigned char *buf,
-                                          const unsigned char *end)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
+                                           const unsigned char *buf,
+                                           const unsigned char *end)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char const *p = buf;
@@ -916,6 +918,14 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
     ssl->handshake->offered_group_id = 0;
     client_shares_end = p + client_shares_len;
 
+    /* client_shares is the whole extension; no trailing data (RFC 8446 4.2.8). */
+    if (client_shares_end != end) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("key_share extension has trailing data"));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+
     /* We try to find a suitable key share entry and copy it to the
      * handshake context. Later, we have to find out whether we can do
      * something with the provided key share or whether we have to
@@ -937,6 +947,14 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
         group = MBEDTLS_GET_UINT16_BE(p, 0);
         key_exchange_len = MBEDTLS_GET_UINT16_BE(p, 2);
         p += 4;
+
+        /* key_exchange is opaque<1..2^16-1>: a zero-length share is malformed. */
+        if (key_exchange_len == 0) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("key_share entry with empty key_exchange"));
+            MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                         MBEDTLS_ERR_SSL_DECODE_ERROR);
+            return MBEDTLS_ERR_SSL_DECODE_ERROR;
+        }
         key_exchange = p;
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p, client_shares_end, key_exchange_len);
         p += key_exchange_len;
@@ -959,7 +977,7 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
                                       mbedtls_ssl_named_group_to_str(group),
                                       group));
             ret = mbedtls_ssl_tls13_read_public_xxdhe_share(
-                ssl, key_exchange - 2, key_exchange_len + 2);
+                ssl, group, key_exchange - 2, key_exchange_len + 2);
             if (ret != 0) {
                 return ret;
             }
@@ -1555,7 +1573,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                  * contains the endpoint's cryptographic parameters for
                  * ECDHE/DHE key establishment methods.
                  */
-                ret = ssl_tls13_parse_key_shares_ext(
+                ret = mbedtls_ssl_tls13_parse_key_shares_ext(
                     ssl, p, extension_data_end);
                 if (ret == SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH) {
                     MBEDTLS_SSL_DEBUG_MSG(2, ("No usable share for key agreement."));

@@ -830,9 +830,10 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
  *   } NamedGroupList;
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
-                                                const unsigned char *buf,
-                                                const unsigned char *end)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
+                                                 const unsigned char *buf,
+                                                 const unsigned char *end)
 {
     const unsigned char *p = buf;
     size_t named_group_list_len;
@@ -842,8 +843,24 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 2);
     named_group_list_len = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
+
+    /* named_group_list is NamedGroup<2..2^16-1>: at least one group (RFC 8446 4.2.7). */
+    if (named_group_list_len < 2) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("supported_groups list is empty"));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, named_group_list_len);
     named_group_list_end = p + named_group_list_len;
+
+    /* named_group_list is the whole extension; no trailing data. */
+    if (named_group_list_end != end) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("supported_groups extension has trailing data"));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
     ssl->handshake->hrr_selected_group = 0;
 
     while (p < named_group_list_end) {
@@ -1551,11 +1568,11 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                  * indicates the named groups which the client supports,
                  * ordered from most preferred to least preferred.
                  */
-                ret = ssl_tls13_parse_supported_groups_ext(
+                ret = mbedtls_ssl_tls13_parse_supported_groups_ext(
                     ssl, p, extension_data_end);
                 if (ret != 0) {
                     MBEDTLS_SSL_DEBUG_RET(
-                        1, "ssl_tls13_parse_supported_groups_ext", ret);
+                        1, "mbedtls_ssl_tls13_parse_supported_groups_ext", ret);
                     return ret;
                 }
 

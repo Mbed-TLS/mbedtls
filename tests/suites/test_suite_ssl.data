@@ -3673,3 +3673,14 @@ tls13_server_parse_key_shares_ext:"0103010000ff111111111111111111111111111111111
 TLS 1.3 srv parse key_shares: trailing data after client_shares
 tls13_server_parse_key_shares_ext:"0024001d00201111111111111111111111111111111111111111111111111111111111111111ff":MBEDTLS_ERR_SSL_DECODE_ERROR:MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR
 
+TLS 1.3 srv parse supported_groups: valid
+tls13_server_parse_supported_groups_ext:"0004001d0017":0:-1
+
+TLS 1.3 srv parse supported_groups: empty list
+tls13_server_parse_supported_groups_ext:"0000":MBEDTLS_ERR_SSL_DECODE_ERROR:MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR
+
+TLS 1.3 srv parse supported_groups: trailing data
+tls13_server_parse_supported_groups_ext:"0004001d0017ff":MBEDTLS_ERR_SSL_DECODE_ERROR:MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR
+
+TLS 1.3 srv parse supported_groups: odd length
+tls13_server_parse_supported_groups_ext:"0003001d00":MBEDTLS_ERR_SSL_DECODE_ERROR:MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR

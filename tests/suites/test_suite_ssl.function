@@ -4608,6 +4608,42 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_TLS1_3 */
+void tls13_server_parse_supported_groups_ext(data_t *ext, int expected_result,
+                                             int expected_alert)
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    int ret;
+
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_config_init(&conf);
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER,
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                           MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
+
+    ret = mbedtls_ssl_tls13_parse_supported_groups_ext(&ssl, ext->x,
+                                                       ext->x + ext->len);
+    TEST_EQUAL(ret, expected_result);
+
+    if (expected_alert >= 0) {
+        TEST_EQUAL(ssl.MBEDTLS_PRIVATE(send_alert), 1);
+        TEST_EQUAL(ssl.MBEDTLS_PRIVATE(alert_type),
+                   (unsigned char) expected_alert);
+    } else {
+        TEST_EQUAL(ssl.MBEDTLS_PRIVATE(send_alert), 0);
+    }
+
+exit:
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_ECDH:PSA_WANT_ALG_ECDSA_ANY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
 void reject_hrr_selecting_unoffered_group(void)
 {

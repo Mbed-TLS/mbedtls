@@ -236,9 +236,11 @@ on a per-handshake basis, the session cache and session-ticket context inherited
 from the configuration context.
 
 Additionally, the following improvements could be considered:
-* If a client provides a server name indication in its ClientHello, fail
-session resumption unless the application explicitly selects the session cache
-and session-ticket context for the current handshake.
+* When the SNI callback selects a certificate-authentication context for the
+current handshake through `mbedtls_ssl_set_hs_authmode()` or
+`mbedtls_ssl_set_hs_ca_chain()`, require the application to also select the
+corresponding session cache and session-ticket context for the current
+handshake, when the respective resumption mechanisms are enabled.
 * Detect some obvious changes to a certificate-authentication context, such as
 changes to the client authentication mode, and reject attempts to resume sessions
 established under an obviously incompatible certificate-authentication context.

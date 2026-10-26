@@ -1304,11 +1304,11 @@ static int ssl_tls13_check_handshake_inputs(
             required_inputs = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK;
             break;
         case MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL:
-            required_inputs = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL;
+            required_inputs = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_BOTH;
             break;
         case MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL:
             required_inputs = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK |
-                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL;
+                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_BOTH;
             break;
         default:
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;

@@ -8,3 +8,4 @@ Security
      ephemeral key exchange, and can compromise the confidentiality and
      integrity of the connection. In some client configurations, this could
      also permit server impersonation. Reported by Anthropic and Ada Logics.
+     CVE-2026-115490.

@@ -1868,7 +1868,10 @@ cleanup:
 
     return ret;
 }
-#endif /*
+#endif /* MBEDTLS_FS_IO */
+
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
+/*
  * Like mbedtls_x509_info_subject_alt_name(), but for the subtrees of a Name
  * Constraints extension, where an iPAddress is an address and a mask.
  */
@@ -1919,9 +1922,6 @@ static int x509_info_general_subtrees(char **buf, size_t *size,
     return 0;
 }
 
-/* MBEDTLS_FS_IO */
-
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
 #define PRINT_ITEM(i)                               \
     do {                                            \
         ret = mbedtls_snprintf(p, n, "%s" i, sep);  \

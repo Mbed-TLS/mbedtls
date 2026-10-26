@@ -1667,12 +1667,12 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                     }
                 }/* MBEDTLS_OID_ON_HW_MODULE_NAME */
                 else if (MBEDTLS_OID_CMP(MBEDTLS_OID_ON_BUNDLE_EID,
-                                    &other_name->type_id) == 0) {
+                                         &other_name->type_id) == 0) {
                     int len = 0;
                     const char *str = NULL;
                     if (other_name->value.raw.tag == MBEDTLS_ASN1_IA5_STRING) {
                         len = other_name->value.raw.len;
-                        str = (char*)other_name->value.raw.p;
+                        str = (char *) other_name->value.raw.p;
                     }
 
                     ret = mbedtls_snprintf(p, n, "\n%s        BundleEID : %.*s", prefix,

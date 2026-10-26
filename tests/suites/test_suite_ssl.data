@@ -3614,13 +3614,21 @@ ssl_tls_exporter_too_early:MBEDTLS_SSL_VERSION_TLS1_3:1:MBEDTLS_SSL_SERVER_CERTI
 TLS fatal alert getter
 ssl_get_alert_after_fatal
 
-TLS 1.2 client rejects ServerHello with 0x0304 legacy_version
+TLS 1.2 client rejects ServerHello with TLS 1.1 legacy_version
 depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
-tls12_reject_0304_legacy_version:MBEDTLS_SSL_IS_CLIENT
+tls12_reject_invalid_legacy_version:MBEDTLS_SSL_IS_CLIENT:0x0302
 
-TLS 1.2 server rejects ClientHello with 0x0304 legacy_version
+TLS 1.2 client rejects ServerHello with TLS 1.3 legacy_version
+depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+tls12_reject_invalid_legacy_version:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
+
+TLS 1.2 server rejects ClientHello with TLS 1.1 legacy_version
 depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
-tls12_reject_0304_legacy_version:MBEDTLS_SSL_IS_SERVER
+tls12_reject_invalid_legacy_version:MBEDTLS_SSL_IS_SERVER:0x0302
+
+TLS 1.2 server rejects ClientHello with TLS 1.3 legacy_version
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+tls12_reject_invalid_legacy_version:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3
 
 Default verify_result before doing a handshake
 verify_result_without_handshake

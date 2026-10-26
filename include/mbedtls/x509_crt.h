@@ -66,8 +66,8 @@ typedef struct mbedtls_x509_crt {
     mbedtls_x509_buf subject_key_id;    /**< Optional X.509 v3 extension subject key identifier. */
     mbedtls_x509_authority authority_key_id;    /**< Optional X.509 v3 extension authority key identifier. */
 
-    mbedtls_x509_sequence name_constraints_incl;    /**< Optional list of raw entries of Name Constraints extension (currently only dNSName and OtherName are listed). */
-    mbedtls_x509_sequence name_constraints_excl;    /**< Optional list of raw entries of Name Constraints extension (currently only dNSName and OtherName are listed). */
+    mbedtls_x509_sequence name_constraints_incl;    /**< Optional list of the bases of the permittedSubtrees of the Name Constraints extension, as raw GeneralName entries like subject_alt_names. An iPAddress entry is an address followed by a mask. */
+    mbedtls_x509_sequence name_constraints_excl;    /**< Optional list of the bases of the excludedSubtrees of the Name Constraints extension, in the same format as name_constraints_incl. */
 
     mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 

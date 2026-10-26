@@ -586,82 +586,119 @@ static int x509_get_ext_key_usage(unsigned char **p,
 }
 
 /*
-      GeneralSubtrees ::= SEQUENCE SIZE (1..MAX) OF GeneralSubtree
-
-      GeneralSubtree ::= SEQUENCE {
-           base                    GeneralName,
-           minimum         [0]     BaseDistance DEFAULT 0,
-           maximum         [1]     BaseDistance OPTIONAL }
-
-      BaseDistance ::= INTEGER (0..MAX)
+ * Check the base of a GeneralSubtree in a Name Constraints extension.
+ *
+ * iPAddress is an address followed by a mask (8 bytes for IPv4, 32 bytes for
+ * IPv6), so it can't be checked with mbedtls_x509_parse_subject_alt_name().
+ * Name forms that mbedtls_x509_parse_subject_alt_name() doesn't support are
+ * accepted here: they can't be enforced, so certificates with names of such
+ * a form fail verification under this CA (see x509_crt_check_name_constraints()).
  */
-static int x509_get_general_subtrees( unsigned char **p,
-                                      const unsigned char *end,
-                                      mbedtls_x509_sequence *general_names )
+static int x509_check_general_subtree_base(const mbedtls_x509_buf *base)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len, tag_len;
-    const unsigned char *item_end;
-    mbedtls_asn1_sequence *cur = general_names;
+    mbedtls_x509_subject_alternative_name name;
 
-    while( *p < end )
-    {
-        /* Sequence within the GeneralSubtree */
-        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
-                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret ) );
-        item_end = *p + len;
+    if ((base->tag & MBEDTLS_ASN1_TAG_CLASS_MASK) != MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+    }
 
-        mbedtls_x509_subject_alternative_name dummy_san_buf;
-        mbedtls_x509_buf tmp_san_buf;
-        memset(&dummy_san_buf, 0, sizeof(dummy_san_buf));
+    if ((base->tag & MBEDTLS_ASN1_TAG_VALUE_MASK) == MBEDTLS_X509_SAN_IP_ADDRESS) {
+        if (base->len != 8 && base->len != 32) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                     MBEDTLS_ERR_ASN1_INVALID_LENGTH);
+        }
+        return 0;
+    }
 
-        tmp_san_buf.tag = **p;
-        (*p)++;
+    memset(&name, 0, sizeof(name));
+    ret = mbedtls_x509_parse_subject_alt_name(base, &name);
+    mbedtls_x509_free_subject_alt_name(&name);
+    if (ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) {
+        return 0;
+    }
 
-        if ((ret = mbedtls_asn1_get_len(p, end, &tag_len)) != 0) {
+    return ret;
+}
+
+/*
+ * GeneralSubtrees ::= SEQUENCE SIZE (1..MAX) OF GeneralSubtree
+ *
+ * GeneralSubtree ::= SEQUENCE {
+ *      base                    GeneralName,
+ *      minimum         [0]     BaseDistance DEFAULT 0,
+ *      maximum         [1]     BaseDistance OPTIONAL }
+ *
+ * BaseDistance ::= INTEGER (0..MAX)
+ *
+ * RFC 5280 requires minimum to be zero and maximum to be absent. DER omits a
+ * zero minimum, but an explicitly encoded zero is accepted too. Each base is
+ * stored as a raw GeneralName, like the entries of subject_alt_names.
+ */
+static int x509_get_general_subtrees(unsigned char **p,
+                                     const unsigned char *end,
+                                     mbedtls_x509_sequence *subtrees)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len;
+    const unsigned char *subtree_end;
+    mbedtls_x509_buf base;
+    mbedtls_x509_sequence *cur = subtrees;
+
+    if (*p == end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_INVALID_LENGTH);
+    }
+
+    while (*p < end) {
+        if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
         }
+        subtree_end = *p + len;
 
-        tmp_san_buf.p = *p;
-        tmp_san_buf.len = tag_len;
+        if (*p == subtree_end) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                     MBEDTLS_ERR_ASN1_OUT_OF_DATA);
+        }
+        base.tag = **p;
+        (*p)++;
+        if ((ret = mbedtls_asn1_get_len(p, subtree_end, &base.len)) != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        }
+        base.p = *p;
+        *p += base.len;
 
-        if ((tmp_san_buf.tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
-            MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
+        if ((ret = x509_check_general_subtree_base(&base)) != 0) {
+            return ret;
+        }
+
+        /* minimum [0]: only zero is allowed */
+        if (*p < subtree_end && **p == MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
+            (*p)++;
+            if ((ret = mbedtls_asn1_get_len(p, subtree_end, &len)) != 0) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+            }
+            if (len != 1 || **p != 0) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                         MBEDTLS_ERR_ASN1_INVALID_DATA);
+            }
+            *p += len;
+        }
+
+        /* maximum [1] must be absent */
+        if (*p != subtree_end) {
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                                      MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
         }
 
-        /*
-         * Check that the GeneralName is structured correctly.
-         */
-        ret = mbedtls_x509_parse_subject_alt_name(&tmp_san_buf, &dummy_san_buf);
-        /*
-         * In case the extension is malformed, return an error,
-         * and clear the allocated sequences.
-         */
-        if (ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) {
-            mbedtls_x509_sequence *seq_cur = general_names->next;
-            mbedtls_x509_sequence *seq_prv;
-            while (seq_cur != NULL) {
-                seq_prv = seq_cur;
-                seq_cur = seq_cur->next;
-                mbedtls_platform_zeroize(seq_prv,
-                                         sizeof(mbedtls_x509_sequence));
-                mbedtls_free(seq_prv);
-            }
-            general_names->next = NULL;
-            return ret;
-        }
-
-        /* Allocate and assign next pointer */
         if (cur->buf.p != NULL) {
             if (cur->next != NULL) {
                 return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
             }
 
             cur->next = mbedtls_calloc(1, sizeof(mbedtls_asn1_sequence));
-
             if (cur->next == NULL) {
                 return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                                          MBEDTLS_ERR_ASN1_ALLOC_FAILED);
@@ -670,39 +707,26 @@ static int x509_get_general_subtrees( unsigned char **p,
             cur = cur->next;
         }
 
-        cur->buf = tmp_san_buf;
-        *p += tmp_san_buf.len;
-
-        // Require that minimum and maximum distance are not present
-        if (*p != item_end) {
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
-        }
+        cur->buf = base;
     }
 
-    /* Set final sequence entry's next pointer to NULL */
-    cur->next = NULL;
-
-    if( *p != end )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
-
-    return( 0 );
+    return 0;
 }
 
 /*
-      NameConstraints ::= SEQUENCE {
-           permittedSubtrees       [0]     GeneralSubtrees OPTIONAL,
-           excludedSubtrees        [1]     GeneralSubtrees OPTIONAL }
+ * NameConstraints ::= SEQUENCE {
+ *      permittedSubtrees       [0]     GeneralSubtrees OPTIONAL,
+ *      excludedSubtrees        [1]     GeneralSubtrees OPTIONAL }
+ *
+ * RFC 5280 section 4.2.1.10: at least one of the two must be present.
  */
-static int x509_get_name_constraints( unsigned char **p,
-                                      const unsigned char *end,
-                                      mbedtls_x509_sequence *include,
-                                      mbedtls_x509_sequence *exclude )
+static int x509_get_name_constraints(unsigned char **p,
+                                     const unsigned char *end,
+                                     mbedtls_x509_sequence *permitted,
+                                     mbedtls_x509_sequence *excluded)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
-    const unsigned char *end_subtree;
 
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
@@ -714,59 +738,39 @@ static int x509_get_name_constraints( unsigned char **p,
                                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
 
-    if (*p < end) {
-        const unsigned tag = **p;
-        if ((tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
-            MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
-        }
+    if (*p == end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_INVALID_LENGTH);
+    }
 
-        /*
-         * permittedSubtrees
-         */
-        if ((tag & MBEDTLS_ASN1_TAG_VALUE_MASK) == MBEDTLS_X509_NAME_CONST_INCL) {
-            (*p)++;
-            if ((ret = mbedtls_asn1_get_len(p, end, &len)) != 0) {
-                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-            }
-
-            end_subtree = *p + len;
-            if ((ret = x509_get_general_subtrees(p, end_subtree, include))) {
-                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-            }
+    ret = mbedtls_asn1_get_tag(p, end, &len,
+                               MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED |
+                               MBEDTLS_X509_NAME_CONST_INCL);
+    if (ret == 0) {
+        if ((ret = x509_get_general_subtrees(p, *p + len, permitted)) != 0) {
+            return ret;
         }
+    } else if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
     }
 
     if (*p < end) {
-        const unsigned tag = **p;
-        if ((tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
-            MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+        if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED |
+                                        MBEDTLS_X509_NAME_CONST_EXCL)) != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
         }
-
-        /*
-         * excludedSubtrees
-         */
-        if ((tag & MBEDTLS_ASN1_TAG_VALUE_MASK) == MBEDTLS_X509_NAME_CONST_EXCL) {
-            (*p)++;
-            if ((ret = mbedtls_asn1_get_len(p, end, &len)) != 0) {
-                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-            }
-
-            end_subtree = *p + len;
-            if( (ret = x509_get_general_subtrees(p, end_subtree, exclude))) {
-                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-            }
+        if ((ret = x509_get_general_subtrees(p, *p + len, excluded)) != 0) {
+            return ret;
         }
     }
 
-    if( *p != end )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
+    if (*p != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
 
-    return( 0 );
+    return 0;
 }
 
 /*
@@ -1166,10 +1170,11 @@ static int x509_get_crt_ext(unsigned char **p,
 
             case MBEDTLS_X509_EXT_NAME_CONSTRAINTS:
                 /* Parse name constraints */
-                if ((ret = x509_get_name_constraints( p, end_ext_octet,
-                        &crt->name_constraints_incl,
-                        &crt->name_constraints_excl)) != 0 )
-                    return( ret );
+                if ((ret = x509_get_name_constraints(p, end_ext_octet,
+                                                     &crt->name_constraints_incl,
+                                                     &crt->name_constraints_excl)) != 0) {
+                    return ret;
+                }
                 break;
 
             case MBEDTLS_X509_EXT_KEY_USAGE:
@@ -1863,7 +1868,58 @@ cleanup:
 
     return ret;
 }
-#endif /* MBEDTLS_FS_IO */
+#endif /*
+ * Like mbedtls_x509_info_subject_alt_name(), but for the subtrees of a Name
+ * Constraints extension, where an iPAddress is an address and a mask.
+ */
+static int x509_info_general_subtrees(char **buf, size_t *size,
+                                      const mbedtls_x509_sequence *subtrees,
+                                      const char *prefix)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t i, half;
+    size_t n = *size;
+    char *p = *buf;
+    const mbedtls_x509_sequence *cur;
+    mbedtls_x509_sequence single;
+
+    for (cur = subtrees; cur != NULL; cur = cur->next) {
+        if ((cur->buf.tag & MBEDTLS_ASN1_TAG_VALUE_MASK) != MBEDTLS_X509_SAN_IP_ADDRESS) {
+            single.buf = cur->buf;
+            single.next = NULL;
+            if ((ret = mbedtls_x509_info_subject_alt_name(&p, &n, &single, prefix)) != 0) {
+                return ret;
+            }
+            continue;
+        }
+
+        ret = mbedtls_snprintf(p, n, "\n%s    iPAddress : ", prefix);
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        /* address, then mask */
+        half = cur->buf.len / 2;
+        for (i = 0; i < cur->buf.len; i++) {
+            if (half == 4) {
+                ret = mbedtls_snprintf(p, n, "%s%u",
+                                       i == 0 ? "" : i == half ? "/" : ".",
+                                       cur->buf.p[i]);
+            } else {
+                ret = mbedtls_snprintf(p, n, "%s%02X",
+                                       i == 0 ? "" : i == half ? "/" :
+                                       i % 2 == 0 ? ":" : "",
+                                       cur->buf.p[i]);
+            }
+            MBEDTLS_X509_SAFE_SNPRINTF;
+        }
+    }
+
+    *size = n;
+    *buf = p;
+
+    return 0;
+}
+
+/* MBEDTLS_FS_IO */
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 #define PRINT_ITEM(i)                               \
@@ -2076,22 +2132,20 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
         ret = mbedtls_snprintf(p, n, "\n%sname constraints  :", prefix);
         MBEDTLS_X509_SAFE_SNPRINTF;
 
-        if (crt->name_constraints_incl.buf.p) {
+        if (crt->name_constraints_incl.buf.p != NULL) {
             ret = mbedtls_snprintf(p, n, "\n%s  permitted :", prefix);
             MBEDTLS_X509_SAFE_SNPRINTF;
-            if ((ret = mbedtls_x509_info_subject_alt_name(&p, &n,
-                                                          &crt->name_constraints_incl,
-                                                          prefix)) != 0) {
+            if ((ret = x509_info_general_subtrees(&p, &n, &crt->name_constraints_incl,
+                                                  prefix)) != 0) {
                 return ret;
             }
         }
 
-        if (crt->name_constraints_excl.buf.p) {
+        if (crt->name_constraints_excl.buf.p != NULL) {
             ret = mbedtls_snprintf(p, n, "\n%s  excluded  :", prefix);
             MBEDTLS_X509_SAFE_SNPRINTF;
-            if ((ret = mbedtls_x509_info_subject_alt_name(&p, &n,
-                                                          &crt->name_constraints_excl,
-                                                          prefix)) != 0) {
+            if ((ret = x509_info_general_subtrees(&p, &n, &crt->name_constraints_excl,
+                                                  prefix)) != 0) {
                 return ret;
             }
         }

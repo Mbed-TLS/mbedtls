@@ -3668,3 +3668,6 @@ ssl_ecjpake_write_round_buffer_overflow:132:MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL
 EC-JPAKE write round with sufficient output buffer
 depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:PSA_WANT_ALG_JPAKE:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256
 ssl_ecjpake_write_round_buffer_overflow:330:0
+
+TLS 1.2 renegotiation with pending output after buffer resize (ASan)
+resize_pending_output_asan:

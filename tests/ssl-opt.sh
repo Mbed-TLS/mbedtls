@@ -6120,6 +6120,32 @@ run_test "Authentication: hostname unset, client default, server picks PSK, 1.3"
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
 
+# The purpose of the next test is to test the client's behaviour when receiving a server
+# certificate with an unsupported elliptic curve. This should not normally happen because
+# the client informs the server about the supported curves (to be fixed).
+# If that bug's fixed, the test needs to be altered to use a
+# different means to have the server ignoring the client's supported curve list.
+
+run_test    "Authentication: server ECDSA p256v1, client required, p256v1 unsupported" \
+            "$P_SRV debug_level=1 key_file=$DATA_FILES_PATH/server5.key \
+             crt_file=$DATA_FILES_PATH/server5.crt" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=required groups=secp521r1" \
+            1 \
+            -c "bad certificate (EC key curve)" \
+            -c "send alert level=2 message=43" \
+            -c "! Certificate verification flags" \
+            -c "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
+
+run_test    "Authentication: client ECDSA p256v1, server required, p256v1 unsupported" \
+            "$P_SRV debug_level=3 auth_mode=required groups=secp521r1" \
+            "$P_CLI force_version=tls12 debug_level=1 \
+                    key_file=$DATA_FILES_PATH/server6.key crt_file=$DATA_FILES_PATH/server6.crt" \
+            1 \
+            -s "bad certificate (EC key curve)" \
+            -s "send alert level=2 message=43" \
+            -s "! Certificate verification flags" \
+            -s "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
+
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: client SHA256, server required" \
             "$P_SRV auth_mode=required" \
@@ -14296,29 +14322,6 @@ run_test    "TLS 1.3: no HRR in case of PSK key exchange mode" \
             -C "received HelloRetryRequest message" \
             -c "Selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
-
-requires_config_enabled PSA_WANT_ECC_SECP_R1_256
-requires_config_enabled PSA_WANT_ECC_SECP_R1_384
-run_test    "Server certificate with disallowed curve" \
-            "$P_SRV debug_level=4 \
-                    key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt" \
-            "$P_CLI debug_level=4 groups=secp384r1 force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
-            1 \
-            -c "bad certificate (EC key curve)" \
-            -c "send alert level=2 message=43" \
-            -c "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
-
-
-requires_config_enabled PSA_WANT_ECC_SECP_R1_256
-requires_config_enabled PSA_WANT_ECC_SECP_R1_384
-run_test    "Certificate verify message with disallowed curve" \
-            "$P_SRV groups=secp384r1 auth_mode=required debug_level=3" \
-            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 \
-                    key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt" \
-            1 \
-            -s "bad certificate (EC key curve)" \
-            -s "send alert level=2 message=43" \
-            -s "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
 
 # Legacy_compression_methods testing
 

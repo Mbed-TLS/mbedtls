@@ -2370,8 +2370,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED */
-void ssl_tls13_key_schedule_rejects_transition(int operation,
-                                               int initial_stage)
+void ssl_tls13_key_schedule_rejects_transition(int initial_stage,
+                                               int operation)
 {
     static const unsigned char psk[] = {
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,

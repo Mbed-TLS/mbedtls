@@ -3795,6 +3795,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:PSA_WANT_ALG_SHA_256 */
+/* Check that the TLS 1.2 hello parsers reject legacy_version 0x0304. If
+ * endpoint is the client, test ServerHello parsing; otherwise, test
+ * ClientHello parsing. */
 void tls12_reject_0304_legacy_version(int endpoint)
 {
     enum { IO_BUFFER_SIZE = 4096 };
@@ -3820,9 +3823,10 @@ void tls12_reject_0304_legacy_version(int endpoint)
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
                                               &client_options), 0);
 
-    /* The TLS 1.3 server parser validates ClientHello.legacy_version before
-     * fallback, so keep the server TLS-1.2-only here to exercise the new
-     * TLS 1.2 parser check. */
+    /* Always restrict the server to TLS 1.2. When testing the client, this
+     * produces a TLS 1.2 ServerHello. When testing the server, this ensures the
+     * malformed ClientHello reaches the TLS 1.2 parser: a TLS 1.3-capable server
+     * would reject the invalid 0x0304 legacy_version before fallback. */
     server_options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
     server_options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,

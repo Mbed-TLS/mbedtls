@@ -3808,6 +3808,7 @@ void tls12_reject_0304_legacy_version(int endpoint)
     unsigned char *hello;
     unsigned char hello_type;
     int hello_state;
+    mbedtls_ssl_protocol_version session_version;
     int ret = 0;
 
     memset(&client, 0, sizeof(client));
@@ -3862,6 +3863,8 @@ void tls12_reject_0304_legacy_version(int endpoint)
         hello_state = MBEDTLS_SSL_CLIENT_HELLO;
     }
 
+    session_version = ssl->session_negotiate->tls_version;
+
     hello = input->buffer;
     TEST_EQUAL(input->start, 0);
     TEST_LE_U(11, input->content_length);
@@ -3874,14 +3877,15 @@ void tls12_reject_0304_legacy_version(int endpoint)
      * ServerHello.legacy_version from 0x0303 to 0x0304. */
     hello[10] = 0x04;
 
-    /* Parsing must fail before changing the negotiated version or advancing
-     * to another state. */
+    /* Parsing must fail without copying the peer-controlled version to the
+     * context or session and without advancing to another state. */
     ret = 0;
     do {
         ret = mbedtls_ssl_handshake_step(ssl);
     } while (ret == 0 && ssl->state == hello_state);
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION);
     TEST_EQUAL(ssl->tls_version, MBEDTLS_SSL_VERSION_TLS1_2);
+    TEST_EQUAL(ssl->session_negotiate->tls_version, session_version);
     TEST_EQUAL(ssl->state, hello_state);
 
 exit:

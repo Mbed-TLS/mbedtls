@@ -2003,6 +2003,8 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
     ssl->handshake->sni_name_len = 0;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
+    /* An HRR causes this function to process another ClientHello. Compute the
+     * early secret only once, after the final ClientHello has been accepted. */
     if (!hrr_required) {
         ret = mbedtls_ssl_tls13_compute_early_secret(ssl);
         if (ret != 0) {

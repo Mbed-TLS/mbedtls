@@ -1,0 +1,3 @@
+Security
+   * Document that CRL name matching does not fully normalize names.
+     Reported by Satoru Kanno (GMO CONNECT Inc.). CVE-2026-93844

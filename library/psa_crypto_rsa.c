@@ -71,7 +71,7 @@ psa_status_t mbedtls_psa_rsa_load_representation(
     mbedtls_rsa_init(*p_rsa);
 
     /* Parse the data. */
-    if (PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
+    if (MBEDTLS_CT_SPEC_RISKY_BOOL(PSA_KEY_TYPE_IS_KEY_PAIR(type))) {
         /* Avoid potentially leaking information through the timing of the
          * parsing of the key material if this function was called
          * speculatively and the key is actually of a different type. */

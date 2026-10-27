@@ -931,7 +931,7 @@ int mbedtls_x509_crt_check_extended_key_usage(const mbedtls_x509_crt *crt,
  *                   (case insensitivity is restricted to ASCII letters);
  *                 - `"autorite\u0301"` vs `"autorit\u00e9"`
  *                   (no Unicode canonicalization);
- *                 - `two␣␣words` vs `two␣words` where `␣` is a space
+ *                 - `two__words` vs `two_words` where `_` is a space
  *                   (no space folding).
  *
  * \param crt      a certificate to be verified

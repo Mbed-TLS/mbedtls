@@ -2807,12 +2807,24 @@ typedef int mbedtls_ssl_ticket_parse_t(void *p_ticket,
  *                  under the same client authentication context under which
  *                  they were issued. If the client authentication context is
  *                  modified, the application must invalidate tickets issued
- *                  under the previous context, for example by rotating the
- *                  ticket keys. Otherwise, a session established under one
- *                  authentication context could be resumed under a different
- *                  one. For the definition of the client authentication
- *                  context, see
+ *                  under the previous context. Otherwise, a session
+ *                  established under one authentication context could be
+ *                  resumed under a different one. For the definition of the
+ *                  client authentication context, see
  *                  docs/architecture/authentication-and-resumption.md.
+ *
+ * \note            To invalidate previously issued tickets, the ticket
+ *                  callback context must be reset using the ticket
+ *                  implementation's free, init and setup functions, so the
+ *                  ticket parsing callback no longer accepts tickets issued
+ *                  under the previous client authentication context. For
+ *                  \c mbedtls_ssl_ticket_context, these functions are
+ *                  \c mbedtls_ssl_ticket_free(),
+ *                  \c mbedtls_ssl_ticket_init() and
+ *                  \c mbedtls_ssl_ticket_setup(). Ticket-key rotation is not
+ *                  necessarily sufficient for this purpose: normal key
+ *                  rotation can preserve the ability to decrypt recent
+ *                  tickets.
  *
  * \param conf      SSL configuration context
  * \param f_ticket_write    Callback for writing a ticket

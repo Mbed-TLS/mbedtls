@@ -1,0 +1,5 @@
+Security
+   * Fix a Spectre v1 side channel in AES and GCM acceleration: a powerful
+     local attacker could potentially recover part of the key or plaintext
+     through timing measurements even when AESNI or AESCE is available,
+     if the pure software fallback is executed speculatively. CVE-2026-115493

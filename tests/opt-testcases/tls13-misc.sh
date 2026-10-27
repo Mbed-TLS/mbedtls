@@ -194,7 +194,7 @@ requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_FS_IO
-run_test "TLS 1.3 m->m: SNI ticket contexts, two clients" \
+run_test "TLS 1.3 m->m: two SNI hostnames select separate ticket contexts" \
          "$P_SRV debug_level=3 tickets=1 \
             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
          "( $P_CLI force_version=tls13 debug_level=3 tickets=1 new_session_tickets=1 server_name=localhost reconnect=1; \

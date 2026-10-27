@@ -6463,6 +6463,18 @@ void inject_client_content_on_the_wire(int pk_alg,
     mbedtls_debug_set_threshold(3);
 
     options.pk_alg = pk_alg;
+    if (state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE) {
+        static uint16_t group_list[] = {
+            MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+            0,
+        };
+
+        options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        options.group_list = group_list;
+    }
 
     ret = mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
                                          &options);

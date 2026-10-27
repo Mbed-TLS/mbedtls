@@ -1,0 +1,5 @@
+Security
+   * Fix incorrect bounds check while parsing ECDHE-RSA/ECDHE-ECDSA
+     ClientKeyExchange in TLS 1.2 servers. This can result in an out-of-bounds
+     read (possible crash, DoS) in configurations with a very small
+     MBEDTLS_SSL_IN_CONTENT_LEN. Reported by Naveed (nvxbug).

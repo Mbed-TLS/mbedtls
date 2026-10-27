@@ -977,6 +977,7 @@ int mbedtls_ssl_tls13_populate_transform(
     if ((ret = mbedtls_cipher_setup(&transform->cipher_ctx_dec,
                                     cipher_info)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_cipher_setup", ret);
+        mbedtls_ssl_transform_free(transform);
         return ret;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -999,6 +1000,9 @@ int mbedtls_ssl_tls13_populate_transform(
 #endif /* MBEDTLS_SSL_CLI_C */
     {
         /* should not happen */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+        mbedtls_ssl_transform_free(transform);
+#endif
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
@@ -1010,6 +1014,7 @@ int mbedtls_ssl_tls13_populate_transform(
                                      key_enc, (int) mbedtls_cipher_info_get_key_bitlen(cipher_info),
                                      MBEDTLS_ENCRYPT)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_cipher_setkey", ret);
+        mbedtls_ssl_transform_free(transform);
         return ret;
     }
 
@@ -1017,6 +1022,7 @@ int mbedtls_ssl_tls13_populate_transform(
                                      key_dec, (int) mbedtls_cipher_info_get_key_bitlen(cipher_info),
                                      MBEDTLS_DECRYPT)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_cipher_setkey", ret);
+        mbedtls_ssl_transform_free(transform);
         return ret;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -1081,6 +1087,8 @@ int mbedtls_ssl_tls13_populate_transform(
                                      &transform->psa_key_dec)) != PSA_SUCCESS) {
             MBEDTLS_SSL_DEBUG_RET(
                 1, "psa_import_key", PSA_TO_MBEDTLS_ERR(status));
+            psa_destroy_key(transform->psa_key_enc);
+            transform->psa_key_enc = MBEDTLS_SVC_KEY_ID_INIT;
             return PSA_TO_MBEDTLS_ERR(status);
         }
     }

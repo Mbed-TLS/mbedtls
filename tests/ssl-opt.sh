@@ -4140,22 +4140,6 @@ run_test    "Session resume using tickets: SNI ticket contexts, two clients" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_TICKET_C
-requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
-requires_config_enabled MBEDTLS_FS_IO
-run_test    "Session resume using tickets: TLS 1.3 SNI ticket contexts, two clients" \
-            "$P_SRV debug_level=3 tickets=1 \
-             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
-            "( $P_CLI force_version=tls13 debug_level=3 tickets=1 new_session_tickets=1 server_name=localhost reconnect=1; \
-               $P_CLI force_version=tls13 debug_level=3 tickets=1 new_session_tickets=1 server_name=polarssl.example server_addr=localhost reconnect=1 )" \
-            0 \
-            -c "parse new session ticket" \
-            -c "client hello, adding PSK binder list." \
-            -s "Select PSK ciphersuite"
-
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl server" \

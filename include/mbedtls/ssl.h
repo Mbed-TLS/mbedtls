@@ -3214,13 +3214,19 @@ void mbedtls_ssl_conf_handshake_timeout(mbedtls_ssl_config *conf, uint32_t min, 
  *                 established. If the client authentication context is modified,
  *                 the application must reset the session cache. Otherwise, a
  *                 session established under one authentication context could be
- *                 resumed under a different one. If the cache is an
- *                 \c mbedtls_ssl_cache_context, it can be reset by calling
- *                 \c mbedtls_ssl_cache_free() followed by
- *                 \c mbedtls_ssl_cache_init(), then reapplying any cache
- *                 options such as the timeout and maximum number of entries.
- *                 For the definition of the client authentication context, see
+ *                 resumed under a different one. For the definition of the
+ *                 client authentication context, see
  *                 docs/architecture/authentication-and-resumption.md.
+ *
+ * \note           To reset the session cache, the cache callback context must
+ *                 be reset using the cache implementation's free and init
+ *                 functions, so the session get callback no longer
+ *                 returns sessions established under the previous client
+ *                 authentication context. An
+ *                 \c mbedtls_ssl_cache_context is reset by calling
+ *                 \c mbedtls_ssl_cache_free(), followed by
+ *                 \c mbedtls_ssl_cache_init(), and then reapplying any cache
+ *                 options such as the timeout and maximum number of entries.
  *
  * \param conf           SSL configuration
  * \param p_cache        parameter (context) for both callbacks

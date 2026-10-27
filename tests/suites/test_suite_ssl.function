@@ -2209,7 +2209,7 @@ void ssl_tls12_key_schedule_rejects_missing_input(int endpoint,
 
     ssl.tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
     ssl.handshake->resume = resume;
-    ssl.handshake->tls12_key_exchange_inputs = input_setup;
+    ssl.handshake->tls12_key_schedule_inputs = input_setup;
     ssl.handshake->tls12_key_scheduling_stage_completed = initial_stage;
 
     TEST_EQUAL(mbedtls_ssl_derive_keys(&ssl),

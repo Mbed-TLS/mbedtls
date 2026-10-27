@@ -500,8 +500,8 @@ static int ssl_parse_session_ticket_ext(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("session successfully restored from ticket"));
 
-    ssl->handshake->tls12_key_exchange_inputs |=
-        MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_RESUMPTION;
+    ssl->handshake->tls12_key_schedule_inputs |=
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION;
     ssl->handshake->resume = 1;
 
     /* Don't send a new ticket after all, this one is OK */
@@ -2023,8 +2023,8 @@ static void ssl_handle_id_based_session_resumption(mbedtls_ssl_context *ssl)
     memset(&session_tmp, 0, sizeof(session_tmp));
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("session successfully restored from cache"));
-    ssl->handshake->tls12_key_exchange_inputs |=
-        MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_RESUMPTION;
+    ssl->handshake->tls12_key_schedule_inputs |=
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION;
     ssl->handshake->resume = 1;
 
 exit:
@@ -3231,8 +3231,8 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-    ssl->handshake->tls12_key_exchange_inputs |=
-        MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_PREMASTER;
+    ssl->handshake->tls12_key_schedule_inputs |=
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE;
 
     if ((ret = mbedtls_ssl_derive_keys(ssl)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_derive_keys", ret);

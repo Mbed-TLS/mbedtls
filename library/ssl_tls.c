@@ -7310,9 +7310,9 @@ int mbedtls_ssl_derive_keys(mbedtls_ssl_context *ssl)
     }
 
     required_input = ssl->handshake->resume != 0 ?
-                     MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_RESUMPTION :
-                     MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_PREMASTER;
-    if (ssl->handshake->tls12_key_exchange_inputs != required_input) {
+                     MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION :
+                     MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE;
+    if (ssl->handshake->tls12_key_schedule_inputs != required_input) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("invalid TLS 1.2 key schedule input"));
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }

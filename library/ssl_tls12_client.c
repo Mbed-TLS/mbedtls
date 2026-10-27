@@ -1387,8 +1387,8 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
         ssl->session_negotiate->id_len = n;
         memcpy(ssl->session_negotiate->id, buf + 35, n);
     } else {
-        ssl->handshake->tls12_key_exchange_inputs |=
-            MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_RESUMPTION;
+        ssl->handshake->tls12_key_schedule_inputs |=
+            MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION;
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC);
     }
 
@@ -3276,8 +3276,8 @@ ecdh_calc_secret:
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-    ssl->handshake->tls12_key_exchange_inputs |=
-        MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_PREMASTER;
+    ssl->handshake->tls12_key_schedule_inputs |=
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE;
 
     ssl->out_msglen  = header_len + content_len;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;

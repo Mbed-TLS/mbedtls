@@ -738,10 +738,10 @@ typedef enum {
 } mbedtls_ssl_tls12_key_scheduling_stage;
 
 typedef enum {
-    MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_NONE = 0,
-    MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_PREMASTER = 1 << 0,
-    MBEDTLS_SSL_TLS1_2_KEY_EXCHANGE_INPUT_RESUMPTION = 1 << 1,
-} mbedtls_ssl_tls12_key_exchange_input;
+    MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_NONE = 0,
+    MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE = 1 << 0,
+    MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION = 1 << 1,
+} mbedtls_ssl_tls12_key_schedule_input;
 
 typedef enum {
     MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE = 0,
@@ -1118,7 +1118,7 @@ struct mbedtls_ssl_handshake_params {
 
     mbedtls_ssl_tls12_key_scheduling_stage
         tls12_key_scheduling_stage_completed;
-    unsigned char tls12_key_exchange_inputs;
+    unsigned char tls12_key_schedule_inputs;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

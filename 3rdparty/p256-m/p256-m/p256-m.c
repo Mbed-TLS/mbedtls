@@ -74,13 +74,85 @@ static void u256_set32(uint32_t z[8], uint32_t x)
     }
 }
 
+/* Use 64-bit add/sub where it is native.
+ *
+ * Native add/sub is constant-time on all current architectures.
+ *
+ * The SIZE_MAX check is generic but misses 64-bit architectures with ILP32
+ * ABIs, so complement it with a list of known 64-bit architectures.
+ */
+#if SIZE_MAX > UINT32_MAX || \
+    defined(__x86_64__) || defined(_M_X64) || \
+    defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC) || \
+    defined(__powerpc64__) || defined(__ppc64__) || \
+    defined(__mips64) || \
+    (defined(__riscv_xlen) && __riscv_xlen == 64)
+#define P256M_USE_UINT64_ADDSUB
+#endif
+
+/* Use 64-bit add/sub when the CPU has an add-with-carry instruction.
+ *
+ * Using this instruction is the obvious and efficient way for the compiler to
+ * implement 64-bit add/sub on top of 32-bit operations, and results in
+ * constant-time code.
+ *
+ * Use an allow-list of architectures known to have such instructions.
+ */
+#if defined(__arm__) || defined(_M_ARM) || \
+    defined(__i386__) || defined(_M_IX86) || \
+    defined(__powerpc__) || \
+    defined(__ppc__) || defined(__PPC__) || defined(_ARCH_PPC) || \
+    defined(__m68k__) || defined(__mc68000__) || \
+    defined(__RX__) || defined(__RX) || defined(__sh__) || \
+    defined(__arc__) || defined(__tricore__) || defined(__CTC__) || \
+    defined(__MICROBLAZE__)
+#define P256M_USE_UINT64_ADDSUB
+#endif
+
+/* Use 64-bit add/sub when the CPU has a "set less than" instruction.
+ *
+ * Using this instruction is more performant than a branch, so the compiler is
+ * likely to use it to implement 64-bit add/sub on top of 32-bit operations,
+ * resulting in constant-time code.
+ *
+ * Use an allow-list of architectures known to have such instructions.
+ */
+#if defined(__riscv) || defined(__mips__)
+#define P256M_USE_UINT64_ADDSUB
+#endif
+
+/*
+ * 32-bit addition with carry
+ *
+ * in: x, y in [0, 2^32)
+ *     carry in [0, 1]
+ * out: z = (x + y + carry) mod 2^32
+ * ret: c = (x + y + carry) div 2^32
+ * That is, z + c * 2^32 = x + y + carry (and c is either 0 or 1)
+ */
+static uint32_t u32_addc(uint32_t x, uint32_t y, uint32_t *z, uint32_t carry)
+{
+#if defined(P256M_USE_UINT64_ADDSUB)
+    uint64_t sum = (uint64_t) carry + x + y;
+    *z = (uint32_t) sum;
+    return (uint32_t) (sum >> 32);
+#else
+    /* 32-bit platform where the compiler is unlikely to generate constant-time
+     * code for 64-bit addition: use 16-bit operations instead. */
+    uint32_t lo = (x & 0xffff) + (y & 0xffff) + carry;
+    uint32_t hi = (x >> 16) + (y >> 16) + (lo >> 16);
+    *z = (lo & 0xffff) | ((hi & 0xffff) << 16);
+    return (hi >> 16);
+#endif
+}
+
 /*
  * 256-bit addition
  *
  * in: x, y in [0, 2^256)
  * out: z = (x + y) mod 2^256
- *      c = (x + y) div 2^256
- * That is, z + c * 2^256 = x + y
+ * ret: c = (x + y) div 2^256
+ * That is, z + c * 2^256 = x + y (and c is either 0 or 1)
  *
  * Note: as a memory area, z must be either equal to x or y, or not overlap.
  */
@@ -90,12 +162,35 @@ static uint32_t u256_add(uint32_t z[8],
     uint32_t carry = 0;
 
     for (unsigned i = 0; i < 8; i++) {
-        uint64_t sum = (uint64_t) carry + x[i] + y[i];
-        z[i] = (uint32_t) sum;
-        carry = (uint32_t) (sum >> 32);
+        carry = u32_addc(x[i], y[i], &z[i], carry);
     }
 
     return carry;
+}
+
+/*
+ * 32-bit subtraction with carry
+ *
+ * in: x, y in [0, 2^32)
+ *     carry in [0, 1]
+ * out: z = (x - y - carry) mod 2^32
+ * ret: c = 0 if x >= y + carry, 1 otherwise
+ * That is, z = c * 2^32 + x - y - carry
+ */
+static uint32_t u32_subc(uint32_t x, uint32_t y, uint32_t *z, uint32_t carry)
+{
+#if defined(P256M_USE_UINT64_ADDSUB)
+    uint64_t diff = (uint64_t) x - y - carry;
+    *z = (uint32_t) diff;
+    return -(uint32_t) (diff >> 32);
+#else
+    /* 32-bit platform where the compiler is unlikely to generate constant-time
+     * code for 64-bit subtraction: use 16-bit operations instead. */
+    uint32_t lo = (x & 0xffff) - (y & 0xffff) - carry;
+    uint32_t hi = (x >> 16) - (y >> 16) - (lo >> 31);
+    *z = (lo & 0xffff) | ((hi & 0xffff) << 16);
+    return hi >> 31;
+#endif
 }
 
 /*
@@ -103,7 +198,7 @@ static uint32_t u256_add(uint32_t z[8],
  *
  * in: x, y in [0, 2^256)
  * out: z = (x - y) mod 2^256
- *      c = 0 if x >=y, 1 otherwise
+ * ret: c = 0 if x >= y, 1 otherwise
  * That is, z = c * 2^256 + x - y
  *
  * Note: as a memory area, z must be either equal to x or y, or not overlap.
@@ -114,9 +209,7 @@ static uint32_t u256_sub(uint32_t z[8],
     uint32_t carry = 0;
 
     for (unsigned i = 0; i < 8; i++) {
-        uint64_t diff = (uint64_t) x[i] - y[i] - carry;
-        z[i] = (uint32_t) diff;
-        carry = -(uint32_t) (diff >> 32);
+        carry = u32_subc(x[i], y[i], &z[i], carry);
     }
 
     return carry;
@@ -144,7 +237,7 @@ static void u256_cmov(uint32_t z[8], const uint32_t x[8], uint32_t c)
  *
  * in: x in [0, 2^256)
  *     y in [0, 2^256)
- * out: 0 if x == y, unspecified non-zero otherwise
+ * ret: 0 if x == y, unspecified non-zero otherwise
  */
 static uint32_t u256_diff(const uint32_t x[8], const uint32_t y[8])
 {
@@ -159,7 +252,7 @@ static uint32_t u256_diff(const uint32_t x[8], const uint32_t y[8])
  * 256-bit compare to zero
  *
  * in: x in [0, 2^256)
- * out: 0 if x == 0, unspecified non-zero otherwise
+ * ret: 0 if x == 0, unspecified non-zero otherwise
  */
 static uint32_t u256_diff0(const uint32_t x[8])
 {
@@ -174,7 +267,7 @@ static uint32_t u256_diff0(const uint32_t x[8])
  * 32 x 32 -> 64-bit multiply-and-accumulate
  *
  * in: x, y, z, t in [0, 2^32)
- * out: x * y + z + t in [0, 2^64)
+ * ret: x * y + z + t in [0, 2^64)
  *
  * Note: this computation cannot overflow.
  *
@@ -301,6 +394,9 @@ static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t)
 
 #if !defined(MULADD64_ASM)
 #if defined(MUL64_IS_CONSTANT_TIME)
+/* This path requires constant-time generated code for the full expression,
+ * including any compiler-generated helper functions. The additions may be
+ * fused into a constant-time multiply-and-accumulate instruction. */
 static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t)
 {
     return (uint64_t) x * y + z + t;
@@ -322,13 +418,24 @@ static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t)
     const uint32_t m2 = (uint32_t) xl * yh;
     const uint32_t hi = (uint32_t) xh * yh;
 
-    uint64_t acc = lo + ((uint64_t) (hi + (m1 >> 16) + (m2 >> 16)) << 32);
-    acc += m1 << 16;
-    acc += m2 << 16;
-    acc += z;
-    acc += t;
+    /* Use an accumulator starting with lo + 2**32 hi,
+     * and gradually add the two middle products, then z and t.
+     * x*y+z+t < 2^64, so the high word cannot overflow. */
+    uint32_t acc_lo = lo, acc_hi = hi;
 
-    return acc;
+    /* acc += m1 << 16; */
+    uint32_t carry = u32_addc(acc_lo, m1 << 16, &acc_lo, 0);
+    acc_hi += (m1 >> 16) + carry;
+
+    /* acc += m2 << 16; */
+    carry = u32_addc(acc_lo, m2 << 16, &acc_lo, 0);
+    acc_hi += (m2 >> 16) + carry;
+
+    /* acc += z; acc += t; */
+    acc_hi += u32_addc(acc_lo, z, &acc_lo, 0);
+    acc_hi += u32_addc(acc_lo, t, &acc_lo, 0);
+
+    return ((uint64_t) acc_hi << 32) | acc_lo;
 }
 #endif /* MUL64_IS_CONSTANT_TIME */
 #endif /* MULADD64_ASM */
@@ -339,8 +446,8 @@ static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t)
  * in: x in [0, 2^32)
  *     y in [0, 2^256)
  *     z in [0, 2^288)
- * out: z_out = z_in + x * y mod 2^288
- *      c     = z_in + x * y div 2^288
+ * out: z_out = (z_in + x * y) mod 2^288
+ * ret: c     = (z_in + x * y) div 2^288
  * That is, z_out + c * 2^288 = z_in + x * y
  *
  * Note: as a memory area, z must be either equal to y, or not overlap.
@@ -373,9 +480,7 @@ static uint32_t u288_muladd(uint32_t z[9], uint32_t x, const uint32_t y[8])
     }
 #endif
 
-    uint64_t sum = (uint64_t) z[8] + carry;
-    z[8] = (uint32_t) sum;
-    carry = (uint32_t) (sum >> 32);
+    carry = u32_addc(z[8], carry, &z[8], 0);
 
     return carry;
 }
@@ -720,11 +825,11 @@ static void m256_inv(uint32_t z[8], const uint32_t x[8],
 /*
  * Import modular integer from bytes to Montgomery domain
  *
- * in: p = p0, ..., p32
+ * in: p = p0, ..., p31
  *     mod must point to a valid m256_mod structure
  * out: z = (p0 * 2^248 + ... + p31) * 2^256 mod m, in [0, m)
- *      return 0 if the number was already in [0, m), or -1.
- *      z may be incorrect and must be discared when -1 is returned.
+ *      z may be incorrect and must be discarded when -1 is returned.
+ * ret: 0 if the number was already in [0, m), or -1.
  */
 static int m256_from_bytes(uint32_t z[8],
                            const uint8_t p[32], const m256_mod *mod)
@@ -817,7 +922,7 @@ static const uint32_t p256_gy[8] = { /* G_y * 2^256 mod p */
  * Point-on-curve check - do the coordinates satisfy the curve's equation?
  *
  * in: x, y in [0, p)   (Montgomery domain)
- * out: 0 if the point lies on the curve and is not 0,
+ * ret: 0 if the point lies on the curve and is not 0,
  *      unspecified non-zero otherwise
  */
 static uint32_t point_check(const uint32_t x[8], const uint32_t y[8])
@@ -1004,11 +1109,11 @@ static void point_add_or_double_leaky(
  * Import curve point from bytes
  *
  * in: p = (x, y) concatenated, fixed-width 256-bit big-endian integers
- * out: x, y in Mongomery domain
- *      return 0 if x and y are both in [0, p)
- *                  and (x, y) is on the curve and not 0
- *             unspecified non-zero otherwise.
+ * out: x, y in Montgomery domain
  *      x and y are unspecified and must be discarded if returning non-zero.
+ * ret: 0 if x and y are both in [0, p)
+ *      and (x, y) is on the curve and not 0,
+ *      unspecified non-zero otherwise.
  */
 static int point_from_bytes(uint32_t x[8], uint32_t y[8], const uint8_t p[64])
 {
@@ -1134,7 +1239,7 @@ static void scalar_mult(uint32_t rx[8], uint32_t ry[8],
  *
  * in: p = p0, ..., p31
  * out: s = p0 * 2^248 + p1 * 2^240 + ... + p30 * 2^8 + p31
- *      return 0 if s in [1, n-1],
+ * ret: 0 if s in [1, n-1],
  *            -1 otherwise.
  */
 static int scalar_from_bytes(uint32_t s[8], const uint8_t p[32])
@@ -1173,8 +1278,8 @@ int p256_generate_random(uint8_t *output, unsigned output_size)
  * out: sbytes the big-endian bytes representation of the scalar
  *      s its u256 representation
  *      x, y the affine coordinates of s * G (Montgomery domain)
- *      return 0 if OK, -1 on failure
  *      sbytes, s, x, y must be discarded when returning non-zero.
+ * ret: 0 if OK, -1 on failure
  */
 static int scalar_gen_with_pub(uint8_t sbytes[32], uint32_t s[8],
                                uint32_t x[8], uint32_t y[8])

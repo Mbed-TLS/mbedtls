@@ -6126,6 +6126,8 @@ run_test "Authentication: hostname unset, client default, server picks PSK, 1.3"
 # If that bug's fixed, the test needs to be altered to use a
 # different means to have the server ignoring the client's supported curve list.
 
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
 run_test    "Authentication: server ECDSA p256v1, client required, p256v1 unsupported" \
             "$P_SRV debug_level=1 key_file=$DATA_FILES_PATH/server5.key \
              crt_file=$DATA_FILES_PATH/server5.crt" \
@@ -6136,6 +6138,8 @@ run_test    "Authentication: server ECDSA p256v1, client required, p256v1 unsupp
             -c "! Certificate verification flags" \
             -c "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
 
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
 run_test    "Authentication: client ECDSA p256v1, server required, p256v1 unsupported" \
             "$P_SRV debug_level=3 auth_mode=required groups=secp521r1" \
             "$P_CLI force_version=tls12 debug_level=1 \

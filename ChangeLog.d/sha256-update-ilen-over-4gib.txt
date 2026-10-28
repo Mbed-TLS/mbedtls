@@ -1,0 +1,12 @@
+Bugfix
+   * Fix MD5, SHA1, SHA224, SHA256 and RIPEMD160 computing the wrong
+     digest when 4GiB of data or more are processed in a single call.
+     That can happen either when using the one-shot APIs
+     (psa_hash_compute(), psa_hash_compare(), mbedtls_md(),
+     mbedtls_md5(), mbedtls_sha1(), mbedtls_ripemd160(),
+     mbedtls_sha256()) with more than 4GiB of input, or when using the
+     streaming API and passing more than 4GiB in a single call to the
+     update function (psa_hash_update(), mbedtls_md_update(),
+     mbedtls_md5_update(), mbedtls_sha1_update(),
+     mbedtls_ripemd160_update(), mbedtls_sha256_update()). Reported by
+     TimothyPMann in #10964.

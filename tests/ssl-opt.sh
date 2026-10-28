@@ -6488,6 +6488,8 @@ run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsuppo
             -c "! Certificate verification flags"\
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
 run_test    "Authentication: client ECDSA p256v1, server required, p256v1 unsupported" \
             "$P_SRV debug_level=3 auth_mode=required groups=secp521r1" \
             "$P_CLI force_version=tls12 debug_level=1 \

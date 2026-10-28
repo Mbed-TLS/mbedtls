@@ -74,15 +74,31 @@ static void u256_set32(uint32_t z[8], uint32_t x)
     }
 }
 
-/* Use 64-bit arithmetic where it is native or the CPU has an
- * add-with-carry instruction.
- * Otherwise, split each limb into 16-bit halves to avoid variable-time
- * compiler-generated 64-bit addition and subtraction. */
-#if defined(__x86_64__) || defined(_M_X64) || \
+/* Use 64-bit add/sub where it is native.
+ *
+ * Native add/sub is constant-time on all current architectures.
+ *
+ * The SIZE_MAX check is generic but misses 64-bit architectures with ILP32
+ * ABIs, so complement it with a list of known 64-bit architectures.
+ */
+#if SIZE_MAX > UINT32_MAX || \
+    defined(__x86_64__) || defined(_M_X64) || \
     defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC) || \
-    defined(__powerpc64__) || defined(__ppc64__) || defined(__mips64) || \
-    (defined(__riscv_xlen) && __riscv_xlen == 64) || \
-    defined(__arm__) || defined(_M_ARM) || \
+    defined(__powerpc64__) || defined(__ppc64__) || \
+    defined(__mips64) || \
+    (defined(__riscv_xlen) && __riscv_xlen == 64)
+#define P256M_USE_UINT64_ADDSUB
+#endif
+
+/* Use 64-bit add/sub when the CPU has an add-with-carry instruction.
+ *
+ * Using this instruction is the obvious and efficient way for the compiler to
+ * implement 64-bit add/sub on top of 32-bit operations, and results in
+ * constant-time code.
+ *
+ * Use an allow-list of architectures known to have such instructions.
+ */
+#if defined(__arm__) || defined(_M_ARM) || \
     defined(__i386__) || defined(_M_IX86) || \
     defined(__powerpc__) || \
     defined(__ppc__) || defined(__PPC__) || defined(_ARCH_PPC) || \
@@ -90,6 +106,18 @@ static void u256_set32(uint32_t z[8], uint32_t x)
     defined(__RX__) || defined(__RX) || defined(__sh__) || \
     defined(__arc__) || defined(__tricore__) || defined(__CTC__) || \
     defined(__MICROBLAZE__)
+#define P256M_USE_UINT64_ADDSUB
+#endif
+
+/* Use 64-bit add/sub when the CPU has a "set less than" instruction.
+ *
+ * Using this instruction is more performant than a branch, so the compiler is
+ * likely to use it to implement 64-bit add/sub on top of 32-bit operations,
+ * resulting in constant-time code.
+ *
+ * Use an allow-list of architectures known to have such instructions.
+ */
+#if defined(__riscv) || defined(__mips__)
 #define P256M_USE_UINT64_ADDSUB
 #endif
 
@@ -109,6 +137,8 @@ static uint32_t u32_addc(uint32_t x, uint32_t y, uint32_t *z, uint32_t carry)
     *z = (uint32_t) sum;
     return (uint32_t) (sum >> 32);
 #else
+    /* 32-bit platform where the compiler is unlikely to generate constant-time
+     * code for 64-bit addition: use 16-bit operations instead. */
     uint32_t lo = (x & 0xffff) + (y & 0xffff) + carry;
     uint32_t hi = (x >> 16) + (y >> 16) + (lo >> 16);
     *z = (lo & 0xffff) | ((hi & 0xffff) << 16);
@@ -154,6 +184,8 @@ static uint32_t u32_subc(uint32_t x, uint32_t y, uint32_t *z, uint32_t carry)
     *z = (uint32_t) diff;
     return -(uint32_t) (diff >> 32);
 #else
+    /* 32-bit platform where the compiler is unlikely to generate constant-time
+     * code for 64-bit subtraction: use 16-bit operations instead. */
     uint32_t lo = (x & 0xffff) - (y & 0xffff) - carry;
     uint32_t hi = (x >> 16) - (y >> 16) - (lo >> 31);
     *z = (lo & 0xffff) | ((hi & 0xffff) << 16);

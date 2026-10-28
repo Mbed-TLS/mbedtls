@@ -331,9 +331,10 @@ and allow for more optimisations. It is organized in multiple layers:
 
 Large integers are represented as arrays of `uint32_t` limbs. Addition and
 subtraction use `uint64_t` intermediates where 64-bit arithmetic is native or
-the CPU has an add-with-carry instruction. On other platforms, they split each
-limb into 16-bit halves to avoid variable-time compiler-generated 64-bit
-arithmetic. When overflow may occur, functions return a carry flag.
+on selected 32-bit architectures with add-with-carry or set-less-than
+instructions. On other platforms, they split each limb into 16-bit halves to
+avoid variable-time compiler-generated 64-bit arithmetic. When overflow may
+occur, functions return a carry flag.
 
 This layer contains optional assembly for Cortex-M and Cortex-A cores, for the
 internal `u32_muladd64()` function, as well as two pure C versions of this

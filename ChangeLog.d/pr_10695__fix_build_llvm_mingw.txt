@@ -1,3 +1,0 @@
-Bugfix
-   * Fix a build error using the LLVM based MinGW toolchain.
-     Bug reported and fix contributed by valord577.

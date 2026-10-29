@@ -6,13 +6,13 @@
 #
 alabaster==0.7.16
     # via sphinx
-babel==2.17.0
+babel==2.18.0
     # via sphinx
 breathe==4.36.0
     # via -r docs/requirements.in
-certifi==2025.8.3
+certifi==2026.7.22
     # via requests
-charset-normalizer==3.4.3
+charset-normalizer==3.5.1
     # via requests
 click==8.1.8
     # via readthedocs-cli
@@ -20,27 +20,27 @@ docutils==0.21.2
     # via
     #   sphinx
     #   sphinx-rtd-theme
-idna==3.10
+idna==3.19
     # via requests
-imagesize==1.4.1
+imagesize==1.5.0
     # via sphinx
-importlib-metadata==8.7.0
+importlib-metadata==8.7.1
     # via sphinx
 jinja2==3.1.6
     # via sphinx
 markdown-it-py==3.0.0
     # via rich
-markupsafe==3.0.2
+markupsafe==3.0.3
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
-packaging==25.0
+packaging==26.3
     # via sphinx
-pygments==2.19.2
+pygments==2.21.0
     # via
     #   rich
     #   sphinx
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via readthedocs-cli
 readthedocs-cli==5
     # via -r docs/requirements.in
@@ -48,16 +48,16 @@ requests==2.32.5
     # via
     #   readthedocs-cli
     #   sphinx
-rich==14.1.0
+rich==15.0.0
     # via readthedocs-cli
-snowballstemmer==3.0.1
+snowballstemmer==3.1.1
     # via sphinx
 sphinx==7.4.7
     # via
     #   breathe
     #   sphinx-rtd-theme
     #   sphinxcontrib-jquery
-sphinx-rtd-theme==3.0.2
+sphinx-rtd-theme==3.1.0
     # via -r docs/requirements.in
 sphinxcontrib-applehelp==2.0.0
     # via sphinx
@@ -73,11 +73,11 @@ sphinxcontrib-qthelp==2.0.0
     # via sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
-tomli==2.2.1
+tomli==2.4.1
     # via sphinx
-urllib3==2.5.0
+urllib3==2.6.3
     # via
     #   readthedocs-cli
     #   requests
-zipp==3.23.0
+zipp==3.23.1
     # via importlib-metadata

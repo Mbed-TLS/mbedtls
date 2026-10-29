@@ -1,0 +1,7 @@
+Bugfix
+   * Accept X.509 certificates whose AuthorityKeyIdentifier extension is an
+     empty SEQUENCE. All of its fields are optional, so such certificates
+     are syntactically valid, but they were rejected with
+     MBEDTLS_ERR_X509_INVALID_EXTENSIONS. This affected, for example, the
+     root certificate that some antivirus products install for HTTPS
+     scanning. Reported by CodingMarkus. Fixes #10253.

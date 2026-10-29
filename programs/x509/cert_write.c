@@ -238,7 +238,11 @@ static int write_certificate(mbedtls_x509write_cert *crt, const char *output_fil
         output_start = output_buf;
     }
 
-    if ((f = fopen(output_file, "w")) == NULL) {
+    /*
+     * DER output is binary data. Use binary mode on Windows to prevent
+     * text-mode newline translation.
+     */
+    if ((f = fopen(output_file, opt.format == FORMAT_DER ? "wb" : "w")) == NULL) {
         return -1;
     }
 
@@ -432,8 +436,67 @@ usage:
                 goto usage;
             }
         } else if (strcmp(p, "md") == 0) {
-            const mbedtls_md_info_t *md_info =
-                mbedtls_md_info_from_string(q);
+            const mbedtls_md_info_t *md_info = NULL;
+
+#if defined(PSA_WANT_ALG_MD5)
+            if (strcmp(q, "MD5") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_RIPEMD160)
+            if (strcmp(q, "RIPEMD160") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_RIPEMD160);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA_1)
+            if (strcmp(q, "SHA1") == 0 || strcmp(q, "SHA") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA1);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA_224)
+            if (strcmp(q, "SHA224") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA224);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA_256)
+            if (strcmp(q, "SHA256") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA_384)
+            if (strcmp(q, "SHA384") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA384);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+            if (strcmp(q, "SHA512") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA512);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA3_224)
+            if (strcmp(q, "SHA3-224") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_224);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA3_256)
+            if (strcmp(q, "SHA3-256") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_256);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA3_384)
+            if (strcmp(q, "SHA3-384") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_384);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA3_512)
+            if (strcmp(q, "SHA3-512") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_512);
+            } else
+#endif
+            {
+                md_info = NULL;
+            }
+
             if (md_info == NULL) {
                 mbedtls_printf("Invalid argument for option %s\n", p);
                 goto usage;

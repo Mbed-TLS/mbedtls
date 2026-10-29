@@ -7,8 +7,8 @@ send an email to the security team at
 ## Security Incident Handling Process
 
 Our security process is detailed in our
-[security
-center](https://developer.trustedfirmware.org/w/mbed-tls/security-center/).
+[online
+documentation](https://mbed-tls.readthedocs.io/en/latest/project/vulnerabilities/).
 
 Its primary goal is to ensure fixes are ready to be deployed when the issue
 goes public.

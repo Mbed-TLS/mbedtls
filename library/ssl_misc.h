@@ -1502,10 +1502,6 @@ int mbedtls_ssl_set_calc_verify_md(mbedtls_ssl_context *ssl, int md);
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_id);
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id);
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 /**
  * \brief Return PSA EC info for the specified TLS ID.
@@ -1528,22 +1524,31 @@ int mbedtls_ssl_get_psa_curve_info_from_tls_id(uint16_t tls_id,
                                                size_t *bits);
 
 /**
- * \brief Return \c mbedtls_ecp_group_id for the specified TLS ID.
+ * \brief Tell if a TLS group ID is supported or not.
  *
- * \param tls_id    The TLS ID to look for
- * \return          Proper \c mbedtls_ecp_group_id if the TLS ID is supported,
- *                  or MBEDTLS_ECP_DP_NONE otherwise
+ * \param tls_id    The TLS ID to look for.
+ * \return          1 if specified TLS ID is supported, 0 otherwise.
  */
-mbedtls_ecp_group_id mbedtls_ssl_get_ecp_group_id_from_tls_id(uint16_t tls_id);
+int mbedtls_ssl_is_tls_id_supported(uint16_t tls_id);
 
 /**
- * \brief Return TLS ID for the specified \c mbedtls_ecp_group_id.
+ * \brief Return TLS ID for the specified curve.
  *
- * \param grp_id    The \c mbedtls_ecp_group_id ID to look for
- * \return          Proper TLS ID if the \c mbedtls_ecp_group_id is supported,
+ * \param family    The \c psa_ecc_family_t for the TLS ID to look for.
+ * \param bits      The bit size for the TLS ID to look for.
+ * \return          Proper TLS ID if the specified EC group is supported,
  *                  or 0 otherwise
  */
-uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id(mbedtls_ecp_group_id grp_id);
+uint16_t mbedtls_ssl_get_tls_id_from_curve_info(psa_ecc_family_t family, size_t bits);
+
+/**
+ * \brief       Return the number of supported TLS group IDs + 1.
+ *
+ * \return      Number of supported TLS group IDs in \c tls_id_match_table + 1.
+ *              In other words the returned value concides with the array length
+ *              of \c tls_id_match_table.
+ */
+size_t mbedtls_ssl_get_supported_tls_id_count(void);
 
 #if defined(MBEDTLS_DEBUG_C)
 /**
@@ -2249,8 +2254,7 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
 {
 #if defined(PSA_WANT_ALG_ECDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group)) {
-        if (mbedtls_ssl_get_ecp_group_id_from_tls_id(named_group) !=
-            MBEDTLS_ECP_DP_NONE) {
+        if (mbedtls_ssl_is_tls_id_supported(named_group)) {
             return 1;
         }
     }

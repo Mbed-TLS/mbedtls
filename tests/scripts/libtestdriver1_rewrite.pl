@@ -19,6 +19,10 @@ my @private_files = map { basename($_) } glob("../tf-psa-crypto/include/mbedtls/
 
 my $private_files_regex = join('|', map { quotemeta($_) } @private_files);
 
+my @private_builtin_tf_psa_crypto_files = map { basename($_) } glob("../tf-psa-crypto/drivers/builtin/include/tf-psa-crypto/private/*.h");
+
+my $private_builtin_tf_psa_crypto_files_regex = join('|', map { quotemeta($_) } @private_builtin_tf_psa_crypto_files);
+
 while (<>) {
     s!^(\s*#\s*include\s*[\"<])mbedtls/build_info.h!${1}libtestdriver1/include/mbedtls/build_info.h!;
     s!^(\s*#\s*include\s*[\"<])mbedtls/mbedtls_config.h!${1}libtestdriver1/include/mbedtls/mbedtls_config.h!;
@@ -37,6 +41,13 @@ while (<>) {
     }
     s!^(\s*#\s*include\s*[\"<])mbedtls/!${1}libtestdriver1/tf-psa-crypto/drivers/builtin/include/mbedtls/!;
     s!^(\s*#\s*include\s*[\"<])psa/!${1}libtestdriver1/tf-psa-crypto/include/psa/!;
+    # Files in tf-psa-crypto/include/tf-psa-crypto/private and
+    # drivers/builtin/include/tf-psa-crypto/private are both included via
+    # #include tf-psa-crypto/private/<file>.h, so make sure builtin driver
+    # headers (e.g. blake2.h) are not expanded to the public include path.
+    if ( $private_builtin_tf_psa_crypto_files_regex ) {
+        s!^(\s*#\s*include\s*[\"<])tf-psa-crypto/private/($private_builtin_tf_psa_crypto_files_regex)!${1}libtestdriver1/tf-psa-crypto/drivers/builtin/include/tf-psa-crypto/private/${2}!;
+    }
     s!^(\s*#\s*include\s*[\"<])tf-psa-crypto/!${1}libtestdriver1/tf-psa-crypto/include/tf-psa-crypto/!;
     if (/^\s*#\s*include/) {
         print;

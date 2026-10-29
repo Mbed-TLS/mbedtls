@@ -66,7 +66,9 @@ if(GEN_FILES)
     add_custom_target(handshake-generated.sh
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/handshake-generated.sh)
     set_target_properties(handshake-generated.sh PROPERTIES EXCLUDE_FROM_ALL NO)
+if(ENABLE_PROGRAMS)
     add_dependencies(${ssl_opt_target} handshake-generated.sh)
+endif()
 
     add_custom_command(
         OUTPUT
@@ -79,10 +81,12 @@ if(GEN_FILES)
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_tls13_compat_tests.py
     )
+if(ENABLE_PROGRAMS)
     add_custom_target(tls13-compat.sh
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/tls13-compat.sh)
     set_target_properties(tls13-compat.sh PROPERTIES EXCLUDE_FROM_ALL NO)
     add_dependencies(${ssl_opt_target} tls13-compat.sh)
+endif()
 
 else()
     foreach(file ${all_generated_data_files})

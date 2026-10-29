@@ -459,6 +459,9 @@ X509 Get Distinguished Name #8
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY:PSA_WANT_ALG_SHA_1
 mbedtls_x509_dn_gets:"../framework/data_files/server1.asciichars.crt":"subject":"C=NL, O=\\E6\\9E\\81\\E5\\9C\\B0SSL, CN=PolarSSL Server 1"
 
+X509 Get Distinguished Name: empty
+mbedtls_x509_dn_gets:"":"empty":""
+
 X509 Get Modified DN #1
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY:PSA_WANT_ALG_SHA_1
 mbedtls_x509_dn_gets_subject_replace:"../framework/data_files/server1.crt":"Modified":"C=NL, O=Modified, CN=PolarSSL Server 1":0

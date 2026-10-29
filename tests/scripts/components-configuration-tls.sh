@@ -448,10 +448,13 @@ component_test_tls13_only_psk () {
 }
 
 component_test_tls13_only_ephemeral () {
-    msg "build: TLS 1.3 only from default, only ephemeral key exchange mode"
+    msg "build: TLS 1.3 ephemeral key exchange without X.509 RSA-PSS"
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
     scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
+    # TLS handshake RSA-PSS does not depend on X.509 RSA-PSS support.
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    scripts/config.py set PSA_WANT_ALG_RSA_PSS
 
     scripts/config.py set MBEDTLS_TEST_HOOKS
     $MAKE_COMMAND CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"

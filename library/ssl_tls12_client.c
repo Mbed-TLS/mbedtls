@@ -2074,13 +2074,13 @@ start_processing:
         }
 #endif
 
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+#if defined(PSA_WANT_ALG_RSA_PSS)
         if (pk_alg == MBEDTLS_PK_SIGALG_RSA_PSS) {
             ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) pk_alg, peer_pk,
                                         md_alg, hash, hashlen,
                                         p, sig_len);
         } else
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+#endif /* PSA_WANT_ALG_RSA_PSS */
         ret = mbedtls_pk_verify_restartable(peer_pk,
                                             md_alg, hash, hashlen, p, sig_len, rs_ctx);
 

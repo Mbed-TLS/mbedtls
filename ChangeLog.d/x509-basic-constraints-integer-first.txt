@@ -1,0 +1,5 @@
+Bugfix
+   * Accept a basicConstraints extension that omits cA and contains only
+     pathLenConstraint, interpreting it as cA=FALSE as specified by RFC 5280.
+     This restores compatibility with certificates emitted by some devices
+     without accepting them as CA certificates. Fixes #11006.

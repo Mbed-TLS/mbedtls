@@ -6,3 +6,5 @@ Security
     ClientHello before processing the second and reject inconsistent SNI,
     cipher suite and key-share parameters. Found and reported independently
     by saikumar279 and Duong Gia Huy.
+    CVE-2026-116375
+

@@ -4181,6 +4181,112 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:MBEDTLS_MD_CAN_SHA256 */
+/* Check that the TLS 1.2 hello parsers reject an invalid legacy_version. If
+ * endpoint is the client, test ServerHello parsing; otherwise, test
+ * ClientHello parsing. */
+void tls12_reject_invalid_legacy_version(int endpoint, int legacy_version)
+{
+    enum { IO_BUFFER_SIZE = 4096 };
+    mbedtls_test_ssl_endpoint client, server;
+    mbedtls_test_handshake_test_options client_options, server_options;
+    mbedtls_ssl_context *ssl;
+    mbedtls_test_ssl_buffer *input;
+    unsigned char *hello;
+    unsigned char hello_type;
+    int hello_state;
+    mbedtls_ssl_protocol_version session_version;
+    int ret = 0;
+
+    memset(&client, 0, sizeof(client));
+    memset(&server, 0, sizeof(server));
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+    MD_OR_USE_PSA_INIT();
+
+    client_options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    client_options.client_max_version = endpoint == MBEDTLS_SSL_IS_CLIENT ?
+                                        MBEDTLS_SSL_VERSION_TLS1_3 :
+                                        MBEDTLS_SSL_VERSION_TLS1_2;
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
+                                              &client_options, NULL, NULL,
+                                              NULL), 0);
+
+    /* Always restrict the server to TLS 1.2. When testing the client, this
+     * produces a TLS 1.2 ServerHello. When testing the server, this ensures the
+     * malformed ClientHello reaches the TLS 1.2 parser: a TLS 1.3-capable server
+     * would reject the invalid 0x0304 legacy_version before fallback. */
+    server_options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    server_options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
+                                              &server_options, NULL, NULL,
+                                              NULL), 0);
+
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&client.socket, &server.socket,
+                                                IO_BUFFER_SIZE), 0);
+
+    /* Write ClientHello and stop when the client waits for ServerHello. */
+    do {
+        ret = mbedtls_ssl_handshake_step(&client.ssl);
+    } while (ret == 0);
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
+    TEST_EQUAL(client.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+
+    if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        /* Have the library build a valid TLS 1.2 ServerHello. */
+        do {
+            ret = mbedtls_ssl_handshake_step(&server.ssl);
+        } while (ret == 0 && server.ssl.state != MBEDTLS_SSL_SERVER_CERTIFICATE);
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(server.ssl.state, MBEDTLS_SSL_SERVER_CERTIFICATE);
+        TEST_EQUAL(mbedtls_ssl_flush_output(&server.ssl), 0);
+
+        ssl = &client.ssl;
+        input = client.socket.input;
+        hello_type = MBEDTLS_SSL_HS_SERVER_HELLO;
+        hello_state = MBEDTLS_SSL_SERVER_HELLO;
+    } else {
+        ssl = &server.ssl;
+        input = server.socket.input;
+        hello_type = MBEDTLS_SSL_HS_CLIENT_HELLO;
+        hello_state = MBEDTLS_SSL_CLIENT_HELLO;
+    }
+
+    session_version = ssl->session_negotiate->tls_version;
+
+    hello = input->buffer;
+    TEST_EQUAL(input->start, 0);
+    TEST_LE_U(11, input->content_length);
+    TEST_EQUAL(hello[0], MBEDTLS_SSL_MSG_HANDSHAKE);
+    TEST_EQUAL(hello[5], hello_type);
+    TEST_EQUAL(hello[9], 0x03);
+    TEST_EQUAL(hello[10], 0x03);
+
+    /* Patch only ClientHello.legacy_version or
+     * ServerHello.legacy_version. */
+    TEST_ASSERT(legacy_version != MBEDTLS_SSL_VERSION_TLS1_2);
+    MBEDTLS_PUT_UINT16_BE((uint16_t) legacy_version, hello, 9);
+
+    /* Parsing must fail without copying the peer-controlled version to the
+     * context or session and without advancing to another state. */
+    ret = 0;
+    do {
+        ret = mbedtls_ssl_handshake_step(ssl);
+    } while (ret == 0 && ssl->state == hello_state);
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION);
+    TEST_EQUAL(ssl->tls_version, MBEDTLS_SSL_VERSION_TLS1_2);
+    TEST_EQUAL(ssl->session_negotiate->tls_version, session_version);
+    TEST_EQUAL(ssl->state, hello_state);
+
+exit:
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_test_ssl_endpoint_free(&client, NULL);
+    mbedtls_test_ssl_endpoint_free(&server, NULL);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_MD_CAN_SHA256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
 void renegotiation(int legacy_renegotiation, int badmac_seen_on)
 {

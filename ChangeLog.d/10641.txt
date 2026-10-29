@@ -1,0 +1,3 @@
+Bugfix
+   * Fix TLS handshakes with RSA-PSS signatures when X.509 RSA-PSS parsing is
+     disabled but the PSA RSA-PSS algorithm is enabled. (#10641)

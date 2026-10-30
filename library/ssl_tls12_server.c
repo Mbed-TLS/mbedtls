@@ -466,9 +466,9 @@ static int ssl_parse_session_ticket_ext(mbedtls_ssl_context *ssl,
     /*
      * Failures are ok: just ignore the ticket and proceed.
      */
-    ret = ssl->conf->f_ticket_parse(ssl->conf->p_ticket, &session, buf, len);
+    ret = ssl->conf->f_ticket_parse(mbedtls_ssl_get_session_ticket_context(ssl),
+                                    &session, buf, len);
     if (ret != 0) {
-
         if (ret == MBEDTLS_ERR_SSL_INVALID_MAC) {
             MBEDTLS_SSL_DEBUG_MSG(3, ("ticket is not authentic"));
         } else if (ret == MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED) {
@@ -1187,6 +1187,10 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
 
     ext = buf + ext_offset + 2;
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello extensions", ext, ext_len);
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    unsigned char *session_ticket_ext = NULL;
+    unsigned int session_ticket_ext_size = 0;
+#endif
 
     while (ext_len != 0) {
         unsigned int ext_id;
@@ -1331,14 +1335,13 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
             case MBEDTLS_TLS_EXT_SESSION_TICKET:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found session ticket extension"));
                 /*
-                 * If the Mbed TLS ssl_ticket.c implementation is used, the
-                 * ticket is decrypted in place. This modifies the ClientHello
-                 * message in the input buffer.
+                 * Postpone parsing of the session ticket extension. The
+                 * ticket context used for parsing the ticket may need to be
+                 * selected based on the target host. When required, this context
+                 * is selected while parsing the Server Name extension.
                  */
-                ret = ssl_parse_session_ticket_ext(ssl, ext + 4, ext_size);
-                if (ret != 0) {
-                    return ret;
-                }
+                session_ticket_ext = ext + 4;
+                session_ticket_ext_size = ext_size;
                 break;
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
@@ -1373,6 +1376,21 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
         ext_len -= 4 + ext_size;
         ext += 4 + ext_size;
     }
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    /*
+     * If the Mbed TLS ssl_ticket.c implementation is used, the
+     * ticket is decrypted in place. This modifies the ClientHello
+     * message in the input buffer.
+     */
+    if (session_ticket_ext != NULL) {
+        ret = ssl_parse_session_ticket_ext(ssl, session_ticket_ext,
+                                           session_ticket_ext_size);
+        if (ret != 0) {
+            return ret;
+        }
+    }
+#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
@@ -2002,10 +2020,8 @@ static void ssl_handle_id_based_session_resumption(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_session_init(&session_tmp);
 
-    ret = ssl->conf->f_get_cache(ssl->conf->p_cache,
-                                 session->id,
-                                 session->id_len,
-                                 &session_tmp);
+    ret = ssl->conf->f_get_cache(mbedtls_ssl_get_session_cache_context(ssl),
+                                 session->id, session->id_len, &session_tmp);
     if (ret != 0) {
         goto exit;
     }
@@ -3478,11 +3494,11 @@ static int ssl_write_new_session_ticket(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_HAVE_TIME)
     ssl->session_negotiate->ticket_creation_time = mbedtls_ms_time();
 #endif
-    if ((ret = ssl->conf->f_ticket_write(ssl->conf->p_ticket,
-                                         ssl->session_negotiate,
-                                         ssl->out_msg + 10,
-                                         ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN,
-                                         &tlen, &lifetime)) != 0) {
+    ret = ssl->conf->f_ticket_write(mbedtls_ssl_get_session_ticket_context(ssl),
+                                    ssl->session_negotiate, ssl->out_msg + 10,
+                                    ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN,
+                                    &tlen, &lifetime);
+    if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_ticket_write", ret);
     }
 

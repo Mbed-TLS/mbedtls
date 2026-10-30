@@ -18,8 +18,20 @@
 
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
+#include "ssl_tls13_invasive.h"
 #include "ssl_debug_helpers.h"
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/* Define a local translating function to save code size by not using too many
+ * arguments in each translating place. */
+static int local_err_translation(psa_status_t status)
+{
+    return psa_status_to_mbedtls(status, psa_to_ssl_errors,
+                                 ARRAY_LENGTH(psa_to_ssl_errors),
+                                 psa_generic_status_to_mbedtls);
+}
+#define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
+#endif
 
 static const mbedtls_ssl_ciphersuite_t *ssl_tls13_validate_peer_ciphersuite(
     mbedtls_ssl_context *ssl,
@@ -850,7 +862,6 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
     p += 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, named_group_list_len);
     named_group_list_end = p + named_group_list_len;
-    ssl->handshake->hrr_selected_group = 0;
 
     while (p < named_group_list_end) {
         uint16_t named_group;
@@ -863,7 +874,13 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
                                mbedtls_ssl_named_group_to_str(named_group),
                                named_group));
 
-        if (!mbedtls_ssl_named_group_is_offered(ssl, named_group) ||
+        /* No need to select a group for an HRR if one has already been sent.
+         * This also preserves the group selected for the HRR, allowing us to
+         * check that the key_share extension in the second ClientHello is
+         * consistent with it.
+         */
+        if (ssl->handshake->hello_retry_request_flag ||
+            !mbedtls_ssl_named_group_is_offered(ssl, named_group) ||
             !mbedtls_ssl_named_group_is_supported(named_group) ||
             ssl->handshake->hrr_selected_group != 0) {
             continue;
@@ -898,14 +915,16 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
  *  - A negative value for fatal errors.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
-                                          const unsigned char *buf,
-                                          const unsigned char *end)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
+                                           const unsigned char *buf,
+                                           const unsigned char *end)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char const *p = buf;
     unsigned char const *client_shares_end;
     size_t client_shares_len;
+    size_t key_share_count = 0;
 
     /* From RFC 8446:
      *
@@ -947,6 +966,7 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
         key_exchange = p;
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p, client_shares_end, key_exchange_len);
         p += key_exchange_len;
+        key_share_count++;
 
         /* Continue parsing even if we have already found a match,
          * for input validation purposes.
@@ -980,6 +1000,20 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
         ssl->handshake->offered_group_id = group;
     }
 
+    /*
+     * When the HRR requests a key share for a selected group, the second
+     * ClientHello must contain exactly one KeyShareEntry (RFC 8446,
+     * Section 4.1.2).
+     */
+    if (ssl->handshake->hello_retry_request_flag &&
+        ssl->handshake->hrr_selected_group != 0 && key_share_count != 1) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("Non-compliant second ClientHello: "
+                "key_share must contain exactly one KeyShareEntry"));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+    }
 
     if (ssl->handshake->offered_group_id == 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("no matching key share"));
@@ -1263,6 +1297,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     const unsigned char *supported_versions_data;
     const unsigned char *supported_versions_data_end;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    uint16_t hrr_ciphersuite_id = handshake->hello_retry_request_flag ?
+                                  handshake->ciphersuite_info->id : 0;
     int hrr_required = 0;
     int no_usable_share_for_key_agreement = 0;
 
@@ -1576,7 +1612,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                  * contains the endpoint's cryptographic parameters for
                  * ECDHE/DHE key establishment methods.
                  */
-                ret = ssl_tls13_parse_key_shares_ext(
+                ret = mbedtls_ssl_tls13_parse_key_shares_ext(
                     ssl, p, extension_data_end);
                 if (ret == SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH) {
                     MBEDTLS_SSL_DEBUG_MSG(2, ("No usable share for key agreement."));
@@ -1684,7 +1720,46 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_PRINT_EXTS(3, MBEDTLS_SSL_HS_CLIENT_HELLO,
                            handshake->received_extensions);
+    if (handshake->hello_retry_request_flag) {
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        /* RFC 8446, Section 4.1.2 requires CH2 to retain CH1's server_name.
+         * Check this before invoking the SNI callback for CH2. */
+        int sni_name_presence_changed =
+            handshake->ch1_sni_name_present != (handshake->sni_name != NULL);
+        int sni_name_changed = handshake->sni_name != NULL &&
+                               (handshake->ch1_sni_name_len !=
+                                handshake->sni_name_len ||
+                                memcmp(handshake->ch1_sni_name,
+                                       handshake->sni_name,
+                                       handshake->sni_name_len) != 0);
 
+        if (sni_name_presence_changed || sni_name_changed) {
+            MBEDTLS_SSL_DEBUG_MSG(
+                1, ("Non-compliant second ClientHello: SNI changed after HRR"));
+            MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                         MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        }
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
+        if (handshake->hrr_selected_group != 0 &&
+            handshake->offered_group_id != handshake->hrr_selected_group) {
+            MBEDTLS_SSL_DEBUG_MSG(
+                1, ("Non-compliant second ClientHello: "
+                    "key share group does not match HRR"));
+            MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                         MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        }
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
+    }
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    ret = mbedtls_ssl_call_sni_callback(ssl);
+    if (ret != 0) {
+        return ret;
+    }
+#endif
     ret = mbedtls_ssl_add_hs_hdr_to_checksum(ssl,
                                              MBEDTLS_SSL_HS_CLIENT_HELLO,
                                              p - buf);
@@ -1797,6 +1872,18 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     }
 #endif
 
+    /* RFC 8446, Section 4.1.4 requires the server to negotiate the same
+     * ciphersuite after a HelloRetryRequest. */
+    if (handshake->hello_retry_request_flag &&
+        handshake->ciphersuite_info->id != hrr_ciphersuite_id) {
+        MBEDTLS_SSL_DEBUG_MSG(1,
+                              ("Non-compliant second ClientHello: "
+                               "the selected ciphersuite has changed."));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+    }
+
     mbedtls_ssl_optimize_checksum(ssl, handshake->ciphersuite_info);
 
     return hrr_required ? SSL_CLIENT_HELLO_HRR_REQUIRED : SSL_CLIENT_HELLO_OK;
@@ -1890,6 +1977,30 @@ static int ssl_tls13_check_early_data_requirements(mbedtls_ssl_context *ssl)
 
 /* Update the handshake state machine */
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_preserve_ch1_sni_name(mbedtls_ssl_handshake_params *handshake)
+{
+    unsigned char *name = NULL;
+
+    if (handshake->sni_name != NULL) {
+        name = mbedtls_calloc(1, handshake->sni_name_len);
+        if (name == NULL) {
+            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        }
+
+        memcpy(name, handshake->sni_name, handshake->sni_name_len);
+    }
+
+    mbedtls_free(handshake->ch1_sni_name);
+    handshake->ch1_sni_name = name;
+    handshake->ch1_sni_name_len = handshake->sni_name_len;
+    handshake->ch1_sni_name_present = handshake->sni_name != NULL;
+
+    return 0;
+}
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
                                               int hrr_required)
@@ -1904,6 +2015,13 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
         return ret;
     }
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    if (hrr_required) {
+        ret = ssl_tls13_preserve_ch1_sni_name(ssl->handshake);
+        if (ret != 0) {
+            return ret;
+        }
+    }
+
     ssl->handshake->sni_name = NULL;
     ssl->handshake->sni_name_len = 0;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
@@ -2495,6 +2613,205 @@ static int ssl_tls13_prepare_hello_retry_request(mbedtls_ssl_context *ssl)
     return 0;
 }
 
+/* HRR preparation resets the transcript after TLS 1.3 crypto initialization.
+ * The contexts recreated by the handshake reset therefore use the same
+ * backend as the transcript saved here. */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+static int ssl_tls13_clone_hrr_transcript(
+    mbedtls_ssl_handshake_params *handshake,
+    psa_hash_operation_t *saved_transcript)
+{
+#if defined(MBEDTLS_MD_CAN_SHA384)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+        return PSA_TO_MBEDTLS_ERR(
+            psa_hash_clone(&handshake->fin_sha384_psa, saved_transcript));
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
+        return PSA_TO_MBEDTLS_ERR(
+            psa_hash_clone(&handshake->fin_sha256_psa, saved_transcript));
+    }
+#endif
+    return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+}
+#else
+static int ssl_tls13_clone_hrr_transcript(
+    mbedtls_ssl_handshake_params *handshake,
+    mbedtls_md_context_t *saved_transcript)
+{
+    const mbedtls_md_context_t *transcript = NULL;
+
+#if defined(MBEDTLS_MD_CAN_SHA384)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+        transcript = &handshake->fin_sha384;
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
+        transcript = &handshake->fin_sha256;
+    }
+#endif
+    if (transcript == NULL) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    int ret = mbedtls_md_setup(saved_transcript,
+                               mbedtls_md_info_from_ctx(transcript), 0);
+    if (ret != 0) {
+        return ret;
+    }
+    return mbedtls_md_clone(saved_transcript, transcript);
+}
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+static int ssl_tls13_restore_hrr_transcript(
+    mbedtls_ssl_handshake_params *handshake,
+    psa_hash_operation_t *saved_transcript)
+{
+#if defined(MBEDTLS_MD_CAN_SHA384)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+        psa_status_t status = psa_hash_abort(&handshake->fin_sha384_psa);
+        if (status != PSA_SUCCESS) {
+            return PSA_TO_MBEDTLS_ERR(status);
+        }
+        return PSA_TO_MBEDTLS_ERR(
+            psa_hash_clone(saved_transcript, &handshake->fin_sha384_psa));
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
+        psa_status_t status = psa_hash_abort(&handshake->fin_sha256_psa);
+        if (status != PSA_SUCCESS) {
+            return PSA_TO_MBEDTLS_ERR(status);
+        }
+        return PSA_TO_MBEDTLS_ERR(
+            psa_hash_clone(saved_transcript, &handshake->fin_sha256_psa));
+    }
+#endif
+    return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+}
+#else
+static int ssl_tls13_restore_hrr_transcript(
+    mbedtls_ssl_handshake_params *handshake,
+    mbedtls_md_context_t *saved_transcript)
+{
+    mbedtls_md_context_t *transcript = NULL;
+
+#if defined(MBEDTLS_MD_CAN_SHA384)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
+        transcript = &handshake->fin_sha384;
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+    if (handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
+        transcript = &handshake->fin_sha256;
+    }
+#endif
+    if (transcript == NULL) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    mbedtls_md_free(transcript);
+    mbedtls_md_init(transcript);
+    int ret = mbedtls_md_setup(transcript,
+                               mbedtls_md_info_from_ctx(saved_transcript), 0);
+    if (ret != 0) {
+        return ret;
+    }
+    return mbedtls_md_clone(transcript, saved_transcript);
+}
+#endif
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ssl_tls13_reset_handshake_state_for_hrr(mbedtls_ssl_context *ssl)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
+    /* Preserve the handshake and provisional session state needed to process
+     * CH2 after sending an HRR: the selected ciphersuite and group,
+     * the transcript and the early-data limit. */
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        handshake->ciphersuite_info;
+    uint16_t selected_group = handshake->hrr_selected_group;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_hash_operation_t saved_transcript = PSA_HASH_OPERATION_INIT;
+#else
+    mbedtls_md_context_t saved_transcript;
+#endif
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    uint8_t ch1_sni_name_present = handshake->ch1_sni_name_present;
+    unsigned char *ch1_sni_name = NULL;
+    size_t ch1_sni_name_len = handshake->ch1_sni_name_len;
+#endif
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    uint32_t max_early_data_size = ssl->session_negotiate->max_early_data_size;
+    /* These fields belong to the record layer and must span CH1, HRR and CH2
+     * so that early-data records continue to be discarded and accounted for.
+     * However, mbedtls_ssl_handshake_init() resets these record-layer
+     * fields as an initialization side effect. Preserve them explicitly around
+     * that reset. */
+    uint8_t discard_early_data_record = ssl->discard_early_data_record;
+    uint32_t total_early_data_size = ssl->total_early_data_size;
+#endif
+
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_md_init(&saved_transcript);
+#endif
+
+    MBEDTLS_SSL_PROC_CHK(
+        ssl_tls13_clone_hrr_transcript(handshake, &saved_transcript));
+
+    /* Discard all other state derived while processing CH1. */
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    /* Move ownership out of the handshake state while it is reset. */
+    ch1_sni_name = handshake->ch1_sni_name;
+    handshake->ch1_sni_name = NULL;
+#endif
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_handshake_init(ssl));
+
+#if defined(MBEDTLS_SSL_ALPN)
+    /* ALPN is selected while processing a ClientHello but is stored outside
+     * the handshake context. Let CH2 select it again. */
+    ssl->alpn_chosen = NULL;
+#endif
+
+    /* Restore what we saved before resetting the handshake context. */
+    handshake = ssl->handshake;
+    handshake->ciphersuite_info = ciphersuite_info;
+    handshake->hrr_selected_group = selected_group;
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    handshake->ch1_sni_name_present = ch1_sni_name_present;
+    handshake->ch1_sni_name = ch1_sni_name;
+    handshake->ch1_sni_name_len = ch1_sni_name_len;
+    ch1_sni_name = NULL;
+#endif
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    ssl->session_negotiate->max_early_data_size = max_early_data_size;
+    ssl->discard_early_data_record = discard_early_data_record;
+    ssl->total_early_data_size = total_early_data_size;
+#endif
+
+    MBEDTLS_SSL_PROC_CHK(
+        ssl_tls13_restore_hrr_transcript(handshake, &saved_transcript));
+
+    mbedtls_ssl_optimize_checksum(ssl, ciphersuite_info);
+
+cleanup:
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    mbedtls_free(ch1_sni_name);
+#endif
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_hash_abort(&saved_transcript);
+#else
+    mbedtls_md_free(&saved_transcript);
+#endif
+    return ret;
+}
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_hello_retry_request(mbedtls_ssl_context *ssl)
 {
@@ -2520,6 +2837,11 @@ static int ssl_tls13_write_hello_retry_request(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(ssl, buf_len,
                                                           msg_len));
+
+    /* Process CH2 with fresh handshake and provisional session state. Keep
+     * only the state that is intrinsic to the HRR exchange itself. */
+    MBEDTLS_SSL_PROC_CHK(
+        mbedtls_ssl_tls13_reset_handshake_state_for_hrr(ssl));
 
     ssl->handshake->hello_retry_request_flag = 1;
 

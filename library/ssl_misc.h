@@ -850,6 +850,11 @@ struct mbedtls_ssl_handshake_params {
 #endif
     /** selected_group of key_share extension in HelloRetryRequest message. */
     uint16_t hrr_selected_group;
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    uint8_t ch1_sni_name_present;
+    unsigned char *ch1_sni_name;
+    size_t ch1_sni_name_len;
+#endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     uint16_t new_session_tickets_count;         /*!< number of session tickets */
 #endif
@@ -1416,6 +1421,13 @@ void mbedtls_ssl_transform_free(mbedtls_ssl_transform *transform);
  * \param ssl       SSL context
  */
 void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl);
+
+/**
+ * Reinitialize the handshake negotiation state, including the provisional
+ * session, without resetting the record and message layers.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_handshake_init(mbedtls_ssl_context *ssl);
 
 /* set inbound transform of ssl context */
 void mbedtls_ssl_set_inbound_transform(mbedtls_ssl_context *ssl,
@@ -2940,6 +2952,9 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
                                       const unsigned char *buf,
                                       const unsigned char *end);
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_call_sni_callback(mbedtls_ssl_context *ssl);
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)

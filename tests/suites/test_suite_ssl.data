@@ -3450,6 +3450,60 @@ tls13_server_certificate_msg_invalid_vector_len
 TLS 1.3 cli rejects HRR selecting an un-offered group
 reject_hrr_selecting_unoffered_group
 
+TLS 1.3 server resets CH1-derived state before CH2
+tls13_hrr_reset_state
+
+TLS 1.3 HRR: no SNI remains absent in CH2
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_NONE:TEST_TLS13_HRR_SNI_NONE
+
+TLS 1.3 HRR: CH2 cannot add SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_NONE:TEST_TLS13_HRR_SNI_OPEN
+
+TLS 1.3 HRR: CH2 cannot add closed SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_NONE:TEST_TLS13_HRR_SNI_CLOSED
+
+TLS 1.3 HRR: open SNI remains unchanged in CH2
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_OPEN
+
+TLS 1.3 HRR: CH2 cannot omit open SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_NONE
+
+TLS 1.3 HRR: CH2 cannot change open SNI to closed
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_CLOSED
+
+TLS 1.3 HRR: CH2 cannot change open SNI to an equal-length name
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_OTHER
+
+TLS 1.3 HRR: closed SNI remains unchanged in CH2
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_CLOSED
+
+TLS 1.3 HRR: CH2 cannot omit closed SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_NONE
+
+TLS 1.3 HRR: CH2 cannot change closed SNI to open
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_OPEN
+
+TLS 1.3 server accepts compliant CH2, sanity check tls13_srv_rejects_inconsistent_ch2
+depends_on:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256
+tls13_srv_rejects_inconsistent_ch2:TEST_TLS13_CH2_NO_INCONSISTENCY
+
+TLS 1.3 server rejects CH2 inducing a change of handshake ciphersuite
+depends_on:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256:MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
+tls13_srv_rejects_inconsistent_ch2:TEST_TLS13_CH2_INCONSISTENT_CIPHERSUITE
+
+TLS 1.3 server rejects CH2 proposing a group different from the one in the HRR
+tls13_srv_rejects_inconsistent_ch2:TEST_TLS13_CH2_INCONSISTENT_KEY_SHARE_GROUP
+
+TLS 1.3 server rejects an empty CH2 key_share extension after HRR
+tls13_srv_rejects_hrr_ch2_key_share_count:TEST_TLS13_HRR_CH2_EMPTY_KEY_SHARE
+
+TLS 1.3 server rejects CH2 with multiple key shares after HRR
+tls13_srv_rejects_hrr_ch2_key_share_count:TEST_TLS13_HRR_CH2_MULTIPLE_KEY_SHARES
+
+SSL server rejects a zero-length SNI hostname
+depends_on:MBEDTLS_SSL_SERVER_NAME_INDICATION
+ssl_server_name_rejects_empty_hostname
+
 EC-JPAKE read round rejects a missing length byte
 depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:MBEDTLS_USE_PSA_CRYPTO
 ssl_ecjpake_read_round:0:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE

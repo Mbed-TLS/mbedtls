@@ -1074,7 +1074,7 @@ void mbedtls_ssl_session_init(mbedtls_ssl_session *session)
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_handshake_init(mbedtls_ssl_context *ssl)
+int mbedtls_ssl_handshake_init(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -1444,7 +1444,7 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
     memset(&ssl->dtls_srtp_info, 0, sizeof(ssl->dtls_srtp_info));
 #endif
 
-    if ((ret = ssl_handshake_init(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_handshake_init(ssl)) != 0) {
         goto error;
     }
 
@@ -1624,7 +1624,7 @@ int mbedtls_ssl_session_reset_int(mbedtls_ssl_context *ssl, int partial)
     }
 #endif
 
-    if ((ret = ssl_handshake_init(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_handshake_init(ssl)) != 0) {
         return ret;
     }
 
@@ -4770,7 +4770,7 @@ int mbedtls_ssl_start_renegotiation(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> renegotiate"));
 
-    if ((ret = ssl_handshake_init(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_handshake_init(ssl)) != 0) {
         return ret;
     }
 
@@ -4963,6 +4963,14 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    mbedtls_free(handshake->ch1_sni_name);
+    handshake->ch1_sni_name = NULL;
+    handshake->ch1_sni_name_len = 0;
+    handshake->ch1_sni_name_present = 0;
+#endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -5406,7 +5414,7 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
     session_len = MBEDTLS_GET_UINT32_BE(p, 0);
     p += 4;
 
-    /* This has been allocated by ssl_handshake_init(), called by
+    /* This has been allocated by mbedtls_ssl_handshake_init(), called by
      * by either mbedtls_ssl_session_reset_int() or mbedtls_ssl_setup(). */
     ssl->session = ssl->session_negotiate;
     ssl->session_in = ssl->session;
@@ -5429,7 +5437,7 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
      * Transform
      */
 
-    /* This has been allocated by ssl_handshake_init(), called by
+    /* This has been allocated by mbedtls_ssl_handshake_init(), called by
      * by either mbedtls_ssl_session_reset_int() or mbedtls_ssl_setup(). */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     ssl->transform = ssl->transform_negotiate;
@@ -9589,7 +9597,6 @@ int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
                                       const unsigned char *buf,
                                       const unsigned char *end)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
     size_t server_name_list_len, hostname_len;
     const unsigned char *server_name_list_end;
@@ -9609,6 +9616,29 @@ int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
                                      hostname_len + 3);
 
         if (p[0] == MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME) {
+            if (hostname_len == 0) {
+                MBEDTLS_SSL_DEBUG_MSG(
+                    1, ("Invalid zero-length ServerName hostname"));
+                MBEDTLS_SSL_PEND_FATAL_ALERT(
+                    MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                    MBEDTLS_ERR_SSL_DECODE_ERROR);
+                return MBEDTLS_ERR_SSL_DECODE_ERROR;
+            }
+            /*
+             * RFC 6066 requires host_name to contain an actual DNS hostname in
+             * ASCII form, without a trailing dot. The limit below therefore does
+             * not exclude any valid host_name, although the TLS vector encoding
+             * itself permits a larger value.
+             */
+            if (hostname_len > MBEDTLS_SSL_MAX_HOST_NAME_LEN) {
+                MBEDTLS_SSL_DEBUG_MSG(
+                    1, ("Invalid ServerName hostname length"));
+                MBEDTLS_SSL_PEND_FATAL_ALERT(
+                    MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                    MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+                return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+            }
+
             /* sni_name is intended to be used only during the parsing of the
              * ClientHello message (it is reset to NULL before the end of
              * the message parsing). Thus it is ok to just point to the
@@ -9616,21 +9646,32 @@ int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
              */
             ssl->handshake->sni_name = p + 3;
             ssl->handshake->sni_name_len = hostname_len;
-            if (ssl->conf->f_sni == NULL) {
-                return 0;
-            }
-            ret = ssl->conf->f_sni(ssl->conf->p_sni,
-                                   ssl, p + 3, hostname_len);
-            if (ret != 0) {
-                MBEDTLS_SSL_DEBUG_RET(1, "ssl_sni_wrapper", ret);
-                MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME,
-                                             MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME);
-                return MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME;
-            }
             return 0;
         }
 
         p += hostname_len + 3;
+    }
+
+    return 0;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_call_sni_callback(mbedtls_ssl_context *ssl)
+{
+    int ret;
+
+    if (ssl->handshake->sni_name == NULL || ssl->conf->f_sni == NULL) {
+        return 0;
+    }
+
+    ret = ssl->conf->f_sni(ssl->conf->p_sni, ssl,
+                           ssl->handshake->sni_name,
+                           ssl->handshake->sni_name_len);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "ssl_sni_wrapper", ret);
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME,
+                                     MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME);
+        return MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME;
     }
 
     return 0;

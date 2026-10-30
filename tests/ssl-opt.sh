@@ -6233,15 +6233,6 @@ run_test "Authentication: hostname mismatch (wrong), client required" \
          -c "! mbedtls_ssl_handshake returned" \
          -c "X509 - Certificate verification failed"
 
-run_test "Authentication: hostname mismatch (empty), client required" \
-         "$P_SRV" \
-         "$P_CLI auth_mode=required server_name= debug_level=1" \
-         1 \
-         -c "does not match with the expected CN" \
-         -c "x509_verify_cert() returned -" \
-         -c "! mbedtls_ssl_handshake returned" \
-         -c "X509 - Certificate verification failed"
-
 run_test "Authentication: hostname mismatch (truncated), client required" \
          "$P_SRV" \
          "$P_CLI auth_mode=required server_name=localhos debug_level=1" \

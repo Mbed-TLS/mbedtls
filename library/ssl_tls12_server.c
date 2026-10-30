@@ -1248,6 +1248,10 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
                 if (ret != 0) {
                     return ret;
                 }
+                ret = mbedtls_ssl_call_sni_callback(ssl);
+                if (ret != 0) {
+                    return ret;
+                }
                 break;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
@@ -2022,7 +2026,7 @@ static void ssl_handle_id_based_session_resumption(mbedtls_ssl_context *ssl)
     mbedtls_ssl_session session_tmp;
     mbedtls_ssl_session * const session = ssl->session_negotiate;
 
-    /* Resume is 0  by default, see ssl_handshake_init().
+    /* Resume is 0  by default, see mbedtls_ssl_handshake_init().
      * It may be already set to 1 by ssl_parse_session_ticket_ext(). */
     if (ssl->handshake->resume == 1) {
         return;

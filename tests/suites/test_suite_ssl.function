@@ -4316,6 +4316,79 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SERVER_NAME_INDICATION */
+void hs_session_cache_context()
+{
+    mbedtls_ssl_config conf;
+    mbedtls_ssl_context ssl;
+    unsigned char conf_cache_context;
+    unsigned char hs_cache_context;
+
+    mbedtls_ssl_config_init(&conf);
+    mbedtls_ssl_init(&ssl);
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER,
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                           MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    mbedtls_ssl_conf_session_cache(&conf, &conf_cache_context, NULL, NULL);
+    TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
+
+    TEST_ASSERT(mbedtls_ssl_get_session_cache_context(&ssl) ==
+                &conf_cache_context);
+
+    mbedtls_ssl_set_hs_session_cache_context(&ssl, &hs_cache_context);
+    TEST_ASSERT(mbedtls_ssl_get_session_cache_context(&ssl) ==
+                &hs_cache_context);
+
+    mbedtls_ssl_set_hs_session_cache_context(&ssl, NULL);
+    TEST_ASSERT(mbedtls_ssl_get_session_cache_context(&ssl) ==
+                &conf_cache_context);
+
+exit:
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_SERVER_NAME_INDICATION */
+void hs_session_ticket_context()
+{
+    mbedtls_ssl_config conf;
+    mbedtls_ssl_context ssl;
+    unsigned char conf_ticket_context;
+    unsigned char hs_ticket_context;
+
+    mbedtls_ssl_config_init(&conf);
+    mbedtls_ssl_init(&ssl);
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER,
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                           MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    mbedtls_ssl_conf_session_tickets_cb(&conf, NULL, NULL,
+                                        &conf_ticket_context);
+    TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
+
+    TEST_ASSERT(mbedtls_ssl_get_session_ticket_context(&ssl) ==
+                &conf_ticket_context);
+
+    mbedtls_ssl_set_hs_session_ticket_context(&ssl, &hs_ticket_context);
+    TEST_ASSERT(mbedtls_ssl_get_session_ticket_context(&ssl) ==
+                &hs_ticket_context);
+
+    mbedtls_ssl_set_hs_session_ticket_context(&ssl, NULL);
+    TEST_ASSERT(mbedtls_ssl_get_session_ticket_context(&ssl) ==
+                &conf_ticket_context);
+
+exit:
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void conf_group()
 {

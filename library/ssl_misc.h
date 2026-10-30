@@ -934,6 +934,13 @@ struct mbedtls_ssl_handshake_params {
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    void *sni_p_cache;                    /*!< context for cache callbacks    */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    void *sni_p_ticket;                   /*!< context for ticket callbacks   */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C) &&        \
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     mbedtls_pk_context peer_pubkey;     /*!< The public key from the peer.  */
@@ -1134,6 +1141,14 @@ struct mbedtls_ssl_handshake_params {
 #endif
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 };
+
+#if defined(MBEDTLS_SSL_SRV_C)
+void *mbedtls_ssl_get_session_cache_context(const mbedtls_ssl_context *ssl);
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+void *mbedtls_ssl_get_session_ticket_context(const mbedtls_ssl_context *ssl);
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SRV_C */
 
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
 

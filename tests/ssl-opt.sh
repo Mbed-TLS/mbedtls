@@ -4081,6 +4081,65 @@ run_test    "Session resume using tickets: session copy" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_TICKET_C
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_FS_IO
+run_test    "Session resume using tickets: SNI selects hostname-specific ticket context" \
+            "$P_SRV debug_level=3 tickets=1 cache_max=0 \
+             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 server_name=localhost reconnect=1" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_TICKET_C
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_FS_IO
+run_test    "Session resume using tickets: host-specific ticket contexts prevent cross-SNI resumption" \
+            "$P_SRV debug_level=3 tickets=1 cache_max=0 \
+             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 server_name=localhost reco_server_name=polarssl.example reconnect=1" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -c "sending session ticket of length" \
+            -S "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -S "a session has been resumed" \
+            -C "a session has been resumed"
+
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_TICKET_C
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_FS_IO
+run_test    "Session resume using tickets: two SNI hostnames select separate ticket contexts" \
+            "$P_SRV debug_level=3 tickets=1 cache_max=0 \
+             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
+            "( $P_CLI force_version=tls12 debug_level=3 tickets=1 server_name=localhost reconnect=1; \
+               $P_CLI force_version=tls12 debug_level=3 tickets=1 server_name=polarssl.example server_addr=localhost reconnect=1 )" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl server" \
@@ -4473,6 +4532,42 @@ run_test    "Session resume using cache: tickets enabled on server" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
+
+requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_FS_IO
+run_test    "Session resume using cache: SNI selects hostname-specific cache context" \
+            "$P_SRV debug_level=3 tickets=0 \
+             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 server_name=localhost reconnect=1" \
+            0 \
+            -C "client hello, adding session ticket extension" \
+            -S "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -C "found session_ticket extension" \
+            -C "parse new session ticket" \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_FS_IO
+run_test    "Session resume using cache: host-specific cache contexts prevent cross-SNI resumption" \
+            "$P_SRV debug_level=3 tickets=0 \
+             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 server_name=localhost reco_server_name=polarssl.example reconnect=1" \
+            0 \
+            -C "client hello, adding session ticket extension" \
+            -S "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -C "found session_ticket extension" \
+            -C "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -S "a session has been resumed" \
+            -C "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: cache_max=0" \

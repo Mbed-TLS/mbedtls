@@ -228,7 +228,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     }
     memcpy(ticket_buffer, identity, identity_len);
 
-    ret = ssl->conf->f_ticket_parse(ssl->conf->p_ticket,
+    ret = ssl->conf->f_ticket_parse(mbedtls_ssl_get_session_ticket_context(ssl),
                                     session,
                                     ticket_buffer, identity_len);
     switch (ret) {
@@ -3646,7 +3646,7 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_HAVE_TIME)
     session->ticket_creation_time = mbedtls_ms_time();
 #endif
-    ret = ssl->conf->f_ticket_write(ssl->conf->p_ticket,
+    ret = ssl->conf->f_ticket_write(mbedtls_ssl_get_session_ticket_context(ssl),
                                     session,
                                     p + 9 + ticket_nonce_size + 2,
                                     end,

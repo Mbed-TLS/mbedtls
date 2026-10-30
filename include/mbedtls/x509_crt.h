@@ -681,6 +681,8 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  * \param crt      The certificate chain to be verified.
  * \param trust_ca The list of trusted CAs.
  * \param ca_crl   The list of CRLs for trusted CAs.
+ *                 See the warning on mbedtls_x509_crt_is_revoked() regarding
+ *                 CA name matching in CRL.
  * \param cn       The expected Common Name or reference identifier.
  *                 This may be \c NULL if the CN need not be verified.
  *                 Otherwise, must be a DNS hostname, an IP address, or a URI.
@@ -725,6 +727,8 @@ int mbedtls_x509_crt_verify(mbedtls_x509_crt *crt,
  * \param crt      The certificate chain to be verified.
  * \param trust_ca The list of trusted CAs.
  * \param ca_crl   The list of CRLs for trusted CAs.
+ *                 See the warning on mbedtls_x509_crt_is_revoked() regarding
+ *                 CA name matching in CRL.
  * \param profile  The security profile to use for the verification.
  * \param cn       The expected Common Name or reference identifier.
  *                 This may be \c NULL if the CN need not be verified.
@@ -768,6 +772,8 @@ int mbedtls_x509_crt_verify_with_profile(mbedtls_x509_crt *crt,
  * \param crt      The certificate chain to be verified.
  * \param trust_ca The list of trusted CAs.
  * \param ca_crl   The list of CRLs for trusted CAs.
+ *                 See the warning on mbedtls_x509_crt_is_revoked() regarding
+ *                 CA name matching in CRL.
  * \param profile  The security profile to use for the verification.
  * \param cn       The expected Common Name or reference identifier.
  *                 This may be \c NULL if the CN need not be verified.
@@ -914,6 +920,20 @@ int mbedtls_x509_crt_check_extended_key_usage(const mbedtls_x509_crt *crt,
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
 /**
  * \brief          Verify the certificate revocation status
+ *
+ * \warning        A certificate is only considerd to be revoked if its
+ *                 issuer name matches an entry in the CRL. Mbed TLS
+ *                 does not fully normalize the names before comparing
+ *                 them. It ignores the ASN.1 type (e.g. a PrintableString
+ *                 can match an UTF8String), and it compares ASCII characters
+ *                 case-insensitively, but no other normalization is done.
+ *                 Thus, for example, the following do not match:
+ *                 - `AUTORITÉ` vs `autorité`
+ *                   (case insensitivity is restricted to ASCII letters);
+ *                 - `"autorite\u0301"` vs `"autorit\u00e9"`
+ *                   (no Unicode canonicalization);
+ *                 - `two__words` vs `two_words` where `_` is a space
+ *                   (no space folding).
  *
  * \param crt      a certificate to be verified
  * \param crl      the CRL to verify against

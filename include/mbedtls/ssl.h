@@ -4095,6 +4095,13 @@ void mbedtls_ssl_set_hs_authmode(mbedtls_ssl_context *ssl,
  *                 then must return 0. If no matching name is found, the
  *                 callback may return non-zero to abort the handshake.
  *
+ * \note           In a TLS 1.3 handshake involving a HelloRetryRequest, this
+ *                 callback is invoked for each ClientHello containing the
+ *                 same ServerName extension, and may therefore be invoked
+ *                 twice with the same hostname. If the ServerName in the
+ *                 second ClientHello is inconsistent with the first ClientHello,
+ *                 the callback is not invoked again and the handshake is aborted.
+ *
  * \param conf     SSL configuration
  * \param f_sni    verification function
  * \param p_sni    verification parameter

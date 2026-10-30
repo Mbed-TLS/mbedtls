@@ -6120,6 +6120,36 @@ run_test "Authentication: hostname unset, client default, server picks PSK, 1.3"
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
 
+# The purpose of the next test is to test the client's behaviour when receiving a server
+# certificate with an unsupported elliptic curve. This should not normally happen because
+# the client informs the server about the supported curves (to be fixed).
+# If that bug's fixed, the test needs to be altered to use a
+# different means to have the server ignoring the client's supported curve list.
+
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
+run_test    "Authentication: server ECDSA p256v1, client required, p256v1 unsupported" \
+            "$P_SRV debug_level=1 key_file=$DATA_FILES_PATH/server5.key \
+             crt_file=$DATA_FILES_PATH/server5.crt" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=required groups=secp521r1" \
+            1 \
+            -c "bad certificate (EC key curve)" \
+            -c "send alert level=2 message=43" \
+            -c "! Certificate verification flags" \
+            -c "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
+
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
+run_test    "Authentication: client ECDSA p256v1, server required, p256v1 unsupported" \
+            "$P_SRV debug_level=3 auth_mode=required groups=secp521r1" \
+            "$P_CLI force_version=tls12 debug_level=1 \
+                    key_file=$DATA_FILES_PATH/server6.key crt_file=$DATA_FILES_PATH/server6.crt" \
+            1 \
+            -s "bad certificate (EC key curve)" \
+            -s "send alert level=2 message=43" \
+            -s "! Certificate verification flags" \
+            -s "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
+
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: client SHA256, server required" \
             "$P_SRV auth_mode=required" \

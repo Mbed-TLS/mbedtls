@@ -6488,6 +6488,18 @@ run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsuppo
             -c "! Certificate verification flags"\
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
+run_test    "Authentication: client ECDSA p256v1, server required, p256v1 unsupported" \
+            "$P_SRV debug_level=3 auth_mode=required groups=secp521r1" \
+            "$P_CLI force_version=tls12 debug_level=1 \
+                    key_file=$DATA_FILES_PATH/server6.key crt_file=$DATA_FILES_PATH/server6.crt" \
+            1 \
+            -s "bad certificate (EC key curve)" \
+            -s "send alert level=2 message=43" \
+            -s "! Certificate verification flags" \
+            -s "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
+
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: client SHA256, server required" \
             "$P_SRV auth_mode=required" \

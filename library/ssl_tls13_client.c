@@ -194,6 +194,8 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
         }
 
         ssl->handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+        ssl->handshake->tls13_key_exchange_inputs &=
+            ~MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_BOTH;
         return 0;
     } else
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
@@ -1276,17 +1278,13 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
             ssl->session_negotiate->ciphersuite);
         ssl->handshake->ciphersuite_info = ciphersuite_info;
 
-        /* Enable psk and psk_ephemeral to make stage early happy */
-        ssl->handshake->key_exchange_mode =
-            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
-
-        /* Start the TLS 1.3 key schedule:
-         *     Set the PSK and derive early secret.
-         */
-        ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
+        /* Provisionally derive the early secret for early-data protection.
+         * The selected handshake's early secret is derived after ServerHello
+         * because the server may ignore this PSK. */
+        ret = mbedtls_ssl_tls13_compute_early_secret_for_early_data(ssl);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_key_schedule_stage_early", ret);
+                1, "mbedtls_ssl_tls13_compute_early_secret_for_early_data", ret);
             return ret;
         }
 
@@ -1928,10 +1926,21 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL)
 #endif
     {
-        ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        if (ssl->early_data_state !=
+            MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT) {
+            if (handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_DATA) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
+            handshake->tls13_key_scheduling_stage_completed =
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE;
+        }
+#endif
+        ret = mbedtls_ssl_tls13_compute_early_secret(ssl);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_key_schedule_stage_early", ret);
+                1, "mbedtls_ssl_tls13_compute_early_secret", ret);
             goto cleanup;
         }
     }
@@ -3100,6 +3109,10 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
+            if (ssl->handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = ssl_tls13_process_encrypted_extensions(ssl);
             break;
 
@@ -3118,6 +3131,10 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
         case MBEDTLS_SSL_SERVER_FINISHED:
+            if (ssl->handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = ssl_tls13_process_server_finished(ssl);
             break;
 
@@ -3146,6 +3163,10 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
+            if (ssl->handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = ssl_tls13_handshake_wrapup(ssl);
             break;
 

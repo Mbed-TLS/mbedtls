@@ -500,6 +500,8 @@ static int ssl_parse_session_ticket_ext(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("session successfully restored from ticket"));
 
+    ssl->handshake->tls12_key_schedule_inputs |=
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION;
     ssl->handshake->resume = 1;
 
     /* Don't send a new ticket after all, this one is OK */
@@ -2020,6 +2022,8 @@ static void ssl_handle_id_based_session_resumption(mbedtls_ssl_context *ssl)
     memset(&session_tmp, 0, sizeof(session_tmp));
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("session successfully restored from cache"));
+    ssl->handshake->tls12_key_schedule_inputs |=
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION;
     ssl->handshake->resume = 1;
 
 exit:
@@ -3226,6 +3230,9 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
+    ssl->handshake->tls12_key_schedule_inputs |=
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE;
+
     if ((ret = mbedtls_ssl_derive_keys(ssl)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_derive_keys", ret);
         return ret;
@@ -3583,6 +3590,10 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_CLIENT_FINISHED:
+            if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = mbedtls_ssl_parse_finished(ssl);
             break;
 
@@ -3601,6 +3612,10 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_SERVER_FINISHED:
+            if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = mbedtls_ssl_write_finished(ssl);
             break;
 
@@ -3610,6 +3625,10 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
+            if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             mbedtls_ssl_handshake_wrapup(ssl);
             break;
 

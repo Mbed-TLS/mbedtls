@@ -6523,6 +6523,11 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
             }
         }
 #endif
+        if (handshake->pmslen == 0) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("premaster secret not available"));
+            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        }
+
         ret = handshake->tls_prf(handshake->premaster, handshake->pmslen,
                                  lbl, seed, seed_len,
                                  master,
@@ -6546,10 +6551,25 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
 int mbedtls_ssl_derive_keys(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char required_input;
     const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
         ssl->handshake->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> derive keys"));
+
+    if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_NONE) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("invalid TLS 1.2 key schedule transition"));
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    required_input = ssl->handshake->resume != 0 ?
+                     MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION :
+                     MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE;
+    if (ssl->handshake->tls12_key_schedule_inputs != required_input) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("invalid TLS 1.2 key schedule input"));
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
 
     /* Set PRF, calc_verify and calc_finished function pointers */
     ret = ssl_set_handshake_prfs(ssl->handshake,
@@ -6595,6 +6615,9 @@ int mbedtls_ssl_derive_keys(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls12_populate_transform", ret);
         return ret;
     }
+
+    ssl->handshake->tls12_key_scheduling_stage_completed =
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS;
 
     /* We no longer need Server/ClientHello.random values */
     mbedtls_platform_zeroize(ssl->handshake->randbytes,

@@ -53,6 +53,13 @@
 #define TEST_TLS13_HRR_CH2_EMPTY_KEY_SHARE      0
 #define TEST_TLS13_HRR_CH2_MULTIPLE_KEY_SHARES  1
 
+/* Operations exercised by ssl_tls13_key_schedule_rejects_transition(). */
+#define TEST_TLS13_KS_OP_SELECTED_EARLY_SECRET       0
+#define TEST_TLS13_KS_OP_PROVISIONAL_EARLY_SECRET    1
+#define TEST_TLS13_KS_OP_EARLY_TRANSFORM             2
+#define TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM         3
+#define TEST_TLS13_KS_OP_APPLICATION_TRANSFORM       4
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C) && \
@@ -2177,6 +2184,482 @@ exit:
     mbedtls_ssl_transform_free(&t1);
 
     mbedtls_free(buf);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2 */
+void ssl_tls12_key_schedule_rejects_missing_input(int endpoint,
+                                                  int resume,
+                                                  int input_setup,
+                                                  int initial_stage)
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_config_init(&conf);
+
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf, endpoint,
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                           MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
+
+    ssl.tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    ssl.handshake->resume = resume;
+    ssl.handshake->tls12_key_schedule_inputs = input_setup;
+    ssl.handshake->tls12_key_scheduling_stage_completed = initial_stage;
+
+    TEST_EQUAL(mbedtls_ssl_derive_keys(&ssl),
+               MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+    TEST_EQUAL(ssl.handshake->tls12_key_scheduling_stage_completed,
+               initial_stage);
+
+exit:
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+void ssl_tls12_state_rejects_invalid_stage(int endpoint,
+                                           int target_state)
+{
+    enum { BUFFSIZE = 16384 };
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_ssl_endpoint client;
+    mbedtls_test_ssl_endpoint server;
+    mbedtls_test_ssl_endpoint *target;
+    mbedtls_test_ssl_endpoint *peer;
+    int ret;
+
+    memset(&client, 0, sizeof(client));
+    memset(&server, 0, sizeof(server));
+    mbedtls_test_init_handshake_options(&options);
+    options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &client, MBEDTLS_SSL_IS_CLIENT, &options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &server, MBEDTLS_SSL_IS_SERVER, &options), 0);
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&client.socket,
+                                                &server.socket,
+                                                BUFFSIZE), 0);
+
+    if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        target = &client;
+        peer = &server;
+    } else {
+        TEST_EQUAL(endpoint, MBEDTLS_SSL_IS_SERVER);
+        target = &server;
+        peer = &client;
+    }
+
+    ret = mbedtls_test_move_handshake_to_state(&target->ssl, &peer->ssl,
+                                               target_state);
+    TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+    TEST_EQUAL(target->ssl.state, target_state);
+
+    target->ssl.handshake->tls12_key_scheduling_stage_completed =
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_NONE;
+
+    ret = endpoint == MBEDTLS_SSL_IS_CLIENT ?
+          mbedtls_ssl_handshake_client_step(&target->ssl) :
+          mbedtls_ssl_handshake_server_step(&target->ssl);
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+    TEST_EQUAL(target->ssl.state, target_state);
+
+exit:
+    mbedtls_test_free_handshake_options(&options);
+    mbedtls_test_ssl_endpoint_free(&client);
+    mbedtls_test_ssl_endpoint_free(&server);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256 */
+void ssl_tls13_key_schedule_validates_inputs(int endpoint,
+                                             int operation,
+                                             int key_exchange_mode,
+                                             int input_setup,
+                                             int expected_result)
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char master_secrets_before[
+        sizeof(((mbedtls_ssl_handshake_params *) 0)->tls13_master_secrets)];
+
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_config_init(&conf);
+
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf, endpoint,
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                           MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
+
+    ssl.tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
+        MBEDTLS_TLS1_3_AES_128_GCM_SHA256);
+    TEST_ASSERT(ciphersuite_info != NULL);
+    ssl.handshake->ciphersuite_info = ciphersuite_info;
+    ssl.session_negotiate->ciphersuite = ciphersuite_info->id;
+    ssl.handshake->key_exchange_mode = key_exchange_mode;
+    ssl.handshake->tls13_key_exchange_inputs = input_setup;
+    ssl.handshake->tls13_key_scheduling_stage_completed =
+        MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET;
+    memset(&ssl.handshake->tls13_master_secrets, 0x2a,
+           sizeof(ssl.handshake->tls13_master_secrets));
+    memcpy(master_secrets_before, &ssl.handshake->tls13_master_secrets,
+           sizeof(master_secrets_before));
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (operation == TEST_TLS13_KS_OP_EARLY_TRANSFORM) {
+        ret = mbedtls_ssl_tls13_compute_early_transform(&ssl);
+    } else
+#endif
+    if (operation == TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM) {
+        ret = mbedtls_ssl_tls13_compute_handshake_transform(&ssl);
+    } else {
+        TEST_FAIL("Unknown TLS 1.3 key-schedule input operation");
+    }
+
+    TEST_EQUAL(ret, expected_result);
+    if (expected_result == 0) {
+        if (operation == TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM) {
+            TEST_EQUAL(ssl.handshake->tls13_key_scheduling_stage_completed,
+                       MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE);
+            TEST_ASSERT(ssl.handshake->transform_handshake != NULL);
+        }
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        else {
+            TEST_EQUAL(ssl.handshake->tls13_key_scheduling_stage_completed,
+                       MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_DATA);
+            TEST_ASSERT(ssl.handshake->transform_earlydata != NULL);
+        }
+#endif
+    } else {
+        TEST_EQUAL(ssl.handshake->tls13_key_scheduling_stage_completed,
+                   MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET);
+        TEST_ASSERT(ssl.handshake->transform_handshake == NULL);
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        TEST_ASSERT(ssl.handshake->transform_earlydata == NULL);
+#endif
+        TEST_MEMORY_COMPARE(&ssl.handshake->tls13_master_secrets,
+                            sizeof(master_secrets_before),
+                            master_secrets_before, sizeof(master_secrets_before));
+    }
+
+exit:
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED */
+void ssl_tls13_key_schedule_rejects_transition(int initial_stage,
+                                               int operation)
+{
+    static const unsigned char psk[] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+    };
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ssl_session *session_before;
+    mbedtls_ssl_session *session_negotiate_before;
+    mbedtls_ssl_transform *transform_in_before;
+    mbedtls_ssl_transform *transform_out_before;
+    mbedtls_ssl_transform *transform_application_before;
+    mbedtls_ssl_transform *transform_handshake_before;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    mbedtls_ssl_transform *transform_earlydata_before;
+    int early_data_state_before;
+#endif
+    unsigned char master_secrets_before[
+        sizeof(((mbedtls_ssl_handshake_params *) 0)->tls13_master_secrets)];
+    unsigned char handshake_secrets_before[
+        sizeof(((mbedtls_ssl_handshake_params *) 0)->tls13_hs_secrets)];
+
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_config_init(&conf);
+
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT,
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                           MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
+
+    ssl.tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
+        MBEDTLS_TLS1_3_AES_128_GCM_SHA256);
+    TEST_ASSERT(ciphersuite_info != NULL);
+    ssl.handshake->ciphersuite_info = ciphersuite_info;
+    ssl.session_negotiate->ciphersuite = ciphersuite_info->id;
+    ssl.handshake->key_exchange_mode =
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
+    TEST_EQUAL(mbedtls_ssl_set_hs_psk(&ssl, psk, sizeof(psk)), 0);
+    ssl.handshake->tls13_key_exchange_inputs =
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK;
+
+    ssl.handshake->tls13_key_scheduling_stage_completed = initial_stage;
+    memset(&ssl.handshake->tls13_master_secrets, 0x2a,
+           sizeof(ssl.handshake->tls13_master_secrets));
+    memset(&ssl.handshake->tls13_hs_secrets, 0x3b,
+           sizeof(ssl.handshake->tls13_hs_secrets));
+
+    session_before = ssl.session;
+    session_negotiate_before = ssl.session_negotiate;
+    transform_in_before = ssl.transform_in;
+    transform_out_before = ssl.transform_out;
+    transform_application_before = ssl.transform_application;
+    transform_handshake_before = ssl.handshake->transform_handshake;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    transform_earlydata_before = ssl.handshake->transform_earlydata;
+    early_data_state_before = ssl.early_data_state;
+#endif
+    memcpy(master_secrets_before, &ssl.handshake->tls13_master_secrets,
+           sizeof(master_secrets_before));
+    memcpy(handshake_secrets_before, &ssl.handshake->tls13_hs_secrets,
+           sizeof(handshake_secrets_before));
+
+    switch (operation) {
+        case TEST_TLS13_KS_OP_SELECTED_EARLY_SECRET:
+            ret = mbedtls_ssl_tls13_compute_early_secret(&ssl);
+            break;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        case TEST_TLS13_KS_OP_PROVISIONAL_EARLY_SECRET:
+            ret = mbedtls_ssl_tls13_compute_early_secret_for_early_data(&ssl);
+            break;
+        case TEST_TLS13_KS_OP_EARLY_TRANSFORM:
+            ret = mbedtls_ssl_tls13_compute_early_transform(&ssl);
+            break;
+#endif
+        case TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM:
+            ret = mbedtls_ssl_tls13_compute_handshake_transform(&ssl);
+            break;
+        case TEST_TLS13_KS_OP_APPLICATION_TRANSFORM:
+            ret = mbedtls_ssl_tls13_compute_application_transform(&ssl);
+            break;
+        default:
+            TEST_FAIL("Unknown TLS 1.3 key-schedule operation");
+    }
+
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+    TEST_EQUAL(ssl.handshake->tls13_key_scheduling_stage_completed,
+               initial_stage);
+    TEST_ASSERT(ssl.session == session_before);
+    TEST_ASSERT(ssl.session_negotiate == session_negotiate_before);
+    TEST_ASSERT(ssl.transform_in == transform_in_before);
+    TEST_ASSERT(ssl.transform_out == transform_out_before);
+    TEST_ASSERT(ssl.transform_application == transform_application_before);
+    TEST_ASSERT(ssl.handshake->transform_handshake == transform_handshake_before);
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    TEST_ASSERT(ssl.handshake->transform_earlydata == transform_earlydata_before);
+    TEST_EQUAL(ssl.early_data_state, early_data_state_before);
+#endif
+    TEST_MEMORY_COMPARE(&ssl.handshake->tls13_master_secrets,
+                        sizeof(master_secrets_before),
+                        master_secrets_before, sizeof(master_secrets_before));
+    TEST_MEMORY_COMPARE(&ssl.handshake->tls13_hs_secrets,
+                        sizeof(handshake_secrets_before),
+                        handshake_secrets_before,
+                        sizeof(handshake_secrets_before));
+
+exit:
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+void ssl_tls13_postprocess_server_hello_requires_early_data_stage()
+{
+    enum { BUFFSIZE = 16384 };
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_ssl_endpoint client;
+    mbedtls_test_ssl_endpoint server;
+    int ret;
+
+    memset(&client, 0, sizeof(client));
+    memset(&server, 0, sizeof(server));
+    mbedtls_test_init_handshake_options(&options);
+    options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &client, MBEDTLS_SSL_IS_CLIENT, &options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &server, MBEDTLS_SSL_IS_SERVER, &options), 0);
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&client.socket,
+                                                &server.socket,
+                                                BUFFSIZE), 0);
+    ret = mbedtls_test_move_handshake_to_state(
+        &client.ssl, &server.ssl, MBEDTLS_SSL_SERVER_HELLO);
+    TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+    TEST_EQUAL(client.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+    TEST_EQUAL(client.ssl.early_data_state,
+               MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
+    TEST_EQUAL(client.ssl.handshake->tls13_key_scheduling_stage_completed,
+               MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE);
+
+    TEST_EQUAL(mbedtls_ssl_flush_output(&client.ssl), 0);
+    do {
+        ret = mbedtls_ssl_handshake_step(&server.ssl);
+    } while (ret == 0 && !mbedtls_ssl_is_handshake_over(&server.ssl));
+    TEST_ASSERT(ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                mbedtls_ssl_is_handshake_over(&server.ssl));
+
+    client.ssl.early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT;
+    TEST_EQUAL(mbedtls_ssl_handshake_step(&client.ssl),
+               MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+    TEST_EQUAL(client.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+
+exit:
+    mbedtls_test_free_handshake_options(&options);
+    mbedtls_test_ssl_endpoint_free(&client);
+    mbedtls_test_ssl_endpoint_free(&server);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+void ssl_tls13_state_rejects_invalid_stage(int endpoint,
+                                           int target_state)
+{
+    enum { BUFFSIZE = 16384 };
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_ssl_endpoint client;
+    mbedtls_test_ssl_endpoint server;
+    mbedtls_test_ssl_endpoint *target;
+    mbedtls_test_ssl_endpoint *peer;
+    int expected_stage;
+    int ret;
+
+    memset(&client, 0, sizeof(client));
+    memset(&server, 0, sizeof(server));
+    mbedtls_test_init_handshake_options(&options);
+    options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &client, MBEDTLS_SSL_IS_CLIENT, &options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &server, MBEDTLS_SSL_IS_SERVER, &options), 0);
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&client.socket,
+                                                &server.socket,
+                                                BUFFSIZE), 0);
+
+    if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        target = &client;
+        peer = &server;
+    } else {
+        TEST_EQUAL(endpoint, MBEDTLS_SSL_IS_SERVER);
+        target = &server;
+        peer = &client;
+    }
+
+    ret = mbedtls_test_move_handshake_to_state(&target->ssl, &peer->ssl,
+                                               target_state);
+    TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+    TEST_EQUAL(target->ssl.state, target_state);
+
+    /* Freeze the target and let the peer finish and flush its current flight.
+     * Client handlers can then consume their expected input immediately. */
+    if (endpoint == MBEDTLS_SSL_IS_CLIENT &&
+        target_state != MBEDTLS_SSL_HANDSHAKE_WRAPUP) {
+        TEST_EQUAL(mbedtls_ssl_flush_output(&target->ssl), 0);
+        do {
+            ret = mbedtls_ssl_handshake_step(&peer->ssl);
+        } while (ret == 0 && !mbedtls_ssl_is_handshake_over(&peer->ssl));
+        TEST_ASSERT(ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                    mbedtls_ssl_is_handshake_over(&peer->ssl));
+    }
+
+    switch (target_state) {
+        case MBEDTLS_SSL_SERVER_FINISHED:
+        case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
+            expected_stage =
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE;
+            break;
+        case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
+            expected_stage =
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION;
+            break;
+        default:
+            TEST_FAIL("Unknown TLS 1.3 key-schedule state");
+    }
+    TEST_EQUAL(target->ssl.handshake->tls13_key_scheduling_stage_completed,
+               expected_stage);
+
+    for (int invalid_stage = MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE;
+         invalid_stage <= MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION;
+         invalid_stage++) {
+        size_t in_left_before;
+        size_t out_left_before;
+
+        if (invalid_stage == expected_stage) {
+            continue;
+        }
+
+        target->ssl.handshake->tls13_key_scheduling_stage_completed =
+            invalid_stage;
+        in_left_before = target->ssl.in_left;
+        out_left_before = target->ssl.out_left;
+        if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+            ret = mbedtls_ssl_tls13_handshake_client_step(&target->ssl);
+        } else {
+            ret = mbedtls_ssl_tls13_handshake_server_step(&target->ssl);
+        }
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+        TEST_EQUAL(target->ssl.state, target_state);
+        TEST_EQUAL(target->ssl.handshake->tls13_key_scheduling_stage_completed,
+                   invalid_stage);
+        TEST_EQUAL(target->ssl.in_left, in_left_before);
+        TEST_EQUAL(target->ssl.out_left, out_left_before);
+    }
+
+    target->ssl.handshake->tls13_key_scheduling_stage_completed =
+        expected_stage;
+    if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        ret = mbedtls_ssl_tls13_handshake_client_step(&target->ssl);
+    } else {
+        ret = mbedtls_ssl_tls13_handshake_server_step(&target->ssl);
+    }
+    TEST_EQUAL(ret, 0);
+    TEST_ASSERT(target->ssl.state != target_state);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client);
+    mbedtls_test_ssl_endpoint_free(&server);
+    mbedtls_test_free_handshake_options(&options);
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */

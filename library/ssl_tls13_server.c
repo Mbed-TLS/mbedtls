@@ -2026,11 +2026,14 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
     ssl->handshake->sni_name_len = 0;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-    ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
-    if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1,
-                              "mbedtls_ssl_tls1_3_key_schedule_stage_early", ret);
-        return ret;
+    /* An HRR causes this function to process another ClientHello. Compute the
+     * early secret only once, after the final ClientHello has been accepted. */
+    if (!hrr_required) {
+        ret = mbedtls_ssl_tls13_compute_early_secret(ssl);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_compute_early_secret", ret);
+            return ret;
+        }
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
@@ -3826,6 +3829,10 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
+            if (ssl->handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = ssl_tls13_write_encrypted_extensions(ssl);
             if (ret != 0) {
                 MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls13_write_encrypted_extensions", ret);
@@ -3868,6 +3875,10 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
         case MBEDTLS_SSL_SERVER_FINISHED:
+            if (ssl->handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = ssl_tls13_write_server_finished(ssl);
             break;
 
@@ -3882,6 +3893,10 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
+            if (ssl->handshake->tls13_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = ssl_tls13_handshake_wrapup(ssl);
             break;
 

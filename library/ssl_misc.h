@@ -732,6 +732,35 @@ typedef struct {
     unsigned char server_handshake_traffic_secret[MBEDTLS_TLS1_3_MD_MAX_SIZE];
 } mbedtls_ssl_tls13_handshake_secrets;
 
+typedef enum {
+    MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_NONE = 0,
+    MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS,
+} mbedtls_ssl_tls12_key_scheduling_stage;
+
+typedef enum {
+    MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_NONE = 0,
+    MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE = 1 << 0,
+    MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION = 1 << 1,
+} mbedtls_ssl_tls12_key_schedule_input;
+
+typedef enum {
+    MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE = 0,
+    MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET,
+    MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_DATA,
+    MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE,
+    MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION,
+} mbedtls_ssl_tls13_key_scheduling_stage;
+
+typedef enum {
+    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_NONE = 0,
+    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK  = 1 << 0,
+    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PRIVATE = 1 << 1,
+    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PEER = 1 << 2,
+    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_BOTH =
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PRIVATE |
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PEER,
+} mbedtls_ssl_tls13_key_exchange_input;
+
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -1098,6 +1127,10 @@ struct mbedtls_ssl_handshake_params {
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
     /*!<  premaster secret        */
     size_t pmslen;                      /*!<  premaster length        */
+
+    mbedtls_ssl_tls12_key_scheduling_stage
+        tls12_key_scheduling_stage_completed;
+    unsigned char tls12_key_schedule_inputs;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -1111,6 +1144,13 @@ struct mbedtls_ssl_handshake_params {
 
     /** TLS 1.3 transform for encrypted handshake messages. */
     mbedtls_ssl_transform *transform_handshake;
+    /** TLS 1.3 key scheduling progress.
+     *
+     * The early-data, handshake and application stages are reached after
+     * successfully computing the secret, sub-secrets and keys of the stage.
+     */
+    mbedtls_ssl_tls13_key_scheduling_stage tls13_key_scheduling_stage_completed;
+    unsigned char tls13_key_exchange_inputs;
     union {
         unsigned char early[MBEDTLS_TLS1_3_MD_MAX_SIZE];
         unsigned char handshake[MBEDTLS_TLS1_3_MD_MAX_SIZE];

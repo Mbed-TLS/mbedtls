@@ -1527,6 +1527,8 @@ int mbedtls_ssl_tls13_read_public_xxdhe_share(mbedtls_ssl_context *ssl,
     }
     memcpy(handshake->xxdh_psa_peerkey, p, peerkey_len);
     handshake->xxdh_psa_peerkey_len = peerkey_len;
+    handshake->tls13_key_exchange_inputs |=
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PEER;
 
     return 0;
 }
@@ -1643,6 +1645,8 @@ int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
         return ret;
     }
 
+    handshake->tls13_key_exchange_inputs |=
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PRIVATE;
     *out_len = own_pubkey_len;
 
     return 0;

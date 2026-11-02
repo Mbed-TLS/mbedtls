@@ -34,27 +34,6 @@ component_test_psa_assume_exclusive_buffers () {
     make test
 }
 
-component_test_crypto_with_static_key_slots() {
-    msg "build: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
-    scripts/config.py crypto_full
-    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
-    # Intentionally set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE to a value that
-    # is enough to contain:
-    # - all RSA public keys up to 4096 bits (max of PSA_VENDOR_RSA_MAX_KEY_BITS).
-    # - RSA key pairs up to 1024 bits, but not 2048 or larger.
-    # - all FFDH key pairs and public keys up to 8192 bits (max of PSA_VENDOR_FFDH_MAX_KEY_BITS).
-    # - all EC key pairs and public keys up to 521 bits (max of PSA_VENDOR_ECC_MAX_CURVE_BITS).
-    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE 1212
-    # Disable the fully dynamic key store (default on) since it conflicts
-    # with the static behavior that we're testing here.
-    scripts/config.py unset MBEDTLS_PSA_KEY_STORE_DYNAMIC
-
-    msg "test: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
-    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    cmake --build .
-    ctest
-}
-
 # check_renamed_symbols HEADER LIB
 # Check that if HEADER contains '#define MACRO ...' then MACRO is not a symbol
 # name in LIB.

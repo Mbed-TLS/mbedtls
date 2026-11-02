@@ -538,7 +538,9 @@ static int ssl_tls13_process_psk_identity(
         ssl, identity, identity_len, obfuscated_ticket_age,
         &psk->type, &session);
     if (ret != SSL_TLS1_3_PSK_IDENTITY_MATCH) {
-        ret = 0;
+        if (ret > 0) {
+            ret = 0;
+        }
         goto cleanup;
     }
 

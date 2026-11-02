@@ -499,9 +499,9 @@ struct psk_attributes {
 
 /* Process one PSK identity and its corresponding binder.
  *
- * return 0 if processing completed. In this case, \p psk_is_set is set to 1
- *         if the identity yielded a usable PSK, and to 0 otherwise. \p psk is
- *         valid only if \p psk_is_set is set to 1.
+ * return 0 if processing completed. In this case, psk_is_set is set to 1
+ *         if the identity yielded a usable PSK, and to 0 otherwise. psk is
+ *         valid only if psk_is_set is set to 1.
  * return A negative error code on fatal error.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL

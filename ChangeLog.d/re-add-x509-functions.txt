@@ -1,0 +1,5 @@
+Features
+   * Re-add mbedtls_x509_oid_get_md_alg() to the public API. This function
+     gets the hash algorithm associated with the given algorithm OID.
+   * Re-add mbedtls_x509_get_sig_alg() to the public API. This function gets
+     the signature algorithm associated with a given OID and parameters.

@@ -725,7 +725,7 @@ static int ssl_tls13_parse_pre_shared_key_ext(
         obfuscated_ticket_age = MBEDTLS_GET_UINT32_BE(identity, identity_len);
         p_identity_len += identity_len + 6;
 
-        MBEDTLS_SSL_CHK_BUF_READ_PTR(p_binder_len, binders_end, 1 + 32);
+        MBEDTLS_SSL_CHK_BUF_READ_PTR(p_binder_len, binders_end, 1);
         binder_len = *p_binder_len;
         if (binder_len < 32) {
             goto decode_error;

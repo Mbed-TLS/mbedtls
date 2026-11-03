@@ -788,9 +788,10 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-    mbedtls_aes_key_block_speculation_of_no_hardware(&key);
-
-    SK = cty.buf + cty.rk_offset + cty.nr * 4;
+    const unsigned char *SK_address =
+        (const unsigned char *) (cty.buf + cty.rk_offset + cty.nr * 4);
+    mbedtls_aes_key_block_speculation_of_no_hardware(&SK_address);
+    SK = (uint32_t *) SK_address;
 
     *RK++ = *SK++;
     *RK++ = *SK++;

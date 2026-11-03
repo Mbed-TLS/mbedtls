@@ -749,13 +749,9 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-    uint32_t *SK;
-#endif
     int ret;
     mbedtls_aes_context cty;
     uint32_t *RK;
-
 
     mbedtls_aes_init(&cty);
 
@@ -791,7 +787,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     const unsigned char *SK_address =
         (const unsigned char *) (cty.buf + cty.rk_offset + cty.nr * 4);
     mbedtls_aes_key_block_speculation_of_no_hardware(&SK_address);
-    SK = (uint32_t *) SK_address;
+    const uint32_t *SK = (const uint32_t *) SK_address;
 
     *RK++ = *SK++;
     *RK++ = *SK++;

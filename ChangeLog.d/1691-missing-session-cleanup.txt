@@ -1,5 +1,0 @@
-Security
-   * Fix a memory leak when a TLS 1.3 server receives a valid session ticket
-     but has no compatible PSK key exchange mode enabled. Repeated connections
-     could exhaust server memory and cause a denial of service. Reported by
-     Duong Gia Huy.

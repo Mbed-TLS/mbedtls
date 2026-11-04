@@ -1,5 +1,197 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS 3.6.8 branch released 2026-11-16
+
+New deprecations
+   * Document the use of PEM decryption as deprecated, due its inherent
+     security risks.
+
+Features
+   * Add the `MBEDTLS_CONFIG_BASE_FILE`, `MBEDTLS_CONFIG_NAME`,
+     `MBEDTLS_CONFIG_SET` and `MBEDTLS_CONFIG_UNSET` CMake options for
+     selecting and customizing compile-time configurations. Fixes #10838.
+   * Use the getrandom() system call for PSA crypto initialization on Linux
+     when supported by the C library, including musl, uClibc and Android
+     bionic, avoiding unnecessary reliance on /dev/random on Linux 5.6 and
+     earlier.
+
+Security
+   * Fix resource leaks in TLS 1.3 transform setup when a setup step fails
+     after allocating cipher contexts or importing the encryption traffic key.
+     Fixes #10917. CVE-2026-93843
+   * Fix a memory leak when a TLS 1.3 server receives a valid session ticket
+     but has no compatible PSK key exchange mode enabled. Repeated connections
+     could exhaust server memory and cause a denial of service. Reported by
+     Duong Gia Huy.
+  * Fixed a security issue in TLS 1.2 session resumption by rejecting session
+    tickets issued for a different TLS version. A TLS 1.3 session ticket could
+    previously be accepted during TLS 1.2 session resumption, causing the
+    server to use an all-zero master secret. This could result in client
+    authentication being bypassed and allow client impersonation. Found and
+    reported by k01n; Ada Logics in collaboration with Anthropic;
+    Mohammad Seet and Rayan Al Garni; Seungheon Oh. CVE-2026-93831.
+  * Fix TLS 1.3 server handling of the second ClientHello after a
+    HelloRetryRequest. An attacker could change SNI between the two
+    ClientHellos and bypass per-host client-authentication requirements
+    configured through the SNI callback. Reset state derived from the first
+    ClientHello before processing the second and reject inconsistent SNI,
+    cipher suite and key-share parameters. Found and reported independently
+    by saikumar279 and Duong Gia Huy.
+    CVE-2026-116375
+   * Fix a TLS client vulnerability caused by accepting the TLS 1.3 version
+     (0x0304) in the legacy_version field of a TLS 1.2 ServerHello. A
+     malicious server could cause the client to skip TLS 1.3 ServerHello
+     post-processing and key establishment, then complete a handshake without
+     the configured PSK or an ephemeral shared secret contributing to the
+     session keys. This affects both PSK-only handshakes and handshakes using
+     ephemeral key exchange, and can compromise the confidentiality and
+     integrity of the connection. In some client configurations, this could
+     also permit server impersonation. Reported by Anthropic and Ada Logics.
+     CVE-2026-115490.
+   * Fix incorrect bounds check while parsing ECDHE-RSA/ECDHE-ECDSA
+     ClientKeyExchange in TLS 1.2 servers. This can result in an out-of-bounds
+     read (possible crash, DoS) in configurations with a very small
+     MBEDTLS_SSL_IN_CONTENT_LEN. Reported by Naveed (nvxbug).
+   * Document that CRL name matching does not fully normalize names.
+     Reported by Satoru Kanno (GMO CONNECT Inc.). CVE-2026-116462
+   * Fix a remotely exploitable buffer overflow in TLS in some configurations
+     where ECJPAKE is enabled. CVE-2026-90469
+   * Fix an out-of-bounds read when parsing truncated TLS 1.2 ECJPAKE peer
+     messages. Reported by Brandon Arrendondo, found using aurora-lint.
+     Independently reported by x4evexnol.
+   * When parsing a CRL, if the chain is not empty and the allocation of a new
+     element fails, do not clear an existing element. CVE-2026-90475
+   * Fix a client-authentication bypass in TLS servers that use SNI to support
+     several virtual hosts with different client-authentication policies and
+     use session resumption. When several virtual hosts share an SSL
+     configuration and its session cache or ticket keys, a malicious client
+     can establish a resumable session with a virtual host that does not
+     require a client certificate, then resume that session with a different
+     virtual host that requires client authentication. The resumed handshake
+     does not enforce the stricter authentication policy, allowing
+     unauthenticated access to the protected virtual host. This issue affects
+     session ID-based resumption and session tickets.
+
+     Servers with distinct client-authentication contexts must partition their
+     resumption state. The new mbedtls_ssl_set_hs_session_cache_context() and
+     mbedtls_ssl_set_hs_session_ticket_context() functions let an SNI callback
+     select the appropriate session cache or ticket context for the current
+     client-authentication context.
+
+     Server applications must select, through the SNI callback, distinct
+     contexts for virtual hosts with different authentication policies, or
+     invalidate sessions when those policies change. Existing applications
+     that continue to share resumption state between different authentication
+     contexts remain vulnerable.
+
+     Reported by Younghyo Cho, CIS Lab, Seoultech, and independently by Jaehun
+     Lee, Pohang University of Science and Technology (POSTECH).
+     CVE-2026-93776.
+   * Fix a side channel in the p256-m implementation of ECDH/ECDSA on NIST
+     P-256. On some platforms, 256-bit addition and subtraction had
+     data-dependent branches. A local attacker could use those to recover some
+     bits of the ECDSA ephemeral scalar, possibly leading to a full private key
+     recovery. This only affects configurations with
+     MBEDTLS_PSA_P256M_DRIVER_ENABLED defined (either explicitly, or implicitly
+     because NIST P-256 is the only supported curve and EC J-PAKE is disabled).
+     Found by Zahiya Zahid (MS Information Security, MCS, NUST) and Shahzaib
+     Tahir (MS Information Security, MCS, NUST). CVE-2026-93845
+   * Build symbol MBEDTLS_PK_DECRYPT_MAX_ITERATIONS has been added to
+     limit the maximum number of iterations for the PBKDF2 algorithm used when
+     decrypting a PKCS#8 encrypted private key in PK module. CVE-2026-50582.
+   * Fix a Spectre v1 side channel in AES and GCM acceleration: a powerful
+     local attacker could potentially recover part of the key or plaintext
+     through timing measurements even when AESNI or AESCE is available,
+     if the pure software fallback is executed speculatively. CVE-2026-115493
+   * Fix a Spectre v1 side channel in non-authenticated ciphers that can
+     leak many key bits to powerful local attackers. Reported by Oleksii
+     Oleksenko (Azure Research, Microsoft) and Alvise de Faveri Tron
+     (Vrije Universiteit Amsterdam). CVE-2026-93833
+   * Fix possible Spectre v1 side channels in mbedtls_cipher_setkey(),
+     mbedtls_cipher_crypt(), mbedtls_cipher_auth_encrypt_ext() and
+     mbedtls_cipher_auth_decrypt_ext() when MBEDTLS_USE_PSA_CRYPTO is enabled.
+   * Fix possible Spectre v1 side channels in mbedtls_cipher_auth_encrypt_ext()
+     and mbedtls_cipher_auth_decrypt_ext() when MBEDTLS_NIST_KW_C is enabled.
+   * Fix a Spectre v1 side channel in ECDSA signature that may leak
+     the secret key to powerful local attackers. Reported by Oleksii
+     Oleksenko (Azure Research, Microsoft) and Alvise de Faveri Tron
+     (Vrije Universiteit Amsterdam). CVE-2026-93835
+   * Fix a Spectre v1 side channel in ECC operations that can leak part of
+     a private key to powerful local attackers. Reported by Oleksii
+     Oleksenko (Azure Research, Microsoft) and Alvise de Faveri Tron
+     (Vrije Universiteit Amsterdam). CVE-2026-93842
+   * Fix a use-after-free in TLS 1.2 clients when renegotiation starts while
+     unread application data remains buffered, with variable buffer lengths
+     enabled and a maximum fragment length negotiated. Reported by Álvaro Merino
+     Argumanez (realvarx). CVE-2026-93844
+   * Reject handshakes with signature algorithms disabled via
+     mbedtls_ssl_conf_sig_algs() in the TLS 1.2 server.
+     Reported by Ramesh Adhikari and Saikumar Andure (saikumar279).
+     CVE-2026-93777
+   * Fix a potential information disclosure during TLS 1.2 renegotiation when
+     MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH is enabled. If outgoing data is pending
+     while the output buffer is resized, a peer could receive memory outside
+     the output buffer. CVE-2026-115488
+   * When verifying a certificate chain and passing a URI as the cn argument to
+     the verify function, the URI was incorrectly matched against DNS wildcards
+     if found in the certificate. For example, a certificate for a DNS name of
+     "*.example.com" would be accepted for "sip:voip.example.com" or
+     "https://unqualified-host-name/abc.example.com" contrary to the statement
+     in our documentation that URIs require an exact match, and to the
+     requirements from RFC 9525. Found by saikumar279. CVE-2026-90470.
+   * In mbedtls_x509_dn_gets(), output a null terminator even when the
+     output string is empty (corresponding to a certificate with an empty
+     subject or issuer). Reported by A. Pol (coredump.ws). CVE-2026-115489
+
+Bugfix
+   * Reject serialized TLS 1.2 sessions whose session ID length exceeds 32,
+     instead of accepting an out-of-range length that is later used to read
+     past the end of the 32-byte session ID buffer.
+   * library/alignment.h: Fix 'MBEDTLS_GCC_VERSION' is not defined error
+   * Reject serialized SSL contexts whose ALPN protocol length exceeds the
+     remaining serialized data, instead of reading past the end of the buffer
+     in mbedtls_ssl_context_load().
+   * Fix corruption of DER certificates generated by the `cert_write`
+     sample program on Windows. #10152
+   * Fix MD5, SHA1, SHA224, SHA256 and RIPEMD160 computing the wrong
+     digest when 4GiB of data or more are processed in a single call.
+     That can happen either when using the one-shot APIs
+     (psa_hash_compute(), psa_hash_compare(), mbedtls_md(),
+     mbedtls_md5(), mbedtls_sha1(), mbedtls_ripemd160(),
+     mbedtls_sha256()) with more than 4GiB of input, or when using the
+     streaming API and passing more than 4GiB in a single call to the
+     update function (psa_hash_update(), mbedtls_md_update(),
+     mbedtls_md5_update(), mbedtls_sha1_update(),
+     mbedtls_ripemd160_update(), mbedtls_sha256_update()). Reported by
+     TimothyPMann in #10964.
+   * Reject numeric OID components that exceed the range of unsigned int
+     instead of silently encoding a different value. Fixes #10910.
+   * Revert hardening of RSA keygen introduced in the previous release, that
+     caused an unacceptable performance regression on platforms with higher
+     memory latency. #10830
+   * Add extern "C" guard to constant_time.h. Fixes
+     https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/930.
+   * Accept a basicConstraints extension that omits cA and contains only
+     pathLenConstraint, interpreting it as cA=FALSE as specified by RFC 5280.
+     This restores compatibility with certificates emitted by some devices
+     without accepting them as CA certificates. Fixes #11006.
+   * Fix a buffer over-read when parsing a TLS 1.2 ClientHello or
+     CertificateRequest that is truncated inside the two-byte length field
+     of the ciphersuite list (server side) or of the certificate
+     authorities list (client side): the length checks preceding those
+     fields reserved too few bytes, so the length field could be read past
+     the end of the message. Such messages are now rejected before the
+     read.
+   * The TLS 1.2 client now rejects a CertificateRequest message whose
+     supported_signature_algorithms list has an odd length.
+   * Accept X.509 certificates whose AuthorityKeyIdentifier extension is an
+     empty SEQUENCE. All of its fields are optional, so such certificates
+     are syntactically valid, but they were rejected with
+     MBEDTLS_ERR_X509_INVALID_EXTENSIONS. This affected, for example, the
+     root certificate that some antivirus products install for HTTPS
+     scanning. Reported by CodingMarkus. Fixes #10253.
+   * Fix failure of cmake -DENABLE_PROGRAMS=OFF. Fixes #10587.
+
 = Mbed TLS 3.6.7 branch released 2026-07-07
 
 Features

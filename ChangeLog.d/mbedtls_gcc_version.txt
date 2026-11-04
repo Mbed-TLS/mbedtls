@@ -1,2 +1,0 @@
-Bugfix
-   * library/alignment.h: Fix 'MBEDTLS_GCC_VERSION' is not defined error

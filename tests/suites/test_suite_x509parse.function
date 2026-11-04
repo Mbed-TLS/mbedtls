@@ -915,30 +915,58 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void mbedtls_x509_dn_gets(char *crt_file, char *entity, char *result_str)
 {
-    mbedtls_x509_crt   crt;
-    char buf[2000];
-    int res = 0;
-
+    const mbedtls_x509_name empty_sequence = {
+        { 0, 0, NULL },
+        { 0, 0, NULL },
+        NULL,
+        0,
+    };
+    mbedtls_x509_crt crt;
     mbedtls_x509_crt_init(&crt);
+    size_t output_length = strlen(result_str);
+    char *buf = NULL;
+
     USE_PSA_INIT();
+    if (crt_file[0]) {
+        TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, crt_file), 0);
+    }
 
-    memset(buf, 0, 2000);
-
-    TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, crt_file), 0);
+    const mbedtls_x509_name *dn = NULL;
     if (strcmp(entity, "subject") == 0) {
-        res =  mbedtls_x509_dn_gets(buf, 2000, &crt.subject);
+        dn = &crt.subject;
     } else if (strcmp(entity, "issuer") == 0) {
-        res =  mbedtls_x509_dn_gets(buf, 2000, &crt.issuer);
+        dn = &crt.issuer;
+    } else if (strcmp(entity, "empty") == 0) {
+        dn = &empty_sequence;
     } else {
         TEST_FAIL("Unknown entity");
     }
 
-    TEST_ASSERT(res != -1);
-    TEST_ASSERT(res != -2);
+    /* Nominal case */
+    TEST_CALLOC(buf, output_length + 1);
+    memset(buf, '~', output_length + 1);
+    TEST_EQUAL(mbedtls_x509_dn_gets(buf, output_length + 1, dn),
+               output_length);
+    TEST_EQUAL(buf[output_length], 0);
+    TEST_MEMORY_COMPARE(buf, output_length,
+                        result_str, output_length);
+    mbedtls_free(buf);
+    buf = NULL;
 
-    TEST_EQUAL(strcmp(buf, result_str), 0);
+    /* Output buffer too small */
+    /* Note that we go up to and including output_length, which is the case
+     * where all that's missing is room for the terminating null byte. */
+    for (size_t output_size = 0; output_size <= output_length; output_size++) {
+        TEST_CALLOC(buf, output_size);
+        TEST_EQUAL(mbedtls_x509_dn_gets(buf, output_size, dn),
+                   MBEDTLS_ERR_X509_BUFFER_TOO_SMALL);
+        /* The output buffer content is indeterminate */
+        mbedtls_free(buf);
+        buf = NULL;
+    }
 
 exit:
+    mbedtls_free(buf);
     mbedtls_x509_crt_free(&crt);
     USE_PSA_DONE();
 }

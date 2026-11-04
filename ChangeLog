@@ -22,14 +22,16 @@ Security
    * Fix a memory leak when a TLS 1.3 server receives a valid session ticket
      but has no compatible PSK key exchange mode enabled. Repeated connections
      could exhaust server memory and cause a denial of service. Reported by
-     Duong Gia Huy.
+     Duong Gia Huy. CVE-2026-115491.
   * Fixed a security issue in TLS 1.2 session resumption by rejecting session
     tickets issued for a different TLS version. A TLS 1.3 session ticket could
     previously be accepted during TLS 1.2 session resumption, causing the
     server to use an all-zero master secret. This could result in client
     authentication being bypassed and allow client impersonation. Found and
     reported by k01n; Ada Logics in collaboration with Anthropic;
-    Mohammad Seet and Rayan Al Garni; Seungheon Oh. CVE-2026-93831.
+    Mohammad Seet and Rayan Al Garni; Seungheon Oh;
+    MiniMax M3.1-Flash (M31Flash); Matthew Sanders (Cosmic Canopy LLC, Kama).
+    CVE-2026-93831.
   * Fix TLS 1.3 server handling of the second ClientHello after a
     HelloRetryRequest. An attacker could change SNI between the two
     ClientHellos and bypass per-host client-authentication requirements
@@ -46,8 +48,8 @@ Security
      session keys. This affects both PSK-only handshakes and handshakes using
      ephemeral key exchange, and can compromise the confidentiality and
      integrity of the connection. In some client configurations, this could
-     also permit server impersonation. Reported by Anthropic and Ada Logics.
-     CVE-2026-115490.
+     also permit server impersonation. Reported by Ada Logics in
+     collaboration with Anthropic. CVE-2026-115490.
    * Fix incorrect bounds check while parsing ECDHE-RSA/ECDHE-ECDSA
      ClientKeyExchange in TLS 1.2 servers. This can result in an out-of-bounds
      read (possible crash, DoS) in configurations with a very small
@@ -84,8 +86,10 @@ Security
      that continue to share resumption state between different authentication
      contexts remain vulnerable.
 
-     Reported by Younghyo Cho, CIS Lab, Seoultech, and independently by Jaehun
-     Lee, Pohang University of Science and Technology (POSTECH).
+     Reported independently by Younghyo Cho (CIS Lab, Seoultech),
+     Jaehun Lee (Pohang University of Science and Technology (POSTECH)),
+     Bhabani Sankar Das, and Han Qiu (Southeast University), with analysis
+     by Shuaigangran Yue (Southeast University, QAX corp.).
      CVE-2026-93776.
    * Fix a side channel in the p256-m implementation of ECDH/ECDSA on NIST
      P-256. On some platforms, 256-bit addition and subtraction had
@@ -98,7 +102,9 @@ Security
      Tahir (MS Information Security, MCS, NUST). CVE-2026-93845
    * Build symbol MBEDTLS_PK_DECRYPT_MAX_ITERATIONS has been added to
      limit the maximum number of iterations for the PBKDF2 algorithm used when
-     decrypting a PKCS#8 encrypted private key in PK module. CVE-2026-50582.
+     decrypting a PKCS#8 encrypted private key in PK module. Reported by
+     jiliang, Tanish Saxena ("Logic26"), Hila Cohen (@hillalee on GitHub).
+     CVE-2026-50582.
    * Fix a Spectre v1 side channel in AES and GCM acceleration: a powerful
      local attacker could potentially recover part of the key or plaintext
      through timing measurements even when AESNI or AESCE is available,
@@ -106,12 +112,14 @@ Security
    * Fix a Spectre v1 side channel in non-authenticated ciphers that can
      leak many key bits to powerful local attackers. Reported by Oleksii
      Oleksenko (Azure Research, Microsoft) and Alvise de Faveri Tron
-     (Vrije Universiteit Amsterdam). CVE-2026-93833
+     (Vrije Universiteit Amsterdam). CVE-2026-93833.
    * Fix possible Spectre v1 side channels in mbedtls_cipher_setkey(),
      mbedtls_cipher_crypt(), mbedtls_cipher_auth_encrypt_ext() and
      mbedtls_cipher_auth_decrypt_ext() when MBEDTLS_USE_PSA_CRYPTO is enabled.
+     CVE-2026-93833.
    * Fix possible Spectre v1 side channels in mbedtls_cipher_auth_encrypt_ext()
      and mbedtls_cipher_auth_decrypt_ext() when MBEDTLS_NIST_KW_C is enabled.
+     CVE-2026-93833.
    * Fix a Spectre v1 side channel in ECDSA signature that may leak
      the secret key to powerful local attackers. Reported by Oleksii
      Oleksenko (Azure Research, Microsoft) and Alvise de Faveri Tron

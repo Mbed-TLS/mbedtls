@@ -1,5 +1,0 @@
-Security
-   * Reject signatures using elliptic curves disallowed by the
-     policy configured via mbedtls_ssl_conf_groups().
-     Reported by jjfz123 on GitHub.
-     CVE-2026-90471

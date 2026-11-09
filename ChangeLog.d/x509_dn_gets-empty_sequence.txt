@@ -1,4 +1,0 @@
-Security
-   * In mbedtls_x509_dn_gets(), output a null terminator even when the
-     output string is empty (corresponding to a certificate with an empty
-     subject or issuer). Reported by A. Pol (coredump.ws). CVE-2026-115489

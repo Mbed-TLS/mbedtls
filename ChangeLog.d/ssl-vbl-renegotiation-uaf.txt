@@ -1,5 +1,0 @@
-Security
-   * Fix a use-after-free in TLS 1.2 clients when renegotiation starts while
-     unread application data remains buffered, with variable buffer lengths
-     enabled and a maximum fragment length negotiated. Reported by Álvaro Merino
-     Argumanez (realvarx). CVE-2026-93844

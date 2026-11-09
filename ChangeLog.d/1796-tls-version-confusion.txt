@@ -1,0 +1,11 @@
+Security
+   * Fix a TLS client vulnerability caused by accepting the TLS 1.3 version
+     (0x0304) in the legacy_version field of a TLS 1.2 ServerHello. A
+     malicious server could cause the client to skip TLS 1.3 ServerHello
+     post-processing and key establishment, then complete a handshake without
+     the configured PSK or an ephemeral shared secret contributing to the
+     session keys. This affects both PSK-only handshakes and handshakes using
+     ephemeral key exchange, and can compromise the confidentiality and
+     integrity of the connection. In some client configurations, this could
+     also permit server impersonation. Reported by Anthropic and Ada Logics.
+     CVE-2026-115490.

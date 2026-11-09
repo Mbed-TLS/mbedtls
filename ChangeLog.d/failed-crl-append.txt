@@ -1,0 +1,3 @@
+Security
+   * When parsing a CRL, if the chain is not empty and the allocation of a new
+     element fails, do not clear an existing element. CVE-2026-90475

@@ -264,6 +264,24 @@ TLS 1.2:Move server handshake to CLIENT_KEY_EXCHANGE
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:1
 
+# TLS 1.2 ECDHE ClientKeyExchange with an empty body must be rejected
+# before reading the one-byte EC public key length.
+Inject TLS 1.2 ECDHE-ECDSA ClientKeyExchange - valid
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_GCM:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_1
+inject_client_content_on_the_wire:MBEDTLS_PK_ECDSA:MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:"16030300461000004241046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5":"<= parse client key exchange":0
+
+Inject TLS 1.2 ECDHE-ECDSA ClientKeyExchange - empty body
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_GCM:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_1
+inject_client_content_on_the_wire:MBEDTLS_PK_ECDSA:MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:"160303000410000000":"Invalid buffer length":MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+Inject TLS 1.2 ECDHE-ECDSA ClientKeyExchange - length only
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_GCM:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_1
+inject_client_content_on_the_wire:MBEDTLS_PK_ECDSA:MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:"16030300051000000101":"Invalid data length":MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+Inject TLS 1.2 ECDHE-ECDSA ClientKeyExchange - trailing data
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_GCM:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_1
+inject_client_content_on_the_wire:MBEDTLS_PK_ECDSA:MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:"16030300471000004341046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5ff":"Invalid data length":MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
 TLS 1.2:Move server handshake to CERTIFICATE_VERIFY
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_CERTIFICATE_VERIFY:1
@@ -359,6 +377,27 @@ move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS
 Handshake, tls1_2
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 handshake_version:0:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_VERSION_TLS1_2
+
+TLS 1.2: client renegotiates after reading 10 of 100 bytes, MFL 512
+handshake_exchange_data_and_renegotiate:MBEDTLS_SSL_MAX_FRAG_LEN_512:100:10:MBEDTLS_SSL_IS_CLIENT
+
+TLS 1.2: client renegotiates after reading 1 of 100 bytes, MFL 512
+handshake_exchange_data_and_renegotiate:MBEDTLS_SSL_MAX_FRAG_LEN_512:100:1:MBEDTLS_SSL_IS_CLIENT
+
+TLS 1.2: client renegotiates after reading 99 of 100 bytes, MFL 512
+handshake_exchange_data_and_renegotiate:MBEDTLS_SSL_MAX_FRAG_LEN_512:100:99:MBEDTLS_SSL_IS_CLIENT
+
+TLS 1.2: client renegotiates with an exact-MFL record
+handshake_exchange_data_and_renegotiate:MBEDTLS_SSL_MAX_FRAG_LEN_512:512:10:MBEDTLS_SSL_IS_CLIENT
+
+TLS 1.2: client renegotiates after a partial read, MFL 4096
+handshake_exchange_data_and_renegotiate:MBEDTLS_SSL_MAX_FRAG_LEN_4096:100:10:MBEDTLS_SSL_IS_CLIENT
+
+TLS 1.2: client renegotiates without buffer resizing
+handshake_exchange_data_and_renegotiate:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:100:10:MBEDTLS_SSL_IS_CLIENT
+
+TLS 1.2: server requests renegotiation with unread client data
+handshake_exchange_data_and_renegotiate:MBEDTLS_SSL_MAX_FRAG_LEN_512:100:10:MBEDTLS_SSL_IS_SERVER
 
 Handshake, tls1_3
 depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_RSA_PSS:MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2620,6 +2659,147 @@ Record crypt, little space, NULL cipher, 1.2, MD5, EtM
 depends_on:MBEDTLS_SSL_NULL_CIPHERSUITES:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ALG_MD5:MBEDTLS_SSL_ENCRYPT_THEN_MAC
 ssl_crypt_record_small:MBEDTLS_CIPHER_NULL:MBEDTLS_MD_MD5:1:0:MBEDTLS_SSL_VERSION_TLS1_2:0:0
 
+SSL TLS 1.2 client fresh key schedule requires premaster input
+depends_on:MBEDTLS_SSL_CLI_C
+ssl_tls12_key_schedule_rejects_missing_input:MBEDTLS_SSL_IS_CLIENT:0:MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION:MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_NONE
+
+SSL TLS 1.2 client resumed key schedule requires resumption input
+depends_on:MBEDTLS_SSL_CLI_C
+ssl_tls12_key_schedule_rejects_missing_input:MBEDTLS_SSL_IS_CLIENT:1:MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE:MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_NONE
+
+SSL TLS 1.2 server fresh key schedule requires premaster input
+depends_on:MBEDTLS_SSL_SRV_C
+ssl_tls12_key_schedule_rejects_missing_input:MBEDTLS_SSL_IS_SERVER:0:MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION:MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_NONE
+
+SSL TLS 1.2 server resumed key schedule requires resumption input
+depends_on:MBEDTLS_SSL_SRV_C
+ssl_tls12_key_schedule_rejects_missing_input:MBEDTLS_SSL_IS_SERVER:1:MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE:MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_NONE
+
+SSL TLS 1.2 key schedule rejects repeated derivation
+depends_on:MBEDTLS_SSL_CLI_C
+ssl_tls12_key_schedule_rejects_missing_input:MBEDTLS_SSL_IS_CLIENT:0:MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE:MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS
+
+SSL TLS 1.2 client rejects Client Finished before traffic keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls12_state_rejects_invalid_stage:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_FINISHED
+
+SSL TLS 1.2 client rejects Server Finished before traffic keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls12_state_rejects_invalid_stage:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_FINISHED
+
+SSL TLS 1.2 client rejects handshake wrapup before traffic keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls12_state_rejects_invalid_stage:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HANDSHAKE_WRAPUP
+
+SSL TLS 1.2 server rejects Client Finished before traffic keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls12_state_rejects_invalid_stage:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_FINISHED
+
+SSL TLS 1.2 server rejects Server Finished before traffic keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls12_state_rejects_invalid_stage:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_FINISHED
+
+SSL TLS 1.2 server rejects handshake wrapup before traffic keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls12_state_rejects_invalid_stage:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HANDSHAKE_WRAPUP
+
+SSL TLS 1.3 early-data transform requires PSK input
+depends_on:MBEDTLS_SSL_EARLY_DATA
+ssl_tls13_key_schedule_validates_inputs:MBEDTLS_SSL_IS_CLIENT:TEST_TLS13_KS_OP_EARLY_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_NONE:MBEDTLS_ERR_SSL_INTERNAL_ERROR
+
+SSL TLS 1.3 early-data transform allows unselected ephemeral input
+depends_on:MBEDTLS_SSL_EARLY_DATA
+ssl_tls13_key_schedule_validates_inputs:MBEDTLS_SSL_IS_CLIENT:TEST_TLS13_KS_OP_EARLY_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK | MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PRIVATE:0
+
+SSL TLS 1.3 handshake transform requires PSK input
+depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+ssl_tls13_key_schedule_validates_inputs:MBEDTLS_SSL_IS_CLIENT:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_NONE:MBEDTLS_ERR_SSL_INTERNAL_ERROR
+
+SSL TLS 1.3 handshake transform rejects invalid key exchange mode
+ssl_tls13_key_schedule_validates_inputs:MBEDTLS_SSL_IS_CLIENT:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK | MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_BOTH:MBEDTLS_ERR_SSL_INTERNAL_ERROR
+
+SSL TLS 1.3 PSK transform allows unselected ephemeral input
+depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+ssl_tls13_key_schedule_validates_inputs:MBEDTLS_SSL_IS_CLIENT:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK | MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PRIVATE:0
+
+SSL TLS 1.3 server PSK transform allows unselected ephemeral input
+depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED:MBEDTLS_SSL_SRV_C
+ssl_tls13_key_schedule_validates_inputs:MBEDTLS_SSL_IS_SERVER:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK | MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_PEER:0
+
+SSL TLS 1.3 handshake transform requires ephemeral input
+depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+ssl_tls13_key_schedule_validates_inputs:MBEDTLS_SSL_IS_CLIENT:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_NONE:MBEDTLS_ERR_SSL_INTERNAL_ERROR
+
+SSL TLS 1.3 PSK-ephemeral transform requires PSK input
+depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+ssl_tls13_key_schedule_validates_inputs:MBEDTLS_SSL_IS_CLIENT:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_EPHEMERAL_BOTH:MBEDTLS_ERR_SSL_INTERNAL_ERROR
+
+SSL TLS 1.3 PSK-ephemeral transform requires ephemeral input
+depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+ssl_tls13_key_schedule_validates_inputs:MBEDTLS_SSL_IS_CLIENT:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_INPUT_PSK:MBEDTLS_ERR_SSL_INTERNAL_ERROR
+
+SSL TLS 1.3 key schedule rejects repeating selected early-secret transition
+ssl_tls13_key_schedule_rejects_transition:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET:TEST_TLS13_KS_OP_SELECTED_EARLY_SECRET
+
+SSL TLS 1.3 key schedule rejects selected early secret after handshake stage
+ssl_tls13_key_schedule_rejects_transition:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE:TEST_TLS13_KS_OP_SELECTED_EARLY_SECRET
+
+SSL TLS 1.3 key schedule rejects provisional early secret after selected early secret
+depends_on:MBEDTLS_SSL_EARLY_DATA
+ssl_tls13_key_schedule_rejects_transition:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET:TEST_TLS13_KS_OP_PROVISIONAL_EARLY_SECRET
+
+SSL TLS 1.3 key schedule rejects provisional early secret after application stage
+depends_on:MBEDTLS_SSL_EARLY_DATA
+ssl_tls13_key_schedule_rejects_transition:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION:TEST_TLS13_KS_OP_PROVISIONAL_EARLY_SECRET
+
+SSL TLS 1.3 key schedule rejects early-data transform before early secret
+depends_on:MBEDTLS_SSL_EARLY_DATA
+ssl_tls13_key_schedule_rejects_transition:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE:TEST_TLS13_KS_OP_EARLY_TRANSFORM
+
+SSL TLS 1.3 key schedule rejects early-data transform after handshake stage
+depends_on:MBEDTLS_SSL_EARLY_DATA
+ssl_tls13_key_schedule_rejects_transition:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE:TEST_TLS13_KS_OP_EARLY_TRANSFORM
+
+SSL TLS 1.3 key schedule rejects handshake transform before early secret
+ssl_tls13_key_schedule_rejects_transition:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_NONE:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM
+
+SSL TLS 1.3 key schedule rejects repeating handshake transform
+ssl_tls13_key_schedule_rejects_transition:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_HANDSHAKE:TEST_TLS13_KS_OP_HANDSHAKE_TRANSFORM
+
+SSL TLS 1.3 key schedule rejects application transform before handshake keys
+ssl_tls13_key_schedule_rejects_transition:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_EARLY_SECRET:TEST_TLS13_KS_OP_APPLICATION_TRANSFORM
+
+SSL TLS 1.3 key schedule rejects repeating application transform
+ssl_tls13_key_schedule_rejects_transition:MBEDTLS_SSL_TLS1_3_KEY_SCHEDULING_STAGE_APPLICATION:TEST_TLS13_KS_OP_APPLICATION_TRANSFORM
+
+SSL TLS 1.3 ServerHello post-processing requires early-data stage
+depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls13_postprocess_server_hello_requires_early_data_stage
+
+SSL TLS 1.3 client rejects EncryptedExtensions before handshake keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls13_state_rejects_invalid_stage:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
+
+SSL TLS 1.3 client rejects Server Finished before handshake keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP:PSA_WANT_ALG_RSA_PKCS1V15_SIGN
+ssl_tls13_state_rejects_invalid_stage:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_FINISHED
+
+SSL TLS 1.3 client rejects handshake wrapup before application keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP:PSA_WANT_ALG_RSA_PKCS1V15_SIGN
+ssl_tls13_state_rejects_invalid_stage:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HANDSHAKE_WRAPUP
+
+SSL TLS 1.3 server rejects EncryptedExtensions before handshake keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls13_state_rejects_invalid_stage:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
+
+SSL TLS 1.3 server rejects Server Finished before handshake keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+ssl_tls13_state_rejects_invalid_stage:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_FINISHED
+
+SSL TLS 1.3 server rejects handshake wrapup before application keys
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP:PSA_WANT_ALG_RSA_PKCS1V15_SIGN
+ssl_tls13_state_rejects_invalid_stage:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HANDSHAKE_WRAPUP
+
 SSL TLS 1.3 Key schedule: Secret evolution #1
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Initial secret to Early Secret
@@ -3250,6 +3430,12 @@ TLS ID <-> group name: ffdhe8192
 depends_on:PSA_WANT_DH_RFC7919_8192
 test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:"ffdhe8192"
 
+Handshake session cache context override
+hs_session_cache_context:
+
+Handshake session ticket context override
+hs_session_ticket_context:
+
 Version config: valid client TLS 1.2 only
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 conf_version:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_TRANSPORT_STREAM:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_VERSION_TLS1_2:0
@@ -3409,6 +3595,68 @@ tls13_server_certificate_msg_invalid_vector_len
 TLS 1.3 cli rejects HRR selecting an un-offered group
 reject_hrr_selecting_unoffered_group
 
+TLS 1.3 server resets CH1-derived state before CH2
+tls13_hrr_reset_state
+
+TLS 1.3 HRR: no SNI remains absent in CH2
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_NONE:TEST_TLS13_HRR_SNI_NONE
+
+TLS 1.3 HRR: CH2 cannot add SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_NONE:TEST_TLS13_HRR_SNI_OPEN
+
+TLS 1.3 HRR: CH2 cannot add closed SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_NONE:TEST_TLS13_HRR_SNI_CLOSED
+
+TLS 1.3 HRR: open SNI remains unchanged in CH2
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_OPEN
+
+TLS 1.3 HRR: CH2 cannot omit open SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_NONE
+
+TLS 1.3 HRR: CH2 cannot change open SNI to closed
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_CLOSED
+
+TLS 1.3 HRR: CH2 cannot change open SNI to an equal-length name
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_OPEN:TEST_TLS13_HRR_SNI_OTHER
+
+TLS 1.3 HRR: closed SNI remains unchanged in CH2
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_CLOSED
+
+TLS 1.3 HRR: CH2 cannot omit closed SNI
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_NONE
+
+TLS 1.3 HRR: CH2 cannot change closed SNI to open
+tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_OPEN
+
+TLS 1.3 server accepts compliant CH2, sanity check tls13_srv_rejects_inconsistent_ch2
+depends_on:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256
+tls13_srv_rejects_inconsistent_ch2:TEST_TLS13_CH2_NO_INCONSISTENCY
+
+TLS 1.3 server rejects CH2 inducing a change of handshake ciphersuite
+depends_on:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256:MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
+tls13_srv_rejects_inconsistent_ch2:TEST_TLS13_CH2_INCONSISTENT_CIPHERSUITE
+
+TLS 1.3 server rejects CH2 proposing a group different from the one in the HRR
+tls13_srv_rejects_inconsistent_ch2:TEST_TLS13_CH2_INCONSISTENT_KEY_SHARE_GROUP
+
+TLS 1.3 server rejects an empty CH2 key_share extension after HRR
+tls13_srv_rejects_hrr_ch2_key_share_count:TEST_TLS13_HRR_CH2_EMPTY_KEY_SHARE
+
+TLS 1.3 server rejects CH2 with multiple key shares after HRR
+tls13_srv_rejects_hrr_ch2_key_share_count:TEST_TLS13_HRR_CH2_MULTIPLE_KEY_SHARES
+
+SSL server rejects a zero-length SNI hostname
+depends_on:MBEDTLS_SSL_SERVER_NAME_INDICATION
+ssl_server_name_rejects_empty_hostname
+
+EC-JPAKE read round rejects a missing length byte
+depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+ssl_ecjpake_read_round:0:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+EC-JPAKE read round succeeds with a complete round
+depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+ssl_ecjpake_read_round:-1:0
+
 EC-JPAKE set password
 depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 ssl_ecjpake_set_password:0
@@ -3422,6 +3670,12 @@ elliptic_curve_get_properties
 
 TLS 1.3 resume session with ticket
 tls13_resume_session_with_ticket
+
+TLS 1.2 resumption with TLS 1.3 ticket fails
+tls12_resume_session_with_tls13_ticket
+
+TLS 1.3 ticket rejected, no suitable key exchange mode
+tls13_ticket_rejected_no_suitable_key_exchange_mode
 
 TLS 1.3 server propagates RMS computation error
 depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_X509_RSASSA_PSS_SUPPORT:PSA_WANT_ALG_RSA_PKCS1V15_SIGN
@@ -3606,6 +3860,22 @@ ssl_tls_exporter_too_early:MBEDTLS_SSL_VERSION_TLS1_3:1:MBEDTLS_SSL_SERVER_CERTI
 TLS fatal alert getter
 ssl_get_alert_after_fatal
 
+TLS 1.2 client rejects ServerHello with TLS 1.1 legacy_version
+depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+tls12_reject_invalid_legacy_version:MBEDTLS_SSL_IS_CLIENT:0x0302
+
+TLS 1.2 client rejects ServerHello with TLS 1.3 legacy_version
+depends_on:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+tls12_reject_invalid_legacy_version:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
+
+TLS 1.2 server rejects ClientHello with TLS 1.1 legacy_version
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+tls12_reject_invalid_legacy_version:MBEDTLS_SSL_IS_SERVER:0x0302
+
+TLS 1.2 server rejects ClientHello with TLS 1.3 legacy_version
+depends_on:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+tls12_reject_invalid_legacy_version:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3
+
 Default verify_result before doing a handshake
 verify_result_without_handshake
 
@@ -3653,3 +3923,21 @@ tls13_record_boundary_alignment:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HS_FINISHED
 TLS 1.3 EndOfEarlyData record boundary alignment enforcement
 depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_SESSION_TICKETS
 tls13_record_boundary_alignment:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HS_END_OF_EARLY_DATA
+
+# A P-256 key share and ZK public value each occupy 65 bytes, plus a
+# one-byte length prefix. With 132 bytes, these two outputs exactly fill the
+# buffer. The following ZK proof step must therefore fail at the length-prefix
+# bounds check in mbedtls_psa_ecjpake_write_round().
+EC-JPAKE write round with undersized output buffer
+depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:PSA_WANT_ALG_JPAKE:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256
+ssl_ecjpake_write_round_buffer_overflow:132:MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL
+
+# A P-256/SHA-256 round-one message contains two sets of a 65-byte key share,
+# a 65-byte ZK public value and a 32-byte ZK proof, each with a one-byte
+# length prefix: 2 * (66 + 66 + 33) = 330 bytes.
+EC-JPAKE write round with sufficient output buffer
+depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:PSA_WANT_ALG_JPAKE:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256
+ssl_ecjpake_write_round_buffer_overflow:330:0
+
+TLS 1.2 renegotiation with pending output after buffer resize (ASan)
+resize_pending_output_asan:

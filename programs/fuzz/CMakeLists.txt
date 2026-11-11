@@ -9,6 +9,7 @@ if(FUZZINGENGINE_LIB)
 endif()
 
 set(executables_no_common_c
+    fuzz_x509verify
     fuzz_pubkey
     fuzz_x509crl
     fuzz_x509crt

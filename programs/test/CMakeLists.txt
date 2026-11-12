@@ -25,11 +25,7 @@ if(TEST_CPP)
     )
     add_executable(cpp_dummy_build "${cpp_dummy_build_cpp}")
     set_base_compile_options(cpp_dummy_build)
-    target_include_directories(cpp_dummy_build
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include)
-    target_link_libraries(cpp_dummy_build ${tfpsacrypto_target} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(cpp_dummy_build ${mbedtls_target} ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 if(USE_SHARED_MBEDTLS_LIBRARY AND
@@ -37,9 +33,7 @@ if(USE_SHARED_MBEDTLS_LIBRARY AND
     add_executable(dlopen "dlopen.c")
     set_base_compile_options(dlopen)
     target_include_directories(dlopen
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include)
+        PRIVATE "$<TARGET_PROPERTY:${mbedtls_target},INTERFACE_INCLUDE_DIRECTORIES>")
     target_link_libraries(dlopen ${CMAKE_DL_LIBS})
 endif()
 

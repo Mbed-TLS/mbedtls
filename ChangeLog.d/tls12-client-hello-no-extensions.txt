@@ -1,0 +1,4 @@
+Bugfix
+   * Fix TLS servers that also support TLS 1.3 rejecting a TLS 1.2
+     ClientHello that omits the extension list, which RFC 5246 allows.
+     This was a regression in Mbed TLS 3.6.0. Fixes #9963.

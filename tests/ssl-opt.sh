@@ -8989,6 +8989,19 @@ run_test    "ClientHello without extensions: PSK" \
             -S "Ciphersuite is .*-EC.*" \
             -s "dumping 'client hello extensions' (0 bytes)"
 
+# A server that also supports TLS 1.3 must hand a TLS 1.2 ClientHello
+# without an extension list over to the TLS 1.2 code.
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_gnutls
+run_test    "ClientHello without extensions: PSK, TLS 1.3 server" \
+            "$P_SRV debug_level=3 psk=73776f726466697368" \
+            "$G_CLI --priority=NORMAL:+PSK:-RSA:-VERS-TLS1.3:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION --pskusername=Client_identity --pskkey=73776f726466697368 localhost" \
+            0 \
+            -s "no supported_versions extension" \
+            -s "Ciphersuite is .*-PSK-.*" \
+            -s "dumping 'client hello extensions' (0 bytes)"
+
 # Tests for mbedtls_ssl_get_bytes_avail()
 
 # The server first reads buffer_size-1 bytes, then reads the remainder.

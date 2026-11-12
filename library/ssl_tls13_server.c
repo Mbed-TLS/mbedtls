@@ -1346,10 +1346,14 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     p += cipher_suites_len;
     cipher_suites_end = p;
 
-    /* Check if we have enough data for legacy_compression_methods
-     * and the length of the extensions (2 bytes).
+    /* Check if we have enough data for legacy_compression_methods.
+     * The extensions are optional in a TLS 1.2 ClientHello, so the
+     * extensions length is not required here: if it is missing,
+     * mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts()
+     * reports no supported_versions extension and we hand over to
+     * the TLS 1.2 code.
      */
-    MBEDTLS_SSL_CHK_BUF_READ_PTR(p + 1, end, p[0] + 2);
+    MBEDTLS_SSL_CHK_BUF_READ_PTR(p + 1, end, p[0]);
 
     /*
      * Search for the supported versions extension and parse it to determine

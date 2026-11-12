@@ -8,7 +8,7 @@
 import unittest
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_framework import unittest_config_checks
+from mbedtls_framework import build_tree, unittest_config_checks
 
 
 class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
@@ -17,10 +17,7 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
     #pylint: disable=invalid-name # uppercase letters make sense here
 
     PROJECT_CONFIG_C = 'library/mbedtls_config.c'
-    PROJECT_SPECIFIC_INCLUDE_DIRECTORIES = [
-        'tf-psa-crypto/include',
-        'tf-psa-crypto/drivers/builtin/include',
-    ]
+    PROJECT_SPECIFIC_INCLUDE_DIRECTORIES = build_tree.public_include_path()
 
     ## Method naming convention:
     ## * test_crypto_xxx when testing a tweak of crypto_config.h

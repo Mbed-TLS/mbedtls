@@ -78,16 +78,6 @@ extern const struct mbedtls_ssl_tls13_labels_struct mbedtls_ssl_tls13_labels;
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_EXPANSION_LEN \
     (255 * MBEDTLS_TLS1_3_MD_MAX_SIZE)
 
-/* Length of the HkdfLabel structure defined in RFC 8446, Section 7.1,
- * for a label of \p label_len bytes (including the "tls13 " prefix)
- * and a context of \p context_len bytes. */
-#define SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN(label_len, context_len) \
-    (2                     /* expansion length           */ \
-     + 1                   /* label length               */ \
-     + (label_len)                                         \
-     + 1                   /* context length             */ \
-     + (context_len))
-
 /**
  * \brief            The \c HKDF-Expand-Label function from
  *                   the TLS 1.3 standard RFC 8446.

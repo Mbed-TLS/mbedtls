@@ -1,0 +1,5 @@
+Security
+   * Zeroize the temporary buffer of mbedtls_mpi_gcd_modinv_odd() before
+     freeing it. The buffer holds intermediate values of the modular
+     inverse, so mbedtls_mpi_inv_mod() left the inverse in freed heap
+     memory, and RSA key generation left the CRT coefficient QP there.

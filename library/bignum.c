@@ -1814,7 +1814,7 @@ int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
 
 cleanup:
     mbedtls_mpi_free(&local_g);
-    mbedtls_free(T);
+    mbedtls_mpi_zeroize_and_free(T, N->n * T_factor);
     return ret;
 }
 

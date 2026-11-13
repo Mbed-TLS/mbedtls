@@ -1,0 +1,5 @@
+Changes
+   * Add missing parentheses around the arguments of some internal X.509
+     macros, so that they behave as expected with expression arguments.
+     No current use of these macros is affected. Found with clang-tidy's
+     bugprone-macro-parentheses check (#9483).

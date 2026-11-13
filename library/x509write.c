@@ -28,11 +28,11 @@
 #define CHECK_OVERFLOW_ADD(a, b) \
     do                         \
     {                           \
-        if (a > SIZE_MAX - (b)) \
+        if ((a) > SIZE_MAX - (b)) \
         { \
             return MBEDTLS_ERR_X509_BAD_INPUT_DATA; \
         }                            \
-        a += b; \
+        (a) += (b); \
     } while (0)
 
 int mbedtls_x509_write_set_san_common(mbedtls_asn1_named_data **extensions,

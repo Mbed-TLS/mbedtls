@@ -1463,6 +1463,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      *    opaque extension_data<0..2^16-1>;
      * } Extension;
      */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 2);
     extensions_len = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, extensions_len);

@@ -7720,10 +7720,12 @@ void tls13_malformed_psk_kex_modes()
 
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep,
                                               MBEDTLS_SSL_IS_CLIENT,
-                                              &client_options), 0);
+                                              &client_options,
+                                              NULL, NULL, NULL), 0);
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep,
                                               MBEDTLS_SSL_IS_SERVER,
-                                              &server_options), 0);
+                                              &server_options,
+                                              NULL, NULL, NULL), 0);
 
     TEST_EQUAL(mbedtls_test_mock_socket_connect(&client_ep.socket,
                                                 &server_ep.socket, 1024), 0);
@@ -7800,13 +7802,15 @@ void tls13_malformed_psk_kex_modes()
 
     ret = mbedtls_ssl_handshake_step(&client_ep.ssl);
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE);
-    TEST_EQUAL(mbedtls_ssl_get_fatal_alert(&client_ep.ssl),
-               MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
+    /* mbedtls_ssl_get_fatal_alert() does not exist in 3.6: the received
+     * alert is still in in_msg (level, description). */
+    TEST_EQUAL(client_ep.ssl.in_msg[0], MBEDTLS_SSL_ALERT_LEVEL_FATAL);
+    TEST_EQUAL(client_ep.ssl.in_msg[1], MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
 
 
 exit:
-    mbedtls_test_ssl_endpoint_free(&client_ep);
-    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     mbedtls_debug_set_threshold(0);

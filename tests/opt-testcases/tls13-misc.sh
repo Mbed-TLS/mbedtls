@@ -1209,11 +1209,10 @@ run_test "TLS 1.3 G->m: resumption with early data, AES-256-GCM-SHA384 only" \
          -s "106 early data bytes read"
 
 # The Mbed TLS server does not allow early data for the ticket it sends but
-# the GnuTLS indicates early data anyway when resuming with the ticket and
-# sends early data. The Mbed TLS server does not expect early data in
-# association with the ticket thus it eventually fails the resumption
-# handshake. The GnuTLS client behavior is not compliant here with the TLS 1.3
-# specification and thus its behavior may change in following versions.
+# GnuTLS still indicates early data and sends it when resuming. That client
+# behavior is not compliant with TLS 1.3. The server rejects early data,
+# skips the early data records up to the configured max_early_data_size, and
+# completes a 1-RTT handshake.
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 requires_config_enabled MBEDTLS_HAVE_TIME
@@ -1227,7 +1226,7 @@ run_test "TLS 1.3 G->m: resumption, early data cli-enabled/srv-default" \
          "$P_SRV debug_level=4 tickets=1" \
          "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r \
                       --earlydata $EARLY_DATA_INPUT" \
-         1 \
+         0 \
          -s "Protocol is TLSv1.3" \
          -s "key exchange mode: psk" \
          -s "Select PSK ciphersuite" \
@@ -1237,14 +1236,10 @@ run_test "TLS 1.3 G->m: resumption, early data cli-enabled/srv-default" \
          -s "EarlyData: rejected, feature disabled in server configuration." \
          -S "EncryptedExtensions: early_data(42) extension exists." \
          -s "EarlyData: deprotect and discard app data records" \
-         -s "EarlyData: Too much early data received"
+         -S "EarlyData: Too much early data received"
 
-# The Mbed TLS server does not allow early data for the ticket it sends but
-# the GnuTLS indicates early data anyway when resuming with the ticket and
-# sends early data. The Mbed TLS server does not expect early data in
-# association with the ticket thus it eventually fails the resumption
-# handshake. The GnuTLS client behavior is not compliant here with the TLS 1.3
-# specification and thus its behavior may change in following versions.
+# Same as cli-enabled/srv-default, with early data explicitly disabled on the
+# server. GnuTLS still sends early data; the server rejects and skips it.
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 requires_config_enabled MBEDTLS_HAVE_TIME
@@ -1258,7 +1253,7 @@ run_test "TLS 1.3 G->m: resumption, early data cli-enabled/srv-disabled" \
          "$P_SRV debug_level=4 tickets=1 early_data=0" \
          "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r \
                       --earlydata $EARLY_DATA_INPUT" \
-         1 \
+         0 \
          -s "Protocol is TLSv1.3" \
          -s "key exchange mode: psk" \
          -s "Select PSK ciphersuite" \
@@ -1268,7 +1263,7 @@ run_test "TLS 1.3 G->m: resumption, early data cli-enabled/srv-disabled" \
          -s "EarlyData: rejected, feature disabled in server configuration." \
          -S "EncryptedExtensions: early_data(42) extension exists." \
          -s "EarlyData: deprotect and discard app data records" \
-         -s "EarlyData: Too much early data received"
+         -S "EarlyData: Too much early data received"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS

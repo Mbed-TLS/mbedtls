@@ -28,14 +28,7 @@
 # 0002 - extension length
 # 0000 - length of client_shares (empty is valid)
 #
-# Note: currently our TLS "1.3 or 1.2" code requires extension length to be
-# present even it it's 0. This is not strictly compliant but doesn't matter
-# much in practice as these days everyone wants to use signature_algorithms
-# (for hashes better than SHA-1), secure_renego (even if you have renego
-# disabled), and most people want either ECC or PSK related extensions.
-# See https://github.com/Mbed-TLS/mbedtls/issues/9963
-#
-# Also, currently we won't negotiate ECC ciphersuites unless at least the
+# Note: currently we won't negotiate ECC ciphersuites unless at least the
 # supported_groups extension is present, see
 # https://github.com/Mbed-TLS/mbedtls/issues/7458
 #

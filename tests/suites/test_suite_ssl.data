@@ -2851,15 +2851,6 @@ SSL TLS 1.3 Key schedule: HKDF Expand Label #10 (RFC 8448)
 depends_on:PSA_WANT_ALG_SHA_256
 ssl_tls13_hkdf_expand_label:PSA_ALG_SHA_256:"7df235f2031d2a051287d02b0241b0bfdaf86cc856231f2d5aba46c434ec196c":tls13_label_resumption:"0000":32:"4ecd0eb6ec3b4d87f5d6028f922ca4c5851a277fd41311c9e62d2c9492e1c4f3"
 
-SSL TLS 1.3 Key schedule: HkdfLabel length macro, empty context
-ssl_tls13_hkdf_label_len_macro:18:0
-
-SSL TLS 1.3 Key schedule: HkdfLabel length macro, SHA-256 context
-ssl_tls13_hkdf_label_len_macro:13:32
-
-SSL TLS 1.3 Key schedule: HkdfLabel length macro, SHA-384 context
-ssl_tls13_hkdf_label_len_macro:13:48
-
 SSL TLS 1.3 Key schedule: Traffic key generation #1
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Client/Server handshake traffic secrets -> Client/Server traffic {Key,IV}

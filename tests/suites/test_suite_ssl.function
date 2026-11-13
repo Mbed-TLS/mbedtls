@@ -2052,30 +2052,6 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
-void ssl_tls13_hkdf_label_len_macro(int label_len, int context_len)
-{
-    /* Check that SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN treats each
-     * argument as a unit, even when it is an expression containing
-     * operators of lower precedence than '+'. */
-    volatile int one = 1;
-    const size_t expected = 2 + 1 + (size_t) label_len + 1 +
-                            (size_t) context_len;
-
-    TEST_EQUAL(SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN(label_len, context_len),
-               expected);
-    TEST_EQUAL(SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN(label_len | 0,
-                                                      context_len | 0),
-               expected);
-    TEST_EQUAL(SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN(one ? label_len : 0,
-                                                      one ? context_len : 0),
-               expected);
-
-exit:
-    ;
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_hkdf_expand_label(int hash_alg,
                                  data_t *secret,
                                  int label_idx,

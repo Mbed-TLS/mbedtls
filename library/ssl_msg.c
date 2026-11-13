@@ -3903,19 +3903,21 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_BUF(4, "input payload after decrypt",
                               rec->buf + rec->data_offset, rec->data_len);
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
         /* We have already checked the record content type
          * in ssl_parse_record_header(), failing or silently
          * dropping the record in the case of an unknown type.
          *
-         * Since with the use of CIDs, the record content type
-         * might change during decryption, re-check the record
-         * content type, but treat a failure as fatal this time. */
+         * Since with the use of CIDs or with TLS 1.3, the record
+         * content type might change during decryption (it is taken
+         * from the inner plaintext), re-check the record content
+         * type, but treat a failure as fatal this time. */
         if (ssl_check_record_type(rec->type)) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("unknown record type"));
+            MBEDTLS_SSL_DEBUG_MSG(1, ("unknown record type %u",
+                                      (unsigned) rec->type));
             return MBEDTLS_ERR_SSL_INVALID_RECORD;
         }
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID || MBEDTLS_SSL_PROTO_TLS1_3 */
 
         if (rec->data_len == 0) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)

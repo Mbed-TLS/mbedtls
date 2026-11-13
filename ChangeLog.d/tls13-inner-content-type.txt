@@ -1,0 +1,7 @@
+Bugfix
+   * In TLS 1.3, reject a protected record whose inner content type is not
+     one of the registered values as soon as it is decrypted, with
+     MBEDTLS_ERR_SSL_INVALID_RECORD, as required by RFC 8446. Previously,
+     when MBEDTLS_SSL_DTLS_CONNECTION_ID was disabled, such a record was
+     accepted by the record layer and only rejected later, if at all.
+     Fixes #11059.

@@ -7976,3 +7976,6 @@ ecc_conversion_functions:MBEDTLS_ECP_DP_NONE:0:0
 
 ECP group ID <-> PSA family - Wrong values
 ecc_conversion_functions_fail
+
+PSA macros with expression arguments
+macros_with_expression_arguments:

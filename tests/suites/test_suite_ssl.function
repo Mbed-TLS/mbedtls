@@ -6901,6 +6901,64 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
+void ssl_tls13_inner_content_type(int inner_type, int expected_ret)
+{
+    /* RFC 8446 section 5: the only content types allowed in protected
+     * records are alert, handshake and application data, and a receiver
+     * which gets anything else must terminate the connection with an
+     * "unexpected_message" alert. Send an application-data-sized record
+     * with the given inner content type from the client and check how the
+     * server's mbedtls_ssl_read() reacts, and, if it rejects the record,
+     * that the client receives a fatal unexpected_message alert. */
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    memset(&client_ep, 0, sizeof(client_ep));
+    memset(&server_ep, 0, sizeof(server_ep));
+    mbedtls_test_handshake_test_options options;
+    const unsigned char payload[] = "inner content type test";
+    unsigned char read_buf[sizeof(payload)];
+
+    MD_OR_USE_PSA_INIT();
+
+    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep,
+                                                       &client_ep,
+                                                       &options,
+                                                       MBEDTLS_SSL_VERSION_TLS1_3);
+    TEST_EQUAL(ret, 0);
+
+    /* Build and send the record by hand, since mbedtls_ssl_write() only
+     * sends application data. mbedtls_ssl_write_record() puts out_msgtype
+     * in the TLS 1.3 inner plaintext. */
+    TEST_EQUAL(mbedtls_ssl_flush_output(&client_ep.ssl), 0);
+    client_ep.ssl.out_msgtype = inner_type;
+    client_ep.ssl.out_msglen = sizeof(payload);
+    memcpy(client_ep.ssl.out_msg, payload, sizeof(payload));
+    TEST_EQUAL(mbedtls_ssl_write_record(&client_ep.ssl, 1), 0);
+
+    ret = mbedtls_ssl_read(&server_ep.ssl, read_buf, sizeof(read_buf));
+    if (expected_ret == 0) {
+        TEST_EQUAL(ret, (int) sizeof(payload));
+        TEST_MEMORY_COMPARE(read_buf, sizeof(payload),
+                            payload, sizeof(payload));
+    } else {
+        TEST_EQUAL(ret, expected_ret);
+
+        /* The server must have sent a fatal unexpected_message alert. */
+        ret = mbedtls_ssl_read(&client_ep.ssl, read_buf, sizeof(read_buf));
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE);
+        TEST_EQUAL(mbedtls_ssl_get_fatal_alert(&client_ep.ssl),
+                   MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE);
+    }
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_free_handshake_options(&options);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void ssl_tls_exporter_rejects_bad_parameters(
     int proto, int exported_key_length, int label_length, int context_length)

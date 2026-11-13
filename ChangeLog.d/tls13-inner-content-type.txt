@@ -1,0 +1,9 @@
+Bugfix
+   * In TLS 1.3, reject a protected record whose inner content type is not
+     alert, handshake or application data with
+     MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE, and send a fatal unexpected_message
+     alert, as required by RFC 8446. Previously, a protected
+     ChangeCipherSpec record could be silently ignored, and a record with an
+     unknown inner content type was rejected without the alert or, when
+     MBEDTLS_SSL_DTLS_CONNECTION_ID was disabled, accepted by the record
+     layer and only rejected later. Fixes #11059.

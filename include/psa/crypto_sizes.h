@@ -644,9 +644,9 @@
  *         return value is unspecified.
  */
 #define PSA_SIGN_OUTPUT_SIZE(key_type, key_bits, alg)        \
-    (PSA_KEY_TYPE_IS_RSA(key_type) ? ((void) alg, PSA_BITS_TO_BYTES(key_bits)) : \
+    (PSA_KEY_TYPE_IS_RSA(key_type) ? ((void) (alg), PSA_BITS_TO_BYTES(key_bits)) : \
      PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_ECDSA_SIGNATURE_SIZE(key_bits) : \
-     ((void) alg, 0u))
+     ((void) (alg), 0u))
 
 #define PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE     \
     PSA_ECDSA_SIGNATURE_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
@@ -698,7 +698,7 @@
  */
 #define PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(key_type, key_bits, alg)     \
     (PSA_KEY_TYPE_IS_RSA(key_type) ?                                    \
-     ((void) alg, PSA_BITS_TO_BYTES(key_bits)) :                         \
+     ((void) (alg), PSA_BITS_TO_BYTES(key_bits)) :                       \
      0u)
 
 /** A sufficient output buffer size for psa_asymmetric_encrypt(), for any
@@ -1179,7 +1179,7 @@
  *                      return 0.
  */
 #define PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(key_type, alg, input_length)     \
-    (alg == PSA_ALG_CBC_PKCS7 ?                                         \
+    ((alg) == PSA_ALG_CBC_PKCS7 ?                                       \
      (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) != 0 ?                    \
       PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type), \
                                (input_length) + 1u) +                   \
@@ -1267,7 +1267,7 @@
         (alg) == PSA_ALG_CBC_NO_PADDING ||                              \
         (alg) == PSA_ALG_ECB_NO_PADDING) ?                              \
        PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type), \
-                                input_length) :                         \
+                                (input_length)) :                       \
        (input_length)) : 0u) :                                          \
      0u)
 
@@ -1303,7 +1303,7 @@
  */
 #define PSA_CIPHER_FINISH_OUTPUT_SIZE(key_type, alg)    \
     (PSA_ALG_IS_CIPHER(alg) ?                           \
-     (alg == PSA_ALG_CBC_PKCS7 ?                        \
+     ((alg) == PSA_ALG_CBC_PKCS7 ?                      \
       PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) :         \
       0u) :                                             \
      0u)

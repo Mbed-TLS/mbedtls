@@ -2419,6 +2419,73 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_DEBUG_C:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_ECDH */
+void ssl_tls13_key_schedule_bad_ephemeral_key(int ciphersuite, int group,
+                                              int key_type, int key_bits)
+{
+    /* Non-regression test for #10808: if psa_get_key_attributes() fails on
+     * the ephemeral private key, ssl_tls13_key_schedule_stage_handshake()
+     * must fail with that error instead of going on to the key agreement
+     * (where the error would be overwritten, e.g. by
+     * MBEDTLS_ERR_SSL_ALLOC_FAILED when calloc(1, 0) returns NULL). */
+    mbedtls_ssl_config conf;
+    mbedtls_ssl_context ssl;
+    mbedtls_test_ssl_log_pattern agreement_log = { "psa_raw_key_agreement", 0 };
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_status_t status;
+    int expected_ret;
+
+    mbedtls_ssl_config_init(&conf);
+    mbedtls_ssl_init(&ssl);
+    PSA_INIT();
+
+    /* Get the identifier of a key that no longer exists. */
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, PSA_ALG_ECDH);
+    psa_set_key_type(&attributes, (psa_key_type_t) key_type);
+    psa_set_key_bits(&attributes, (size_t) key_bits);
+    PSA_ASSERT(psa_generate_key(&attributes, &key));
+    PSA_ASSERT(psa_destroy_key(key));
+    psa_reset_key_attributes(&attributes);
+    status = psa_get_key_attributes(key, &attributes);
+    TEST_ASSERT(status != PSA_SUCCESS);
+    expected_ret = psa_status_to_mbedtls(status, psa_to_ssl_errors,
+                                         ARRAY_LENGTH(psa_to_ssl_errors),
+                                         psa_generic_status_to_mbedtls);
+
+    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT,
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                           MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    mbedtls_ssl_conf_dbg(&conf, mbedtls_test_ssl_log_analyzer, &agreement_log);
+    mbedtls_debug_set_threshold(1);
+    TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
+
+    ssl.handshake->ciphersuite_info =
+        mbedtls_ssl_ciphersuite_from_id(ciphersuite);
+    TEST_ASSERT(ssl.handshake->ciphersuite_info != NULL);
+    ssl.handshake->key_exchange_mode =
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
+    ssl.handshake->offered_group_id = (uint16_t) group;
+    ssl.handshake->xxdh_psa_privkey = key;
+
+    TEST_EQUAL(mbedtls_ssl_tls13_compute_handshake_transform(&ssl),
+               expected_ret);
+    /* The key agreement must not have been attempted. */
+    TEST_EQUAL(agreement_log.counter, 0);
+
+exit:
+    if (ssl.handshake != NULL) {
+        ssl.handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+    }
+    psa_reset_key_attributes(&attributes);
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    mbedtls_debug_set_threshold(0);
+    PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_record_protection(int ciphersuite,
                                  int endpoint,

@@ -527,10 +527,15 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                 }
             }
 
-            mbedtls_asn1_named_data *cur =
-                mbedtls_asn1_store_named_data(head, (char *) oid.p, oid.len,
-                                              (unsigned char *) data,
-                                              data_len);
+            /* Always add a new entry, even if the list already contains
+             * one with the same OID: a name may have several RDNs of the
+             * same type, e.g. "DC=example,DC=net".
+             * mbedtls_asn1_store_named_data() would overwrite the existing
+             * entry, so store into an empty list and prepend it ourselves. */
+            mbedtls_asn1_named_data *cur = NULL;
+            mbedtls_asn1_store_named_data(&cur, (char *) oid.p, oid.len,
+                                          (unsigned char *) data,
+                                          data_len);
             mbedtls_free(oid.p);
             oid.p = NULL;
             if (cur == NULL) {
@@ -539,6 +544,9 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
 
             // set tagType
             cur->val.tag = tag;
+
+            cur->next = *head;
+            *head = cur;
 
             while (c < end && *(c + 1) == ' ') {
                 c++;

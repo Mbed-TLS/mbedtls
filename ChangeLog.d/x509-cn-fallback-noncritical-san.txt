@@ -1,0 +1,9 @@
+Bugfix
+   * When verifying a hostname, fall back to the subject CN if the
+     certificate's subjectAltName extension is not critical and contains no
+     DNS name, IP address or URI. Previously the CN was ignored whenever the
+     extension was present, so a certificate whose subjectAltName only held,
+     for example, an email address failed verification. Fixes #10095.
+   * Hostname verification now fails for a certificate with an empty subject,
+     unless it is an end-entity certificate with a critical subjectAltName
+     extension, as required by X.509.

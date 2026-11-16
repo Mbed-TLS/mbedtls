@@ -2966,7 +2966,34 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
 }
 
 /*
+ * Return 1 if the SAN contains a name type that identifies a host
+ * (DNS name, IP address or URI), 0 otherwise.
+ */
+static int x509_crt_san_has_host_id(const mbedtls_x509_sequence *san)
+{
+    for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
+        switch ((unsigned char) cur->buf.tag & MBEDTLS_ASN1_TAG_VALUE_MASK) {
+            case MBEDTLS_X509_SAN_DNS_NAME:
+            case MBEDTLS_X509_SAN_IP_ADDRESS:
+            case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
+                return 1;
+            default:
+                break;
+        }
+    }
+    return 0;
+}
+
+/*
  * Verify the requested CN - only call this if cn is not NULL!
+ *
+ * If the certificate has a subjectAltName extension, the name is checked
+ * against it first. The subject CN is used as a fallback only when the
+ * extension is not critical (X.509 9.3.2.1) and contains no DNS name,
+ * IP address or URI (RFC 6125 6.4.4).
+ *
+ * An empty subject is only acceptable in an end-entity certificate with a
+ * critical subjectAltName extension (X.509 7.2.1).
  */
 static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
                                  const char *cn,
@@ -2974,21 +3001,29 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
 {
     const mbedtls_x509_name *name;
     size_t cn_len = strlen(cn);
+    int subject_is_empty = (crt->subject.oid.p == NULL);
 
     if (crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
         if (x509_crt_check_san(&crt->subject_alt_names, cn, cn_len) == 0) {
-            return;
-        }
-    } else {
-        for (name = &crt->subject; name != NULL; name = name->next) {
-            if (MBEDTLS_OID_CMP(MBEDTLS_OID_AT_CN, &name->oid) == 0 &&
-                x509_crt_check_cn(&name->val, cn, cn_len) == 0) {
+            if (!subject_is_empty || (crt->san_critical && !crt->ca_istrue)) {
                 return;
             }
+            goto mismatch;
         }
-
+        if (crt->san_critical ||
+            x509_crt_san_has_host_id(&crt->subject_alt_names)) {
+            goto mismatch;
+        }
     }
 
+    for (name = &crt->subject; name != NULL; name = name->next) {
+        if (MBEDTLS_OID_CMP(MBEDTLS_OID_AT_CN, &name->oid) == 0 &&
+            x509_crt_check_cn(&name->val, cn, cn_len) == 0) {
+            return;
+        }
+    }
+
+mismatch:
     *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
 }
 

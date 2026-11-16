@@ -1019,6 +1019,7 @@ static int x509_get_crt_ext(unsigned char **p,
                                                              &crt->subject_alt_names)) != 0) {
                     return ret;
                 }
+                crt->san_critical = is_critical ? 1 : 0;
                 break;
 
             case MBEDTLS_X509_EXT_NS_CERT_TYPE:

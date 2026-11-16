@@ -748,6 +748,14 @@ struct _sni_entry {
     mbedtls_x509_crt *ca;
     mbedtls_x509_crl *crl;
     int authmode;
+#if defined(MBEDTLS_SSL_CACHE_C)
+    mbedtls_ssl_cache_context cache;
+    int cache_init;
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
+    mbedtls_ssl_ticket_context ticket_ctx;
+    int ticket_init;
+#endif
     sni_entry *next;
 };
 
@@ -767,6 +775,16 @@ static void sni_free(sni_entry *head)
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         mbedtls_x509_crl_free(cur->crl);
         mbedtls_free(cur->crl);
+#endif
+#if defined(MBEDTLS_SSL_CACHE_C)
+        if (cur->cache_init) {
+            mbedtls_ssl_cache_free(&cur->cache);
+        }
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
+        if (cur->ticket_init) {
+            mbedtls_ssl_ticket_free(&cur->ticket_ctx);
+        }
 #endif
         next = cur->next;
         mbedtls_free(cur);
@@ -876,7 +894,7 @@ error:
 static int sni_callback(void *p_info, mbedtls_ssl_context *ssl,
                         const unsigned char *name, size_t name_len)
 {
-    const sni_entry *cur = (const sni_entry *) p_info;
+    sni_entry *cur = (sni_entry *) p_info;
 
     /* preserve behavior which checks for SNI match in sni_callback() for
      * the benefits of tests using sni_callback(), even though the actual
@@ -890,6 +908,17 @@ static int sni_callback(void *p_info, mbedtls_ssl_context *ssl,
         if (name_len == strlen(cur->name) &&
             memcmp(name, cur->name, name_len) == 0) {
             void *p;
+#if defined(MBEDTLS_SSL_CACHE_C)
+            if (cur->cache_init) {
+                mbedtls_ssl_set_hs_session_cache_context(ssl, &cur->cache);
+            }
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
+            if (cur->ticket_init) {
+                mbedtls_ssl_set_hs_session_ticket_context(ssl,
+                                                          &cur->ticket_ctx);
+            }
+#endif
             *(const void **)&p = cur;
             mbedtls_ssl_set_user_data_p(ssl, p);
             return 0;
@@ -2952,6 +2981,52 @@ usage:
         }
     }
 #endif
+
+#if defined(SNI_OPTION)
+#if defined(MBEDTLS_SSL_CACHE_C)
+    {
+        sni_entry *cur;
+
+        for (cur = sni_info; cur != NULL; cur = cur->next) {
+            mbedtls_ssl_cache_init(&cur->cache);
+            cur->cache_init = 1;
+
+            if (opt.cache_max != -1) {
+                mbedtls_ssl_cache_set_max_entries(&cur->cache, opt.cache_max);
+            }
+
+#if defined(MBEDTLS_HAVE_TIME)
+            if (opt.cache_timeout != -1) {
+                mbedtls_ssl_cache_set_timeout(&cur->cache, opt.cache_timeout);
+            }
+#endif
+        }
+    }
+#endif /* MBEDTLS_SSL_CACHE_C */
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
+    if (opt.tickets != MBEDTLS_SSL_SESSION_TICKETS_DISABLED) {
+        sni_entry *cur;
+
+        for (cur = sni_info; cur != NULL; cur = cur->next) {
+            mbedtls_ssl_ticket_init(&cur->ticket_ctx);
+            cur->ticket_init = 1;
+
+            ret = mbedtls_ssl_ticket_setup(&cur->ticket_ctx,
+                                           opt.ticket_alg,
+                                           opt.ticket_key_type,
+                                           opt.ticket_key_bits,
+                                           opt.ticket_timeout);
+            if (ret != 0) {
+                mbedtls_printf(
+                    " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n",
+                    ret);
+                goto exit;
+            }
+        }
+    }
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
+#endif /* SNI_OPTION */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {

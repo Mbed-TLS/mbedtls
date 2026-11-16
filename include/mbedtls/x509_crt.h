@@ -77,6 +77,7 @@ typedef struct mbedtls_x509_crt {
     mbedtls_x509_sequence ext_key_usage; /**< Optional list of extended key usage OIDs. */
 
     unsigned char MBEDTLS_PRIVATE(ns_cert_type); /**< Optional Netscape certificate type extension value: See the values in x509.h */
+    unsigned char MBEDTLS_PRIVATE(san_critical); /**< 1 if the Subject Alternative Names extension is marked critical, 0 otherwise. */
 
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig);               /**< Signature: hash of the tbs part signed with the private key. */
     mbedtls_md_type_t MBEDTLS_PRIVATE(sig_md);           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */

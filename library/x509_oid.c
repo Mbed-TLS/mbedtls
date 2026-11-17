@@ -71,7 +71,7 @@
     {                                                                       \
         const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1(oid);        \
         if (data == NULL) return MBEDTLS_ERR_X509_UNKNOWN_OID;            \
-        *ATTR1 = data->descriptor.ATTR1;                                    \
+        *(ATTR1) = data->descriptor.ATTR1;                                  \
         return 0;                                                        \
     }
 #endif /* MBEDTLS_X509_REMOVE_INFO */
@@ -85,7 +85,7 @@
     {                                                                       \
         const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1(oid);        \
         if (data == NULL) return MBEDTLS_ERR_X509_UNKNOWN_OID;            \
-        *ATTR1 = data->ATTR1;                                               \
+        *(ATTR1) = data->ATTR1;                                             \
         return 0;                                                        \
     }
 

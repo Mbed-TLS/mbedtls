@@ -1,0 +1,5 @@
+Bugfix
+   * Fix error handling in the TLS 1.3 handshake key schedule when retrieving
+     ephemeral private key attributes fails, ensuring the actual PSA error is
+     returned instead of being overwritten by a subsequent allocation error.
+     Fixes #10808.

@@ -4201,6 +4201,26 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_BUF(4, "input payload after decrypt",
                               rec->buf + rec->data_offset, rec->data_len);
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        /* In TLS 1.3, the content type of a protected record is taken from
+         * the inner plaintext, so it is only known after decryption. The
+         * only content types allowed in protected records are alert,
+         * handshake and application data: ChangeCipherSpec is only
+         * allowed unprotected (see above). RFC 8446 section 5: an
+         * implementation which receives an unexpected record type MUST
+         * terminate the connection with an "unexpected_message" alert. */
+        if (ssl->transform_in->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+            rec->type != MBEDTLS_SSL_MSG_ALERT &&
+            rec->type != MBEDTLS_SSL_MSG_HANDSHAKE &&
+            rec->type != MBEDTLS_SSL_MSG_APPLICATION_DATA) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("unexpected inner content type %u",
+                                      (unsigned) rec->type));
+            mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                           MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE);
+            return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+        }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         /* We have already checked the record content type
          * in ssl_parse_record_header(), failing or silently

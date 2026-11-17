@@ -1138,7 +1138,6 @@ static int ssl_parse_hello_verify_request(mbedtls_ssl_context *ssl)
 
         mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                        MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION);
-
         return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
 
@@ -1185,6 +1184,7 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     int ret, i;
     size_t n;
     size_t ext_len;
+    mbedtls_ssl_protocol_version server_version;
     unsigned char *buf, *ext;
     unsigned char comp;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -1268,25 +1268,30 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     buf += mbedtls_ssl_hs_hdr_len(ssl);
 
     MBEDTLS_SSL_DEBUG_BUF(3, "server hello, version", buf, 2);
-    ssl->tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(buf,
-                                                                               ssl->conf->transport);
-    ssl->session_negotiate->tls_version = ssl->tls_version;
-    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
+    server_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(
+        buf, ssl->conf->transport);
 
-    if (ssl->tls_version < ssl->conf->min_tls_version ||
-        ssl->tls_version > ssl->conf->max_tls_version) {
-        MBEDTLS_SSL_DEBUG_MSG(1,
-                              (
-                                  "server version out of bounds -  min: [0x%x], server: [0x%x], max: [0x%x]",
-                                  (unsigned) ssl->conf->min_tls_version,
-                                  (unsigned) ssl->tls_version,
-                                  (unsigned) ssl->conf->max_tls_version));
+    if (server_version != MBEDTLS_SSL_VERSION_TLS1_2) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1,
+            ("ServerHello legacy_version is not TLS 1.2 - legacy_version: [0x%x]",
+             (unsigned) server_version));
 
+        /* Temporarily use the server's version to encode an alert
+         * that the server can parse. */
+        if (server_version < MBEDTLS_SSL_VERSION_TLS1_2) {
+            ssl->tls_version = server_version;
+        }
         mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                        MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION);
 
+        /* Restore the TLS version under negotiation. */
+        ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
         return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
+
+    ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    ssl->session_negotiate->endpoint = MBEDTLS_SSL_IS_CLIENT;
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, current time: %lu",
                               ((unsigned long) buf[2] << 24) |
@@ -1382,6 +1387,8 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
         ssl->session_negotiate->id_len = n;
         memcpy(ssl->session_negotiate->id, buf + 35, n);
     } else {
+        ssl->handshake->tls12_key_schedule_inputs |=
+            MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_RESUMPTION;
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC);
     }
 
@@ -3269,6 +3276,9 @@ ecdh_calc_secret:
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
+    ssl->handshake->tls12_key_schedule_inputs |=
+        MBEDTLS_SSL_TLS1_2_KEY_SCHEDULE_INPUT_KEY_EXCHANGE;
+
     ssl->out_msglen  = header_len + content_len;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE;
@@ -3635,6 +3645,10 @@ int mbedtls_ssl_handshake_client_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_CLIENT_FINISHED:
+            if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = mbedtls_ssl_write_finished(ssl);
             break;
 
@@ -3654,6 +3668,10 @@ int mbedtls_ssl_handshake_client_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_SERVER_FINISHED:
+            if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             ret = mbedtls_ssl_parse_finished(ssl);
             break;
 
@@ -3663,6 +3681,10 @@ int mbedtls_ssl_handshake_client_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
+            if (ssl->handshake->tls12_key_scheduling_stage_completed !=
+                MBEDTLS_SSL_TLS1_2_KEY_SCHEDULING_STAGE_TRAFFIC_KEYS) {
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
             mbedtls_ssl_handshake_wrapup(ssl);
             break;
 

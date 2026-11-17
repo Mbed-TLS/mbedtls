@@ -1,5 +1,57 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecdsa.h"
+#include "ecp_invasive.h"
+#include <test/constant_flow.h>
+
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_ECDSA_SIGN_ALT)
+/** Set an MPI with the given bit-size.
+ *
+ * If \p bits_delta == 0, set \p X to a value less than \p N.
+ *
+ * \param[in] N         An MPI. Its value must be at least 256.
+ * \param bits_delta    Difference between the number of significant bits
+ *                      of \p X and \p N. For example, \p bits_delta == -1
+ *                      makes \p X smaller than \p N by one bit.
+ *                      If this brings the bit-size of \p X below 0,
+ *                      \p X is left unchanged.
+ * \param filler        A value to set in unconstrained bytes of \p X.
+ *                      Choose different filler values for different
+ *                      MPI used in the same test to facilitate debugging.
+ * \param[in,out] X     The MPI object to set.
+ */
+static int set_mpi_by_size(const mbedtls_mpi *N,
+                           int bits_delta,
+                           unsigned char filler,
+                           mbedtls_mpi *X)
+{
+    mbedtls_test_set_step(filler);
+    const size_t N_bits = mbedtls_mpi_bitlen(N);
+    mbedtls_mpi_free(X);
+
+    if (bits_delta == 0) {
+        /* low byte = filler, rest = N */
+        unsigned value_delta = 0x100 + (N->p[0] & 0xff) - filler;
+        TEST_EQUAL(mbedtls_mpi_sub_int(X, N, value_delta), 0);
+    } else if (bits_delta <= -(int) N_bits) {
+        /* Leave X having the value 0 with no limbs */
+    } else {
+        /* The value of X may be smaller or larger than N.
+         * All bytes except the highest significant byte are set to filler. */
+        TEST_LE_S(-bits_delta, N_bits - 1);
+        TEST_EQUAL(mbedtls_mpi_set_bit(X, N_bits - 1 + bits_delta, 1), 0);
+        memset(X->p, filler, (X->n - 1) * sizeof(mbedtls_mpi_uint));
+        /* Sanity check */
+        TEST_EQUAL(mbedtls_mpi_bitlen(X), N_bits + bits_delta);
+    }
+
+    mbedtls_test_set_step(-1L);
+    return 1;
+
+exit:
+    return 0;
+}
+#endif
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -71,6 +123,93 @@ exit:
     mbedtls_ecp_group_free(&grp);
     mbedtls_ecp_point_free(&Q);
     mbedtls_mpi_free(&d); mbedtls_mpi_free(&r); mbedtls_mpi_free(&s);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:!MBEDTLS_ECDSA_SIGN_ALT */
+void ecdsa_compute_s(int N_extra_limbs,
+                     int d_bits_delta, int k_bits_delta,
+                     int e_bits_delta, int r_bits_delta,
+                     int s_limbs_delta,
+                     int valid)
+{
+    static const unsigned char secp256r1_order[] = {
+        0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xbc, 0xe6, 0xfa, 0xad, 0xa7, 0x17, 0x9e, 0x84,
+        0xf3, 0xb9, 0xca, 0xc2, 0xfc, 0x63, 0x25, 0x51
+    };
+    mbedtls_mpi N, d, k, inverse_k, e, r, s, expected_s;
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&d);
+    mbedtls_mpi_init(&k);
+    mbedtls_mpi_init(&inverse_k);
+    mbedtls_mpi_init(&e);
+    mbedtls_mpi_init(&r);
+    mbedtls_mpi_init(&s);
+    mbedtls_mpi_init(&expected_s);
+
+    /* Set N to the value from secp256r1.
+     * Possibly add leading zeros, to simulate what can happen on a 32-bit
+     * platform if N is filled using 8-byte words. */
+    TEST_EQUAL(mbedtls_mpi_read_binary(&N, secp256r1_order,
+                                       sizeof(secp256r1_order)), 0);
+    const size_t width = N.n; /* Number of significant limbs of N */
+    TEST_ASSERT(N.p[width - 1] != 0);
+    TEST_EQUAL(mbedtls_mpi_grow(&N, width + N_extra_limbs), 0);
+
+    if (!set_mpi_by_size(&N, d_bits_delta, 'd', &d)) {
+        goto exit;
+    }
+    if (!set_mpi_by_size(&N, k_bits_delta, 'k', &k)) {
+        goto exit;
+    }
+    if (!set_mpi_by_size(&N, e_bits_delta, 'e', &e)) {
+        goto exit;
+    }
+    if (!set_mpi_by_size(&N, r_bits_delta, 'r', &r)) {
+        goto exit;
+    }
+
+    if ((int) width + s_limbs_delta > 0) {
+        TEST_EQUAL(mbedtls_mpi_grow(&s, width + s_limbs_delta), 0);
+        memset(s.p, 0xff, s.n * sizeof(*k.p));
+    }
+
+    if (valid) {
+        /* Naive computation of (e + r * d) / k mod N. */
+        TEST_EQUAL(mbedtls_mpi_inv_mod(&inverse_k, &k, &N), 0);
+        TEST_EQUAL(mbedtls_mpi_mul_mpi(&expected_s, &r, &d), 0);
+        TEST_EQUAL(mbedtls_mpi_add_mpi(&expected_s, &expected_s, &e), 0);
+        TEST_EQUAL(mbedtls_mpi_mul_mpi(&expected_s, &expected_s, &inverse_k), 0);
+        TEST_EQUAL(mbedtls_mpi_mod_mpi(&expected_s, &expected_s, &N), 0);
+
+        /* Call the function and check the output.
+         * Assert that the timing does not depend on secret inputs.
+         * d and k are definitely secret. e and r are generally not secret,
+         * but it's better to process them in constant time as well.
+         */
+        TEST_CF_SECRET(d.p, d.n * sizeof(*d.p));
+        TEST_CF_SECRET(k.p, k.n * sizeof(*k.p));
+        TEST_CF_SECRET(e.p, e.n * sizeof(*e.p));
+        TEST_CF_SECRET(r.p, r.n * sizeof(*r.p));
+        TEST_EQUAL(mbedtls_ecdsa_compute_s(&N, &d, &k, &e, &r, &s), 0);
+        TEST_CF_PUBLIC(s.p, s.n * sizeof(*s.p));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&s, &expected_s), 0);
+    } else {
+        /* We just want it not to corrupt memory or crash */
+        mbedtls_ecdsa_compute_s(&N, &d, &k, &e, &r, &s);
+    }
+
+exit:
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&d);
+    mbedtls_mpi_free(&k);
+    mbedtls_mpi_free(&inverse_k);
+    mbedtls_mpi_free(&e);
+    mbedtls_mpi_free(&r);
+    mbedtls_mpi_free(&s);
+    mbedtls_mpi_free(&expected_s);
 }
 /* END_CASE */
 

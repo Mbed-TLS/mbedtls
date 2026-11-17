@@ -1,0 +1,5 @@
+Bugfix
+   * Fix PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(), PSA_CIPHER_FINISH_OUTPUT_SIZE()
+     and PSA_ALG_IS_WILDCARD() returning a wrong value when an argument is
+     an expression containing an operator with low precedence, such as a
+     conditional expression.

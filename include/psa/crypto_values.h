@@ -2265,9 +2265,9 @@
     (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                        \
      PSA_ALG_SIGN_GET_HASH(alg) == PSA_ALG_ANY_HASH :       \
      PSA_ALG_IS_MAC(alg) ?                                  \
-     (alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG) != 0 :   \
+     ((alg) & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG) != 0 : \
      PSA_ALG_IS_AEAD(alg) ?                                 \
-     (alg & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG) != 0 :  \
+     ((alg) & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG) != 0 : \
      (alg) == PSA_ALG_ANY_HASH)
 
 /** Get the hash used by a composite algorithm.

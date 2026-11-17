@@ -787,6 +787,27 @@ int mbedtls_test_get_tls13_ticket(
 int mbedtls_test_ssl_check_context_after_session_reset(const mbedtls_ssl_context *before,
                                                        const mbedtls_ssl_context *after);
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SRV_C)
+/**
+ * Verify that mbedtls_ssl_tls13_reset_handshake_state_for_hrr() properly
+ * managed fields of the mbedtls_ssl_context structure. The expected action on
+ * reset depends on the specific field.
+ *
+ * Note: the code is automatically generated from the python script
+ *       "tests/scripts/generate_ssl_hrr_reset_check.py".
+ *
+ * \param[in]       before    The SSL context before
+ *                            mbedtls_ssl_tls13_reset_handshake_state_for_hrr()
+ *                            is called on it. This is used for fields that
+ *                            should be kept untouched during the reset.
+ * \param[in]       after     The SSL context after
+ *                            mbedtls_ssl_tls13_reset_handshake_state_for_hrr()
+ *                            has been called on it.
+ */
+int mbedtls_test_ssl_check_context_after_hrr_reset(const mbedtls_ssl_context *before,
+                                                   const mbedtls_ssl_context *after);
+#endif
+
 #endif /* MBEDTLS_SSL_TLS_C */
 
 #endif /* SSL_HELPERS_H */

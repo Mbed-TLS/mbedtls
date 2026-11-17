@@ -1770,7 +1770,7 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
     session->ciphersuite = 0xabcd;
     session->id_len = sizeof(session->id);
     memset(session->id, 66, session->id_len);
-    memset(session->master, 17, sizeof(session->master));
+    memset(session->secret, 17, MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN);
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && defined(MBEDTLS_FS_IO)
     if (crt_file != NULL && strlen(crt_file) != 0) {
@@ -1872,7 +1872,7 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
     session->ticket_age_add = 0x87654321;
     session->ticket_flags = 0x7;
     session->resumption_key_len = 32;
-    memset(session->resumption_key, 0x99, sizeof(session->resumption_key));
+    memset(session->secret, 0x99, session->resumption_key_len);
 #endif
 
 #if defined(MBEDTLS_SSL_SRV_C)

@@ -17,10 +17,6 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
     #pylint: disable=invalid-name # uppercase letters make sense here
 
     PROJECT_CONFIG_C = 'library/mbedtls_config.c'
-    PROJECT_SPECIFIC_INCLUDE_DIRECTORIES = [
-        'tf-psa-crypto/include',
-        'tf-psa-crypto/drivers/builtin/include',
-    ]
 
     ## Method naming convention:
     ## * test_crypto_xxx when testing a tweak of crypto_config.h

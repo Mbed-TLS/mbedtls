@@ -17,17 +17,17 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_ENTROPY_C) ||  \
+#if !defined(MBEDTLS_ENTROPY_C) ||                                 \
     !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_RSA_C) ||         \
+    !defined(MBEDTLS_NET_C) ||                                     \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || \
     !defined(MBEDTLS_FS_IO)
 int main(void)
 {
-    mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_ENTROPY_C and/or "
+    mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
                    "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
-                   "MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
-                   "and/or MBEDTLS_X509_CRT_PARSE_C "
+                   "MBEDTLS_NET_C and/or "
+                   "MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_FS_IO "
                    "not defined.\n");
     mbedtls_exit(0);
 }
@@ -789,5 +789,5 @@ exit:
 
     mbedtls_exit(exit_code);
 }
-#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
-          MBEDTLS_SSL_CLI_C && MBEDTLS_NET_C && MBEDTLS_RSA_C */
+#endif /* MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_CLI_C &&
+          MBEDTLS_NET_C && MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_FS_IO */

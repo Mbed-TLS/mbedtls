@@ -1,0 +1,68 @@
+# libFuzzer dictionary for fuzz_psa_crypto.
+# Tokens are 2-3 byte fragments of the harness op-script encoding:
+# [op byte][selector byte(s)]. Multi-byte tokens only (no single characters);
+# each token names the op dispatch case it targets (fuzz_psa_crypto.c switch).
+# op 0 import: type selector + 16-bit length prefixes
+"\x00\x02\x10\x00"
+"\x00\x01\x20\x00"
+"\x00\x08\x00\x04"
+"\x12\x02\x10\x00"
+# op 1 generate: type + bits selectors
+"\x01\x02\x00"
+"\x01\x09\x01"
+"\x01\x0b\x01"
+"\x01\x0c\x00"
+"\x13\x02\x00\x01"
+# op 2 hash: hsel + sub (5=SHA256, 9=SHA3-512, 6=RIPEMD160)
+"\x02\x05\x01"
+"\x02\x09\x02"
+"\x02\x06\x00"
+# op 3 mac: hsel + msel (msel bit0=HMAC/CMAC, bit1=multipart, bit2=verify)
+"\x03\x05\x01"
+"\x03\x00\x00"
+"\x03\x00\x02"
+"\x03\x00\x06"
+# op 4 cipher: ciphersel + mode (5=CBC_PKCS7, 1=CTR, 2=CFB; mode bit0 one-shot)
+"\x04\x05\x01"
+"\x04\x01\x02"
+"\x04\x02\x06"
+# op 5 aead: tsel + nsel (0=GCM, 1=CCM, 2=CHACHA20_POLY1305; nsel bit0 one-shot)
+"\x05\x00\x03"
+"\x05\x01\x01"
+"\x05\x02\x03"
+# op 6/7 sign/verify hash: sigsel + hsel (0=PKCS1v15, 2=PSS, 4=ECDSA, 5=DET-ECDSA)
+"\x06\x00\x05"
+"\x06\x02\x05"
+"\x06\x04\x05"
+"\x06\x05\x03"
+"\x07\x04\x05"
+# op 8/9 sign/verify message
+"\x08\x00\x05"
+"\x08\x02\x05"
+"\x09\x04\x05"
+# op 10/11 asymmetric: oaepsel + hsel (1=OAEP, 0=PKCS1V15_CRYPT)
+"\x0a\x01\x05"
+"\x0b\x01\x05"
+"\x0b\x00\x00"
+# op 12 agreement: asel (0=ECDH, 1=FFDH)
+"\x0c\x00"
+"\x0c\x01"
+# op 13 kdf: kdfsel + hsel (0=HKDF, 1=EXTRACT, 2=EXPAND, 3=TLS12_PRF, 5=PBKDF2)
+"\x0d\x00\x05"
+"\x0d\x01\x05"
+"\x0d\x03\x05"
+"\x0d\x05\x05"
+# kdf step bytes: SECRET/PASSWORD/SALT/LABEL/INFO via key (0x40) or bytes
+"\x00\x20"
+"\x01\x08"
+"\x02\x08"
+"\x03\x04"
+"\x40\x00"
+"\x46\x00"
+# op 14/15/16/17/20/21 export/copy/purge/random/open
+"\x0e\x00"
+"\x0f\x00"
+"\x10\x00"
+"\x11\x00"
+"\x14\x40"
+"\x15\x03"

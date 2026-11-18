@@ -459,6 +459,9 @@ X509 Get Distinguished Name #8
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY:PSA_WANT_ALG_SHA_1
 mbedtls_x509_dn_gets:"../framework/data_files/server1.asciichars.crt":"subject":"C=NL, O=\\E6\\9E\\81\\E5\\9C\\B0SSL, CN=PolarSSL Server 1"
 
+X509 Get Distinguished Name: empty
+mbedtls_x509_dn_gets:"":"empty":""
+
 X509 Get Modified DN #1
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY:PSA_WANT_ALG_SHA_1
 mbedtls_x509_dn_gets_subject_replace:"../framework/data_files/server1.crt":"Modified":"C=NL, O=Modified, CN=PolarSSL Server 1":0
@@ -703,17 +706,35 @@ X509 CRT verification #19 (Not trusted Cert, allowing callback)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_HAVE_ALG_SOME_RSA_VERIFY:PSA_WANT_ALG_SHA_1
 x509_verify:"../framework/data_files/server2.crt":"../framework/data_files/server1.crt":"../framework/data_files/crl_expired.pem":"NULL":0:0:"compat":"verify_all"
 
+# cert has Subject: C = NL, O = PolarSSL, CN = *.example.com and no SAN
 X509 CRT verification #21 (domain matching wildcard certificate, case insensitive)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"mail.ExAmPlE.com":0:0:"compat":"NULL"
 
-X509 CRT verification #22 (domain not matching wildcard certificate)
+# cert has Subject: C = NL, O = PolarSSL, CN = *.example.com and no SAN
+X509 CRT verification #22 (domain not matching wildcard certificate: wrong TLD)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"mail.example.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
-X509 CRT verification #23 (domain not matching wildcard certificate)
+# cert has Subject: C = NL, O = PolarSSL, CN = *.example.com and no SAN
+X509 CRT verification #22a (domain not matching wildcard certificate: two labels)
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
+x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"foo.bar.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
+
+# cert has Subject: C = NL, O = PolarSSL, CN = *.example.com and no SAN
+X509 CRT verification #23 (domain not matching wildcard certificate: no label to match)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
+
+# cert has Subject: C = NL, O = PolarSSL, CN = *.example.com and no SAN
+X509 CRT verification #23a (URI would match DNS wildcard in Subject CN)
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
+x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"sip\:voip.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
+
+# cert has SAN with DNS:example.com, DNS:example.net, DNS:*.example.org
+X509 CRT verification #23b (URI would match DNS wildcard in SAN)
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
+x509_verify:"../framework/data_files/cert_example_multi.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"sip\:voip.example.org":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
 X509 CRT verification #24 (domain matching CN of multi certificate)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
@@ -2062,11 +2083,27 @@ mbedtls_x509_crt_parse_file:"../framework/data_files/parse_input/server5.basic-c
 
 X509 CRT ASN1: basicConstraints: no cA but pathLenConstraint (bad signature)
 depends_on:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
-mbedtls_x509_crt_parse_file:"../framework/data_files/parse_input/server5.basic-constraints-integer-first.badsign.crt":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, MBEDTLS_ERR_ASN1_UNEXPECTED_TAG):0
+mbedtls_x509_crt_parse_file:"../framework/data_files/parse_input/server5.basic-constraints-integer-first.badsign.crt":0:1
+
+X509 CRT ASN1: basicConstraints: no cA, pathLenConstraint=1
+depends_on:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
+mbedtls_x509_get_ca_istrue:"../framework/data_files/parse_input/server5.basic-constraints-integer-first.badsign.crt":0
 
 X509 CRT ASN1: basicConstraints: no cA but pathLenConstraint (good self signature)
 depends_on:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
-mbedtls_x509_crt_parse_file:"../framework/data_files/parse_input/server5.basic-constraints-integer-first.selfsigned.crt":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, MBEDTLS_ERR_ASN1_UNEXPECTED_TAG):0
+mbedtls_x509_crt_parse_file:"../framework/data_files/parse_input/server5.basic-constraints-integer-first.selfsigned.crt":0:1
+
+X509 CRT ASN1: basicConstraints: no cA but pathLenConstraint=0
+depends_on:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
+x509_crt_parse_basic_constraints:"308201573081fea003020102020c53a2cb4b124ead837da894b2300a06082a8648ce3d040302300e310c300a06035504030c03457665301e170d3236303531323039353330345a170d3336303531323039353330345a300e310c300a06035504030c034576653059301306072a8648ce3d020106082a8648ce3d0301070342000437cc56d976091e5a723ec7592dff206eee7cf9069174d0ad14b5f768225962924ee500d82311ffea2fd2345d5d16bd8a88c26b770d55cd8a2a0efa01c8b4edffa3423040300f0603551d130101ff04053003020100300e0603551d0f0101ff040403020780301d0603551d0e041604145061a58fd407d9d782010ce5657f8c6346a713be300a06082a8648ce3d0403020348003045022100d67d572af0aa540cd0f9d86d43788c178ca9501d8c0f4f6690c773f4b82c4b9a022011620feee62aca3944b8321636849030014ef80604550031312bb707b7f2bf04":0:0:0
+
+X509 CRT ASN1: basicConstraints: invalid cA BOOLEAN length
+depends_on:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
+x509_crt_parse_basic_constraints:"308201573081fea003020102020c53a2cb4b124ead837da894b2300a06082a8648ce3d040302300e310c300a06035504030c03457665301e170d3236303531323039353330345a170d3336303531323039353330345a300e310c300a06035504030c034576653059301306072a8648ce3d020106082a8648ce3d0301070342000437cc56d976091e5a723ec7592dff206eee7cf9069174d0ad14b5f768225962924ee500d82311ffea2fd2345d5d16bd8a88c26b770d55cd8a2a0efa01c8b4edffa3423040300f0603551d130101ff040530030100ff300e0603551d0f0101ff040403020780301d0603551d0e041604145061a58fd407d9d782010ce5657f8c6346a713be300a06082a8648ce3d0403020348003045022100d67d572af0aa540cd0f9d86d43788c178ca9501d8c0f4f6690c773f4b82c4b9a022011620feee62aca3944b8321636849030014ef80604550031312bb707b7f2bf04":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, MBEDTLS_ERR_ASN1_INVALID_LENGTH):0:0
+
+X509 CRT ASN1: basicConstraints: neither cA nor pathLenConstraint
+depends_on:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
+x509_crt_parse_basic_constraints:"308201573081fea003020102020c53a2cb4b124ead837da894b2300a06082a8648ce3d040302300e310c300a06035504030c03457665301e170d3236303531323039353330345a170d3336303531323039353330345a300e310c300a06035504030c034576653059301306072a8648ce3d020106082a8648ce3d0301070342000437cc56d976091e5a723ec7592dff206eee7cf9069174d0ad14b5f768225962924ee500d82311ffea2fd2345d5d16bd8a88c26b770d55cd8a2a0efa01c8b4edffa3423040300f0603551d130101ff04053003050100300e0603551d0f0101ff040403020780301d0603551d0e041604145061a58fd407d9d782010ce5657f8c6346a713be300a06082a8648ce3d0403020348003045022100d67d572af0aa540cd0f9d86d43788c178ca9501d8c0f4f6690c773f4b82c4b9a022011620feee62aca3944b8321636849030014ef80604550031312bb707b7f2bf04":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, MBEDTLS_ERR_ASN1_UNEXPECTED_TAG):0:0
 
 X509 CRT ASN1 (TBS, inv extBasicConstraint, no pathlen length)
 depends_on:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY:PSA_WANT_ALG_SHA_256
@@ -3470,6 +3507,30 @@ x509_crt_parse_authoritykeyid:"../framework/data_files/authorityKeyId_subjectKey
 X509 CRT parse Authority Key Id - Wrong Issuer sequence
 depends_on:PSA_WANT_ALG_MD5:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 x509_crt_parse_authoritykeyid:"../framework/data_files/clusterfuzz-testcase-minimized-fuzz_x509crt-6666050834661376.crt.der":"":"":"":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, MBEDTLS_ERR_ASN1_OUT_OF_DATA)
+
+# Self-signed certificate whose AuthorityKeyIdentifier is an empty SEQUENCE (30 00).
+# All fields of AuthorityKeyIdentifier are OPTIONAL in the ASN.1 module (RFC 5280,
+# Appendix A.2), so this is syntactically valid; some antivirus products install
+# such a root for HTTPS scanning. Generated with Python cryptography:
+#   key = ec.generate_private_key(ec.SECP256R1())
+#   name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Test")])
+#   cert = (x509.CertificateBuilder().subject_name(name).issuer_name(name)
+#           .public_key(key.public_key()).serial_number(1)
+#           .not_valid_before(datetime.datetime(2025, 1, 1))
+#           .not_valid_after(datetime.datetime(2035, 1, 1))
+#           .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
+#           .add_extension(x509.UnrecognizedExtension(ObjectIdentifier("2.5.29.35"),
+#                                                     b"\x30\x00"), critical=False)
+#           .sign(key, hashes.SHA256()))
+X509 CRT parse Authority Key Id - Empty sequence
+depends_on:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
+x509parse_crt:"3082012b3081d1a003020102020101300a06082a8648ce3d040302300f310d300b06035504030c0454657374301e170d3235303130313030303030305a170d3335303130313030303030305a300f310d300b06035504030c04546573743059301306072a8648ce3d020106082a8648ce3d03010703420004f8cf6bd9eb57f5fdc8771103e9f75becb6a865b1a5de8492b3233170f49e1ff388d25d24376d130c86a8acb5b0478d7c49b83f07ffbd0684c26a0da42c752256a31e301c300f0603551d130101ff040530030101ff30090603551d2304023000300a06082a8648ce3d0403020349003046022100cffb50bdb73287649de96d4c48fcbb5d6e1eb468c72c5016776a9fdf0dc3d295022100e1b4b7ecba9ca1b43882a688c6fd93ffc99112247cf3ebb852b07f09d7c76be2":"cert. version     \: 3\nserial number     \: 01\nissuer name       \: CN=Test\nsubject name      \: CN=Test\nissued  on        \: 2025-01-01 00\:00\:00\nexpires on        \: 2035-01-01 00\:00\:00\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nbasic constraints \: CA=true\n":0
+
+# Generated the same way as above, with extension value b"\x30\x01\x80":
+# a [0] tag without a length. This must still be rejected.
+X509 CRT parse Authority Key Id - Truncated keyIdentifier
+depends_on:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
+x509parse_crt:"3082012b3081d2a003020102020101300a06082a8648ce3d040302300f310d300b06035504030c0454657374301e170d3235303130313030303030305a170d3335303130313030303030305a300f310d300b06035504030c04546573743059301306072a8648ce3d020106082a8648ce3d03010703420004eba1e439f91038837190c4da3703001dff24411b90bf6998f56cba76c753c19ca9158f3c243ccb2118f8b6a78b6eb507962e855bf7c13dbafc314dc56d5d27d8a31f301d300f0603551d130101ff040530030101ff300a0603551d230403300180300a06082a8648ce3d040302034800304502205443c61342f55d3d4cec26df92b7614a5e67177f057efd4f6fb9d7a1a47f5d110221008f05c4c193e203d78a322455132f1b4428388904874dd329fc60a68a37a559b4":"":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, MBEDTLS_ERR_ASN1_OUT_OF_DATA)
 
 OID get numeric string - hardware module name
 oid_get_numeric_string:"2B06010505070804":0:"1.3.6.1.5.5.7.8.4"

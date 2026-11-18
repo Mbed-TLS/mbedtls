@@ -1,4 +1,0 @@
-Bugfix
-   * Reject serialized TLS 1.2 sessions whose session ID length exceeds 32,
-     instead of accepting an out-of-range length that is later used to read
-     past the end of the 32-byte session ID buffer.

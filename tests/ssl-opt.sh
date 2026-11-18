@@ -2566,6 +2566,8 @@ run_test    "Unique IV in GCM" \
             -U "IV used"
 
 # Test for correctness of sent single supported algorithm
+# Force a ciphersuite with a matching PRF to satisfy our TLS 1.2 client
+# See the comments in ssl_write_certificate_verify()
 requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -2574,8 +2576,10 @@ requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 run_test    "Single supported algorithm sending: mbedtls client" \
-            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
-            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp256r1_sha256 debug_level=3" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
+                    sig_algs=ecdsa_secp256r1_sha256 debug_level=3 \
+                    key_file=$DATA_FILES_PATH/ecdsa_secp256r1.key crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt" \
             0 \
             -c "Supported Signature Algorithm found: 04 03"
 
@@ -2594,6 +2598,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 run_test    "TLS 1.2: sig_algs (hash,sig) hex pair accepted with RSA server cert" \
             "$P_SRV force_version=tls12 \
@@ -2608,6 +2613,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 run_test    "TLS 1.2: sig_algs policy - hash accepted but signature rejected (client)" \
             "$P_SRV force_version=tls12 \
@@ -2622,6 +2628,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 requires_hash_alg SHA_384
 run_test    "TLS 1.2: sig_algs policy - signature accepted but hash rejected (server)" \
@@ -2637,6 +2644,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 run_test    "TLS 1.2: sig_algs policy - server rejects its certificate's signature type" \
             "$P_SRV force_version=tls12 sig_algs=0403 \
@@ -2644,7 +2652,37 @@ run_test    "TLS 1.2: sig_algs policy - server rejects its certificate's signatu
             "$P_CLI force_version=tls12" \
             1 \
             -s "The handshake negotiation failed" \
-            -c "Last error was: -0x7780 - SSL - A fatal alert message was received from our peer"
+# To test the behaviour of the server, the client needs to send a certificate
+# that doesn't match any of the requested signature algorithms.
+# Our client does this, as it ignores the server's preferences
+# - see the documentation of mbedtls_ssl_conf_own_cert()
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_pk_alg ECDSA
+requires_hash_alg SHA_256
+run_test    "Certificate verify message with disallowed signature algorithm" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
+            sig_algs=ecdsa_secp256r1_sha256 \
+                    key_file=$DATA_FILES_PATH/cli-rsa.key crt_file=$DATA_FILES_PATH/cli-rsa-sha256.crt" \
+            1 \
+            -s "requested sig_alg \[403\] ecdsa_secp256r1_sha256" \
+            -s "received sig_alg \[401\] rsa_pkcs1_sha256" \
+            -s "peer not adhering to requested sig_alg for verify message" \
+            -s "send alert level=2 message=40"
+
+requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_hash_alg SHA_256
+requires_hash_alg SHA_384
+run_test    "Certificate verify message with disallowed hash algorithm" \
+            "$P_SRV sig_algs=rsa_pkcs1_sha384 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256 \
+                    sig_algs=rsa_pkcs1_sha384 \
+                    key_file=$DATA_FILES_PATH/cli-rsa.key crt_file=$DATA_FILES_PATH/cli-rsa-sha256.crt" \
+            1 \
+            -s "requested sig_alg \[501\] rsa_pkcs1_sha384" \
+            -s "received sig_alg \[401\] rsa_pkcs1_sha256" \
+            -s "peer not adhering to requested sig_alg for verify message" \
 
 # Tests for certificate verification callback
 run_test    "Configuration-specific CRT verification callback" \
@@ -3802,6 +3840,65 @@ run_test    "Session resume using tickets: session copy" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_TICKET_C
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_FS_IO
+run_test    "Session resume using tickets: SNI selects hostname-specific ticket context" \
+            "$P_SRV debug_level=3 tickets=1 cache_max=0 \
+             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 server_name=localhost reconnect=1" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_TICKET_C
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_FS_IO
+run_test    "Session resume using tickets: host-specific ticket contexts prevent cross-SNI resumption" \
+            "$P_SRV debug_level=3 tickets=1 cache_max=0 \
+             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 server_name=localhost reco_server_name=polarssl.example reconnect=1" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -c "sending session ticket of length" \
+            -S "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -S "a session has been resumed" \
+            -C "a session has been resumed"
+
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_TICKET_C
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_FS_IO
+run_test    "Session resume using tickets: two SNI hostnames select separate ticket contexts" \
+            "$P_SRV debug_level=3 tickets=1 cache_max=0 \
+             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
+            "( $P_CLI force_version=tls12 debug_level=3 tickets=1 server_name=localhost reconnect=1; \
+               $P_CLI force_version=tls12 debug_level=3 tickets=1 server_name=polarssl.example server_addr=localhost reconnect=1 )" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl server" \
@@ -4194,6 +4291,42 @@ run_test    "Session resume using cache: tickets enabled on server" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
+
+requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_FS_IO
+run_test    "Session resume using cache: SNI selects hostname-specific cache context" \
+            "$P_SRV debug_level=3 tickets=0 \
+             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 server_name=localhost reconnect=1" \
+            0 \
+            -C "client hello, adding session ticket extension" \
+            -S "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -C "found session_ticket extension" \
+            -C "parse new session ticket" \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_FS_IO
+run_test    "Session resume using cache: host-specific cache contexts prevent cross-SNI resumption" \
+            "$P_SRV debug_level=3 tickets=0 \
+             sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 server_name=localhost reco_server_name=polarssl.example reconnect=1" \
+            0 \
+            -C "client hello, adding session ticket extension" \
+            -S "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -C "found session_ticket extension" \
+            -C "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -S "a session has been resumed" \
+            -C "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: cache_max=0" \
@@ -5961,15 +6094,6 @@ run_test "Authentication: hostname mismatch (wrong), client required" \
          -c "! mbedtls_ssl_handshake returned" \
          -c "X509 - Certificate verification failed"
 
-run_test "Authentication: hostname mismatch (empty), client required" \
-         "$P_SRV" \
-         "$P_CLI auth_mode=required server_name= debug_level=1" \
-         1 \
-         -c "does not match with the expected CN" \
-         -c "x509_verify_cert() returned -" \
-         -c "! mbedtls_ssl_handshake returned" \
-         -c "X509 - Certificate verification failed"
-
 run_test "Authentication: hostname mismatch (truncated), client required" \
          "$P_SRV" \
          "$P_CLI auth_mode=required server_name=localhos debug_level=1" \
@@ -6139,6 +6263,36 @@ run_test "Authentication: hostname unset, client default, server picks PSK, 1.3"
          -C "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
+
+# The purpose of the next test is to test the client's behaviour when receiving a server
+# certificate with an unsupported elliptic curve. This should not normally happen because
+# the client informs the server about the supported curves (to be fixed).
+# If that bug's fixed, the test needs to be altered to use a
+# different means to have the server ignoring the client's supported curve list.
+
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
+run_test    "Authentication: server ECDSA p256v1, client required, p256v1 unsupported" \
+            "$P_SRV debug_level=1 key_file=$DATA_FILES_PATH/server5.key \
+             crt_file=$DATA_FILES_PATH/server5.crt" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=required groups=secp521r1" \
+            1 \
+            -c "bad certificate (EC key curve)" \
+            -c "send alert level=2 message=43" \
+            -c "! Certificate verification flags" \
+            -c "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
+
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
+run_test    "Authentication: client ECDSA p256v1, server required, p256v1 unsupported" \
+            "$P_SRV debug_level=3 auth_mode=required groups=secp521r1" \
+            "$P_CLI force_version=tls12 debug_level=1 \
+                    key_file=$DATA_FILES_PATH/server6.key crt_file=$DATA_FILES_PATH/server6.crt" \
+            1 \
+            -s "bad certificate (EC key curve)" \
+            -s "send alert level=2 message=43" \
+            -s "! Certificate verification flags" \
+            -s "! The certificate is signed with an unacceptable key (eg bad curve, RSA too short)"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: client SHA256, server required" \

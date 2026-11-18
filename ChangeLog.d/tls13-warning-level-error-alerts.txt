@@ -1,0 +1,5 @@
+Bugfix
+   * In TLS 1.3, treat a received alert other than close_notify and
+     user_canceled as fatal even if its level is warning, as RFC 8446
+     requires. Before, such an alert was ignored and the connection could
+     still be used. Fixes #10924.

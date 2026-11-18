@@ -4960,6 +4960,15 @@ int mbedtls_ssl_handle_message_type(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+            /* RFC 8446 section 5: a ChangeCipherSpec received after the
+             * peer's Finished is an unexpected record type. Once the
+             * handshake is over, the peer's Finished has been received. */
+            if (mbedtls_ssl_is_handshake_over(ssl)) {
+                MBEDTLS_SSL_DEBUG_MSG(1, ("ChangeCipherSpec after the handshake"));
+                mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                               MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE);
+                return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+            }
             MBEDTLS_SSL_DEBUG_MSG(2,
                                   ("Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"));
             return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;

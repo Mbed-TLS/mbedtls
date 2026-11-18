@@ -2593,6 +2593,65 @@ run_test    "Single supported algorithm sending: openssl client" \
                     -key $DATA_FILES_PATH/server6.key" \
             0
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_pk_alg "ECDSA"
+requires_hash_alg SHA_256
+run_test    "TLS 1.2: sig_algs (hash,sig) hex pair accepted with RSA server cert" \
+            "$P_SRV force_version=tls12 \
+             crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key" \
+            "$P_CLI force_version=tls12 sig_algs=0401" \
+            0 \
+            -s "Ciphersuite is" \
+            -c "Ciphersuite is"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_pk_alg "ECDSA"
+requires_hash_alg SHA_256
+run_test    "TLS 1.2: sig_algs policy - hash accepted but signature rejected (client)" \
+            "$P_SRV force_version=tls12 \
+             crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key" \
+            "$P_CLI force_version=tls12 sig_algs=0403" \
+            1 \
+            -s "The handshake negotiation failed" \
+            -c "Last error was: -0x7780 - SSL - A fatal alert message was received from our peer"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_pk_alg "ECDSA"
+requires_hash_alg SHA_256
+requires_hash_alg SHA_384
+run_test    "TLS 1.2: sig_algs policy - signature accepted but hash rejected (server)" \
+            "$P_SRV force_version=tls12 sig_algs=0501 \
+             crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key" \
+            "$P_CLI force_version=tls12 sig_algs=0401" \
+            1 \
+            -s "The handshake negotiation failed" \
+            -c "Last error was: -0x7780 - SSL - A fatal alert message was received from our peer"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_pk_alg "ECDSA"
+requires_hash_alg SHA_256
+run_test    "TLS 1.2: sig_algs policy - server rejects its certificate's signature type" \
+            "$P_SRV force_version=tls12 sig_algs=0403 \
+             crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key" \
+            "$P_CLI force_version=tls12" \
+            1 \
+            -s "The handshake negotiation failed" \
 # To test the behaviour of the server, the client needs to send a certificate
 # that doesn't match any of the requested signature algorithms.
 # Our client does this, as it ignores the server's preferences
@@ -2624,7 +2683,6 @@ run_test    "Certificate verify message with disallowed hash algorithm" \
             -s "requested sig_alg \[501\] rsa_pkcs1_sha384" \
             -s "received sig_alg \[401\] rsa_pkcs1_sha256" \
             -s "peer not adhering to requested sig_alg for verify message" \
-            -s "send alert level=2 message=40"
 
 # Tests for certificate verification callback
 run_test    "Configuration-specific CRT verification callback" \

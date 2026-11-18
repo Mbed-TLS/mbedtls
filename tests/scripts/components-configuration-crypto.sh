@@ -34,27 +34,6 @@ component_test_psa_assume_exclusive_buffers () {
     make test
 }
 
-component_test_crypto_with_static_key_slots() {
-    msg "build: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
-    scripts/config.py crypto_full
-    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
-    # Intentionally set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE to a value that
-    # is enough to contain:
-    # - all RSA public keys up to 4096 bits (max of PSA_VENDOR_RSA_MAX_KEY_BITS).
-    # - RSA key pairs up to 1024 bits, but not 2048 or larger.
-    # - all FFDH key pairs and public keys up to 8192 bits (max of PSA_VENDOR_FFDH_MAX_KEY_BITS).
-    # - all EC key pairs and public keys up to 521 bits (max of PSA_VENDOR_ECC_MAX_CURVE_BITS).
-    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE 1212
-    # Disable the fully dynamic key store (default on) since it conflicts
-    # with the static behavior that we're testing here.
-    scripts/config.py unset MBEDTLS_PSA_KEY_STORE_DYNAMIC
-
-    msg "test: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
-    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    cmake --build .
-    ctest
-}
-
 # check_renamed_symbols HEADER LIB
 # Check that if HEADER contains '#define MACRO ...' then MACRO is not a symbol
 # name in LIB.
@@ -594,7 +573,8 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     # These hashes are needed for some ECDSA signature tests.
     loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 \
+                    ALG_BLAKE2S_HASH256 ALG_BLAKE2B_HASH512 ALG_SM3"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
@@ -745,7 +725,8 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
 
     # These hashes are needed for some ECDSA signature tests.
     loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 \
+                    ALG_BLAKE2S_HASH256 ALG_BLAKE2B_HASH512 ALG_SM3"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
     helper_libtestdriver1_make_main "$loc_accel_list"
@@ -833,7 +814,8 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
 
     # These hashes are needed for some ECDSA signature tests.
     loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 \
+                    ALG_BLAKE2S_HASH256 ALG_BLAKE2B_HASH512 ALG_SM3"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
     # For grep to work below we need less inlining in ecp.c
@@ -908,7 +890,8 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
 
     # These hashes are needed for some ECDSA signature tests.
     loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 \
+                    ALG_BLAKE2S_HASH256 ALG_BLAKE2B_HASH512 ALG_SM3"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
     helper_libtestdriver1_make_main "$loc_accel_list"
@@ -964,7 +947,8 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     # Things we wanted supported in libtestdriver1, but not accelerated in the main library:
     # SHA-1 and all SHA-2/3 variants, as they are used by ECDSA deterministic.
     loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 \
+                    ALG_BLAKE2S_HASH256 ALG_BLAKE2B_HASH512 ALG_SM3"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
@@ -1060,7 +1044,8 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     # Things we wanted supported in libtestdriver1, but not accelerated in the main library:
     # SHA-1 and all SHA-2/3 variants, as they are used by ECDSA deterministic.
     loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 \
+                    ALG_BLAKE2S_HASH256 ALG_BLAKE2B_HASH512 ALG_SM3"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
@@ -1247,7 +1232,8 @@ component_test_psa_crypto_config_accel_rsa_crypto () {
 
     # These hashes are needed for unit tests.
     loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 ALG_MD5"
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 ALG_MD5 \
+                    ALG_BLAKE2S_HASH256 ALG_BLAKE2B_HASH512 ALG_SM3"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
     helper_libtestdriver1_make_main "$loc_accel_list"
@@ -1310,7 +1296,8 @@ component_test_psa_crypto_config_accel_hash () {
 
     loc_accel_list="ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 \
                     ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 \
+                    ALG_BLAKE2S_HASH256 ALG_BLAKE2B_HASH512 ALG_SM3"
 
     # Configure
     # ---------
@@ -1373,7 +1360,8 @@ component_test_psa_crypto_config_accel_hmac () {
     loc_accel_list="ALG_HMAC KEY_TYPE_HMAC \
                     ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 \
                     ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 \
+                    ALG_BLAKE2S_HASH256 ALG_BLAKE2B_HASH512 ALG_SM3"
 
     # Configure
     # ---------

@@ -1,0 +1,6 @@
+Bugfix
+   * Fix mbedtls_mpi_shift_r() on a negative number when the shift count is
+     at least the bit length of the number. The result was 0 with a negative
+     sign, which is not a valid representation of 0 and was not handled
+     correctly by other functions. The result is now +0. Fixes
+     #10108.

@@ -889,8 +889,11 @@ int mbedtls_mpi_shift_r(mbedtls_mpi *X, size_t count)
 {
     if (X->n != 0) {
         mbedtls_mpi_core_shift_r(X->p, X->n, count);
-        if (mbedtls_mpi_cmp_int(X, 0) == 0) {
-            /* A negative number can become 0. 0 must be positive. */
+        /* A negative number can become 0. 0 must be positive.
+         * Only look at the value if the sign is negative, so that
+         * positive numbers (the common case) don't incur any additional
+         * value-dependent processing. */
+        if (X->s < 0 && mbedtls_mpi_cmp_int(X, 0) == 0) {
             X->s = 1;
         }
     }

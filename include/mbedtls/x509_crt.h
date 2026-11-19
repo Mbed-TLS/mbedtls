@@ -642,9 +642,13 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  * \param trust_ca The list of trusted CAs.
  * \param ca_crl   The list of CRLs for trusted CAs.
  * \param cn       The expected Common Name. This will be checked to be
- *                 present in the certificate's subjectAltNames extension or,
- *                 if this extension is absent, as a CN component in its
- *                 Subject name. DNS names and IP addresses are fully
+ *                 present in the certificate's subjectAltNames extension.
+ *                 It is checked as a CN component in the Subject name
+ *                 instead if this extension is absent, or if it is not
+ *                 critical and contains no DNS name, IP address or URI.
+ *                 A certificate with an empty Subject name only matches if
+ *                 it is an end-entity certificate with a critical
+ *                 subjectAltNames extension. DNS names and IP addresses are fully
  *                 supported, while the URI subtype is partially supported:
  *                 only exact matching, without any normalization procedures
  *                 described in 7.4 of RFC5280, will result in a positive

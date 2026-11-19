@@ -967,6 +967,24 @@ mpi_shift_r:"FFFFFFFFFFFFFFFF":65:"00"
 Test mbedtls_mpi_shift_r #7
 mpi_shift_r:"FFFFFFFFFFFFFFFF":128:"00"
 
+Test mbedtls_mpi_shift_r: negative, nonzero result
+mpi_shift_r:"-80":1:"-40"
+
+Test mbedtls_mpi_shift_r: negative, shift to 1
+mpi_shift_r:"-FFFFFFFFFFFFFFFF":63:"-01"
+
+Test mbedtls_mpi_shift_r: negative, result is 0, shift by 1
+mpi_shift_r:"-01":1:"0"
+
+Test mbedtls_mpi_shift_r: negative, result is 0, shift by 64
+mpi_shift_r:"-FFFFFFFFFFFFFFFF":64:"0"
+
+Test mbedtls_mpi_shift_r: negative, result is 0, shift by 65
+mpi_shift_r:"-FFFFFFFFFFFFFFFF":65:"0"
+
+Test mbedtls_mpi_shift_r: negative, result is 0, shift by 128
+mpi_shift_r:"-FFFFFFFFFFFFFFFF":128:"0"
+
 Test mbedtls_mpi_shift_r: 0 (null) >>= 0
 mpi_shift_r:"":0:"0"
 

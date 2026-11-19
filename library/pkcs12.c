@@ -323,6 +323,32 @@ exit:
 }
 
 
+/* The maximum value that pkcs12_block_size() can return, which is the block
+ * size of SHA3-224. */
+#define PKCS12_MAX_BLOCK_SIZE 144
+
+/* Return the block size "v" of the hash, as used in the key derivation
+ * function in RFC 7292 appendix B.2.
+ *
+ * RFC 7292 predates SHA-3, so it doesn't say what the block size of SHA-3 is.
+ * Like other implementations (for example OpenSSL), use the same block size
+ * as for HMAC, which is the rate of the sponge construction. */
+static size_t pkcs12_block_size(mbedtls_md_type_t md_type, size_t hlen)
+{
+    switch (md_type) {
+        case MBEDTLS_MD_SHA3_224:
+            return 144;
+        case MBEDTLS_MD_SHA3_256:
+            return 136;
+        case MBEDTLS_MD_SHA3_384:
+            return 104;
+        case MBEDTLS_MD_SHA3_512:
+            return 72;
+        default:
+            return hlen <= 32 ? 64 : 128;
+    }
+}
+
 int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
                               const unsigned char *pwd, size_t pwdlen,
                               const unsigned char *salt, size_t saltlen,
@@ -331,8 +357,10 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned int j;
 
-    unsigned char diversifier[128];
-    unsigned char salt_block[128], pwd_block[128], hash_block[128] = { 0 };
+    unsigned char diversifier[PKCS12_MAX_BLOCK_SIZE];
+    unsigned char salt_block[PKCS12_MAX_BLOCK_SIZE];
+    unsigned char pwd_block[PKCS12_MAX_BLOCK_SIZE];
+    unsigned char hash_block[PKCS12_MAX_BLOCK_SIZE] = { 0 };
     unsigned char hash_output[MBEDTLS_MD_MAX_SIZE];
     unsigned char *p;
     unsigned char c;
@@ -359,11 +387,7 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
 
     hlen = mbedtls_md_get_size_from_type(md_type);
 
-    if (hlen <= 32) {
-        v = 64;
-    } else {
-        v = 128;
-    }
+    v = pkcs12_block_size(md_type, hlen);
 
     memset(diversifier, (unsigned char) id, v);
 

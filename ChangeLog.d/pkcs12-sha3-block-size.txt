@@ -1,0 +1,4 @@
+Bugfix
+   * Fix mbedtls_pkcs12_derivation() when used with SHA-3. It used the wrong
+     block size, so it produced output that is different from other
+     implementations such as OpenSSL. Fixes #10661.

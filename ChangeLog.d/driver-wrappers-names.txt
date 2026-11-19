@@ -1,0 +1,6 @@
+Bugfix
+   * Fix the generation of driver wrappers ignoring the "names" property of a
+     capability in the JSON description of a driver. The generated code always
+     called functions named <prefix>_<type>_<entry_point>, so a driver that
+     declared different function names failed to link. Reported in
+     Mbed-TLS/TF-PSA-Crypto#763.

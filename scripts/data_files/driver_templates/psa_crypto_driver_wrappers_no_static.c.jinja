@@ -51,7 +51,7 @@
 
 /* BEGIN-Common Macro definitions */
 {% macro entry_point_name(capability, entry_point, driver) -%}
-    {% if capability.name is defined and entry_point in capability.names.keys() -%}
+    {% if capability.names is defined and entry_point in capability.names.keys() -%}
     {{ capability.names[entry_point]}}
     {% else -%}
     {{driver.prefix}}_{{driver.type}}_{{entry_point}}

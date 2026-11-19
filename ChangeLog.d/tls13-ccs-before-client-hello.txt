@@ -1,0 +1,5 @@
+Bugfix
+   * In a TLS 1.3 server, reject a ChangeCipherSpec record received before
+     the first ClientHello with MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE and send a
+     fatal unexpected_message alert, as required by RFC 8446. Previously it
+     was silently ignored.

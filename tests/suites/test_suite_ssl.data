@@ -3628,6 +3628,12 @@ tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_NONE
 TLS 1.3 HRR: CH2 cannot change closed SNI to open
 tls13_srv_hrr_sni_consistency:TEST_TLS13_HRR_SNI_CLOSED:TEST_TLS13_HRR_SNI_OPEN
 
+TLS 1.3 server: ChangeCipherSpec before the first ClientHello
+tls13_srv_ccs_before_client_hello:0
+
+TLS 1.3 server: ChangeCipherSpec before the second ClientHello
+tls13_srv_ccs_before_client_hello:1
+
 TLS 1.3 server accepts compliant CH2, sanity check tls13_srv_rejects_inconsistent_ch2
 depends_on:MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256
 tls13_srv_rejects_inconsistent_ch2:TEST_TLS13_CH2_NO_INCONSISTENCY

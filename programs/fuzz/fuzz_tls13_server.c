@@ -3,7 +3,6 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ssl_ticket.h"
 #include "mbedtls/platform.h"
-#include "mbedtls/entropy.h"
 #include "psa/crypto.h"
 #include "test/certs.h"
 #include "common.h"
@@ -31,6 +30,7 @@ const char psk_id[] = "Client_identity";
 
 const char *pers = "fuzz_tls13_server";
 
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PLATFORM_NV_SEED_ALT)
 static unsigned char fuzz_nv_seed[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
 static int fuzz_nv_seed_read(unsigned char *buf, size_t buf_len)
@@ -50,6 +50,7 @@ static int fuzz_nv_seed_write(unsigned char *buf, size_t buf_len)
     memcpy(fuzz_nv_seed, buf, buf_len);
     return 0;
 }
+#endif /* MBEDTLS_ENTROPY_NV_SEED && MBEDTLS_PLATFORM_NV_SEED_ALT */
 
 static void fuzz_psa_init(void)
 {

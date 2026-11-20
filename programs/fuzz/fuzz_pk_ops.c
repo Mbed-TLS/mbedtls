@@ -4,11 +4,16 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
-#include "mbedtls/rsa.h"
 #include "mbedtls/md.h"
+#if defined(MBEDTLS_RSA_C)
+#include "mbedtls/rsa.h"
+#endif
 #include "common.h"
 
 #define MAX_BLOB 4096
+
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_CTR_DRBG_C) && \
+    defined(MBEDTLS_ENTROPY_C)
 
 static size_t get_len16(const uint8_t *d, size_t n, size_t pos, size_t cap,
                         size_t *out_pos)
@@ -44,9 +49,12 @@ static mbedtls_md_type_t md_from_byte(uint8_t b)
         default: return MBEDTLS_MD_NONE;
     }
 }
+#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_CTR_DRBG_C && MBEDTLS_ENTROPY_C */
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_CTR_DRBG_C) && \
+    defined(MBEDTLS_ENTROPY_C)
     int ret;
     mbedtls_pk_context pk;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -59,6 +67,12 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     mbedtls_pk_init(&pk);
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_entropy_init(&entropy);
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if (psa_crypto_init() != PSA_SUCCESS) {
+        goto exit;
+    }
+#endif
 
     if (Size < 6) {
         goto exit;
@@ -89,12 +103,15 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
         pos += key_len;
         /* password byte-string for encrypted PEM/PKCS12/PKCS5 parsing */
         if (want_pwd) {
-            pwd_len = Data[pos % Size];
-            pos = (pos + 1) % (Size + 1);
-            if (pos + pwd_len > Size) {
+            if (pos >= Size) {
+                goto exit;
+            }
+            pwd_len = Data[pos++];
+            if (pwd_len > Size - pos) {
                 pwd_len = Size - pos;
             }
             pwd = Data + pos;
+            pos += pwd_len;
         }
 
         if (parse_public) {
@@ -103,7 +120,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
             ret = mbedtls_pk_parse_key(&pk, key, key_len, pwd, pwd_len,
                                        dummy_random, &ctr_drbg);
         }
-        pos += pwd_len;
         if (ret != 0) {
             goto exit;
         }
@@ -120,20 +136,23 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 
     {
-        mbedtls_rsa_context *rsa = (mbedtls_pk_get_type(&pk) ==
-                                    MBEDTLS_PK_RSA)
-                                     ? mbedtls_pk_rsa(pk) : NULL;
         mbedtls_md_type_t md = md_from_byte(hash_sel);
-        int rsa_padding = (opts & 0x01) ? MBEDTLS_RSA_PKCS_V21
-                                        : MBEDTLS_RSA_PKCS_V15;
         uint8_t out[512];
         size_t out_len = 0;
         int is_private;
+#if defined(MBEDTLS_RSA_C)
+        mbedtls_rsa_context *rsa = (mbedtls_pk_get_type(&pk) ==
+                                    MBEDTLS_PK_RSA)
+                                     ? mbedtls_pk_rsa(pk) : NULL;
+        int rsa_padding = (opts & 0x01) ? MBEDTLS_RSA_PKCS_V21
+                                        : MBEDTLS_RSA_PKCS_V15;
 
         if (rsa != NULL && (opts & 0x02)) {
-            (void) mbedtls_rsa_set_padding(rsa, rsa_padding,
-                                           mbedtls_md_info_from_type(md));
+            (void) mbedtls_rsa_set_padding(rsa, rsa_padding, md);
         }
+#else
+        (void) opts;
+#endif
 
         is_private = (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_RSA ||
                       mbedtls_pk_get_type(&pk) == MBEDTLS_PK_ECKEY ||
@@ -176,6 +195,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
             {
                 unsigned char expbuf[MAX_BLOB];
 
+#if defined(MBEDTLS_PK_WRITE_C)
                 if (!is_private) {
                     (void) mbedtls_pk_write_pubkey_der(&pk, expbuf,
                                                        sizeof(expbuf));
@@ -183,16 +203,20 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
                     (void) mbedtls_pk_write_key_der(&pk, expbuf,
                                                     sizeof(expbuf));
                 }
+#else
+                (void) expbuf;
+#endif
                 (void) mbedtls_pk_get_bitlen(&pk);
             }
                 break;
             case 6: /* RSA-specific: legacy sign/verify + padding flip */
+#if defined(MBEDTLS_RSA_C)
                 if (rsa != NULL) {
                     uint8_t sigbuf[512];
 
                     (void) mbedtls_rsa_pkcs1_sign(rsa, dummy_random,
                                                   &ctr_drbg,
-                                                  md, payload_len,
+                                                  md, (unsigned int) payload_len,
                                                   payload, out);
                     /* legacy verify reads a full modulus-size sig buffer */
                     if (mbedtls_rsa_get_len(rsa) <= sizeof(sigbuf)) {
@@ -201,16 +225,16 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
                             memcpy(sigbuf, payload, payload_len);
                         }
                         (void) mbedtls_rsa_pkcs1_verify(rsa, md,
-                                                        payload_len,
+                                                        (unsigned int) payload_len,
                                                         payload, sigbuf);
                     }
                     (void) mbedtls_rsa_set_padding(rsa,
                                                    (opts & 0x04)
                                                      ? MBEDTLS_RSA_PKCS_V15
                                                      : MBEDTLS_RSA_PKCS_V21,
-                                                   mbedtls_md_info_from_type(
-                                                       md));
+                                                   md);
                 }
+#endif /* MBEDTLS_RSA_C */
                 break;
             default: /* rng==NULL sign path + verify */
                 (void) mbedtls_pk_verify(&pk, md, payload, payload_len,
@@ -228,5 +252,13 @@ exit:
     mbedtls_entropy_free(&entropy);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_pk_free(&pk);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif
+#else
+    (void) Data;
+    (void) Size;
+#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_CTR_DRBG_C && MBEDTLS_ENTROPY_C */
+
     return 0;
 }

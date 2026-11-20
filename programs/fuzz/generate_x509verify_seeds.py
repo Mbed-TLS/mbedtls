@@ -2,12 +2,16 @@
 """Seed generator for fuzz_x509verify.
 
 Frames real certificate chains from framework/data_files into the harness
-layout [opts][hash][len16 leaf][leaf][len16 ca][ca][len16 crl][crl].
+layout [opts][len16 leaf][leaf][len16 ca][ca][len16 crl][crl].
 Chain pairs are a mutation-resistant gate: DER framing plus a signature
 over the tbsCertificate cannot be produced by blind mutation, so the verify
 (path building, signature check, profile and key-usage policy) side stays
 unreachable without real chains. Both valid chains (signature accepted,
 path built) and mismatched pairs (verification-failure paths) are emitted.
+
+PEM blobs must include a terminating NUL: mbedtls_x509_crt_parse /
+mbedtls_x509_crl_parse only treat a buffer as PEM when buflen includes
+that byte.
 """
 import argparse
 import os
@@ -16,14 +20,31 @@ PAIRS = [
     # (leaf, ca) valid server chain
     ("server2.crt", "test-ca.crt"),
     ("server2.crt", "test-ca2.crt"),          # wrong CA: verify-failure path
-    ("server2.der", "test-ca.crt.der"),       # DER forms
+    ("server2.der", "test-ca.der"),           # DER forms
     ("server1.crt", "test-ca.crt"),
     ("server4.crt", "test-ca.crt"),           # wrong key usage certs
     ("cert_example_crt.pem", "test-ca.crt"),
     ("server5.crt", "test-ca.crt"),
 ]
 
-CRLS = ["crl.pem", "crl_sha256.pem", "crl-der.der"]
+CRLS = ["crl.pem", "crl_sha256.pem"]
+
+
+def as_parse_blob(data):
+    """Ensure PEM buffers end with NUL so mbedtls_*_parse selects PEM."""
+    if b"-----BEGIN" in data and (not data or data[-1:] != b"\0"):
+        return data + b"\0"
+    return data
+
+
+def frame(opts, leafb, cab, crlb=b""):
+    leafb = as_parse_blob(leafb)
+    cab = as_parse_blob(cab) if cab else cab
+    crlb = as_parse_blob(crlb) if crlb else crlb
+    return (bytes([opts]) +
+            len(leafb).to_bytes(2, "little") + leafb +
+            len(cab).to_bytes(2, "little") + cab +
+            len(crlb).to_bytes(2, "little") + crlb)
 
 
 def main():
@@ -37,23 +58,15 @@ def main():
     for i, (leaf_name, ca_name) in enumerate(PAIRS):
         leaf = None
         ca = None
-        for cand in (leaf_name,):
-            p = os.path.join(args.data_files, cand)
-            if os.path.exists(p):
-                leaf = open(p, "rb").read()
+        p = os.path.join(args.data_files, leaf_name)
+        if os.path.exists(p):
+            leaf = open(p, "rb").read()
         p = os.path.join(args.data_files, ca_name)
         if os.path.exists(p):
             ca = open(p, "rb").read()
         if leaf is None:
             continue
         ca = ca or b""
-
-        def frame(opts, leafb, cab, crlb=b""):
-            out = (bytes([opts, 0]) +
-                   len(leafb).to_bytes(2, "little") + leafb +
-                   len(cab).to_bytes(2, "little") + cab +
-                   len(crlb).to_bytes(2, "little") + crlb)
-            return out
 
         for opts in (0x00, 0x01, 0x02, 0x10, 0x20, 0x21, 0x22, 0x04, 0x08):
             with open(os.path.join(
@@ -74,9 +87,8 @@ def main():
                 break
         if leaf is None:
             continue
-        ca = open(os.path.join(args.data_files, "test-ca.crt"), "rb").read() \
-            if os.path.exists(os.path.join(args.data_files,
-                                           "test-ca.crt")) else b""
+        ca_path = os.path.join(args.data_files, "test-ca.crt")
+        ca = open(ca_path, "rb").read() if os.path.exists(ca_path) else b""
         for opts in (0x10, 0x11):
             with open(os.path.join(args.out, "crl_%s_o%02x" %
                                    (os.path.splitext(crl_name)[0], opts)),

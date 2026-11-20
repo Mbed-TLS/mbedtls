@@ -3,7 +3,6 @@
 
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_crl.h"
-#include "mbedtls/md.h"
 #include "common.h"
 
 static size_t get_len16(const uint8_t *d, size_t n, size_t pos, size_t cap,
@@ -42,22 +41,24 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     int ret;
     mbedtls_x509_crt leaf, ca;
     mbedtls_x509_crl crl;
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_x509_crt_restart_ctx rs;
+#endif
     uint32_t flags = 0;
     size_t pos = 0, leaf_len, ca_len, crl_len;
-    uint8_t opts, hash_sel;
+    uint8_t opts;
 
     mbedtls_x509_crt_init(&leaf);
     mbedtls_x509_crt_init(&ca);
     mbedtls_x509_crl_init(&crl);
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_x509_crt_restart_init(&rs);
+#endif
 
-    if (Size < 8) {
+    if (Size < 5) {
         goto exit;
     }
     opts = Data[pos++];
-    hash_sel = Data[pos++];
-    (void) hash_sel;
 
     leaf_len = get_len16(Data, Size, pos, 8192, &pos);
     if (leaf_len == 0 || leaf_len > Size - pos) {
@@ -106,6 +107,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
             /* verify with a CRL and per-CA storage */
             (void) mbedtls_x509_crt_verify_with_profile(
                 &leaf, &ca, &crl, profile, NULL, &flags, NULL, NULL);
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         } else if (opts & 0x20) {
             /* restartable: bounded slice count from opts */
             int slices = 2 + (opts >> 6);
@@ -122,6 +124,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
                     break;
                 }
             }
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
         } else {
             (void) mbedtls_x509_crt_verify_with_profile(
                 &leaf, &ca, NULL, profile, NULL, &flags, NULL, NULL);
@@ -136,7 +139,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 
 exit:
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_x509_crt_restart_free(&rs);
+#endif
     mbedtls_x509_crl_free(&crl);
     mbedtls_x509_crt_free(&ca);
     mbedtls_x509_crt_free(&leaf);

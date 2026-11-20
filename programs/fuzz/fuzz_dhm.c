@@ -1,19 +1,11 @@
 /*
- * OSS-Fuzz coverage pipeline pair 10 (mbedtls-dhm): DHM key-exchange harness.
+ * OSS-Fuzz: DHM key-exchange harness.
  *
- * Rationale (coverage report 20261110):
- *   dhm.c 250 dark lines @32.1% — read_public/make_public/calc_secret and
- *   the range-validation paths for attacker-supplied public values. DHM is
- *   the TLS 1.2 DHE server-side exchange surface; no existing harness
- *   drives it. bignum range checks on peer values are classic memory/logic
- *   bug territory.
- *
- * Shape: bytes-in = [opts][len16 params][params][len16 own_priv][own_priv]
- *                   [len16 peer_pub][peer_pub]
+ * Shape: [opts][len16 params][params][len16 peer_pub][peer_pub]
  * Flow: parse DHM parameters (PEM/DER — seeds use real framework ffdhe/
- * dh_*.pem files), read our private exponent from input (or generate), make
- * our public value, read the ATTACKER's public value, calculate the shared
- * secret (attacker range-validation paths run: value < 2, >= P, etc.).
+ * dh_*.pem files), make our public value (RNG-driven private exponent),
+ * read the ATTACKER's public value, calculate the shared secret (attacker
+ * range-validation paths run: value < 2, >= P, etc.).
  * All statuses ignored; error paths are dark validation code.
  *
  * Bounds: blobs <= 4096 bytes; single exchange per input.
@@ -27,6 +19,9 @@
 #include "common.h"
 
 #define MAX_BLOB 4096
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_ASN1_PARSE_C) && \
+    defined(MBEDTLS_CTR_DRBG_C) && defined(MBEDTLS_ENTROPY_C)
 
 static size_t get_len16(const uint8_t *d, size_t n, size_t pos, size_t cap,
                         size_t *out_pos)
@@ -48,9 +43,13 @@ static size_t get_len16(const uint8_t *d, size_t n, size_t pos, size_t cap,
     *out_pos = pos;
     return len;
 }
+#endif /* MBEDTLS_DHM_C && MBEDTLS_ASN1_PARSE_C &&
+          MBEDTLS_CTR_DRBG_C && MBEDTLS_ENTROPY_C */
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_ASN1_PARSE_C) && \
+    defined(MBEDTLS_CTR_DRBG_C) && defined(MBEDTLS_ENTROPY_C)
     int ret;
     mbedtls_dhm_context dhm;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -64,7 +63,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_entropy_init(&entropy);
 
-    if (Size < 7) {
+    if (Size < 5) {
         goto exit;
     }
     opts = Data[pos++];
@@ -85,14 +84,12 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
         goto exit;
     }
 
-    /* 2. our private exponent: generated internally by make_public below
-     * (3.6 has no public read_private API; X is a private member) */
-
-    /* 3. make our public value (RNG-driven path, 32-byte exponent) */
+    /* 2. make our public value (RNG-driven private exponent; 3.6 has no
+     * public read_private API) */
     (void) mbedtls_dhm_make_public(&dhm, 32, out, MAX_BLOB,
                                    dummy_random, &ctr_drbg);
 
-    /* 4. attacker public value (range validation paths) */
+    /* 3. attacker public value (range validation paths) */
     peer_len = get_len16(Data, Size, pos, MAX_BLOB, &pos);
     if (peer_len > Size - pos) {
         peer_len = Size - pos;
@@ -101,7 +98,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
         (void) mbedtls_dhm_read_public(&dhm, Data + pos, peer_len);
     }
 
-    /* 5. shared secret against attacker peer (P-range checks) */
+    /* 4. shared secret against attacker peer (P-range checks) */
     (void) mbedtls_dhm_calc_secret(&dhm, out, sizeof(out), &out_len,
                                    dummy_random, &ctr_drbg);
 
@@ -111,5 +108,11 @@ exit:
     mbedtls_entropy_free(&entropy);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_dhm_free(&dhm);
+#else
+    (void) Data;
+    (void) Size;
+#endif /* MBEDTLS_DHM_C && MBEDTLS_ASN1_PARSE_C &&
+          MBEDTLS_CTR_DRBG_C && MBEDTLS_ENTROPY_C */
+
     return 0;
 }

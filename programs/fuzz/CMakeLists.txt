@@ -18,6 +18,7 @@ set(executables_no_common_c
 add_dependencies(${programs_target} ${executables_no_common_c})
 
 set(executables_with_common_c
+    fuzz_dhm
     fuzz_privkey
     fuzz_client
     fuzz_dtlsclient

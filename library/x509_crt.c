@@ -869,6 +869,9 @@ static int x509_get_certificate_policies(unsigned char **p,
 /*
  * Check whether an extension with the given OID occurs among the extensions
  * from p to end, which have already been parsed successfully.
+ *
+ * Calling this for each extension without a parser costs time quadratic in
+ * the number of extensions, which is bounded by the size of the certificate.
  */
 static int x509_crt_ext_oid_seen(unsigned char *p, const unsigned char *end,
                                  const mbedtls_x509_buf *oid)

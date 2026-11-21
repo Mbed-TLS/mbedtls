@@ -476,6 +476,10 @@ add_mbedtls_ciphersuites()
         "PSK")
             # *PSK_NULL_SHA suites supported by GnuTLS 3.3.5 but not 3.2.15
             M_CIPHERS="$M_CIPHERS                               \
+                TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256           \
+                TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384           \
+                TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256           \
+                TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256         \
                 TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256          \
                 TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384          \
                 TLS_ECDHE_PSK_WITH_NULL_SHA                     \

@@ -4,4 +4,6 @@ Bugfix
      after a ticket key rotation. The server should skip the early data up to
      its configured maximum and continue with a 1-RTT handshake, but it used
      a limit of zero and aborted the handshake with
-     MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE.
+     MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE. The same now applies to early data
+     sent with a ticket that was issued while early data was disabled on the
+     server: it is skipped instead of aborting the handshake.

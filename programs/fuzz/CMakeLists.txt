@@ -19,6 +19,7 @@ add_dependencies(${programs_target} ${executables_no_common_c})
 
 set(executables_with_common_c
     fuzz_privkey
+    fuzz_tls13_server
     fuzz_client
     fuzz_dtlsclient
     fuzz_dtlsserver

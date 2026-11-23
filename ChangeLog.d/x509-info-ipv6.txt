@@ -1,0 +1,5 @@
+Bugfix
+   * Fix the display of IPv6 addresses in the subject alternative name by
+     mbedtls_x509_crt_info() and mbedtls_x509_csr_info(). Each 16-bit group
+     was printed as two unpadded bytes, so for example 2001:db8::1 was shown
+     as 201:DB8:00:00:00:00:00:01. It is now shown as 2001:DB8:0:0:0:0:0:1.

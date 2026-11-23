@@ -1647,12 +1647,11 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                     ret = mbedtls_snprintf(p, n, "%u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
                     MBEDTLS_X509_SAFE_SNPRINTF;
                 } else if (san.san.unstructured_name.len == 16) {
-                    ret = mbedtls_snprintf(p, n,
-                                           "%X%X:%X%X:%X%X:%X%X:%X%X:%X%X:%X%X:%X%X",
-                                           ip[0], ip[1], ip[2], ip[3], ip[4], ip[5], ip[6],
-                                           ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
-                                           ip[14], ip[15]);
-                    MBEDTLS_X509_SAFE_SNPRINTF;
+                    for (i = 0; i < 16; i += 2) {
+                        ret = mbedtls_snprintf(p, n, "%s%X", (i == 0) ? "" : ":",
+                                               (unsigned int) ((ip[i] << 8) | ip[i + 1]));
+                        MBEDTLS_X509_SAFE_SNPRINTF;
+                    }
                 } else {
                     if (n > 0) {
                         *p = '\0';

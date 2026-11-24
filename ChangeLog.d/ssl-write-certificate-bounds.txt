@@ -1,0 +1,4 @@
+Bugfix
+   * Fix a buffer overflow in mbedtls_ssl_write_certificate() when sending a
+     TLS 1.2 certificate chain where an earlier certificate leaves fewer than
+     3 bytes remaining in the output content buffer.

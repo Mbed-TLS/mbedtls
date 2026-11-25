@@ -63,7 +63,7 @@ const mbedtls_x509_crt_profile profile_ecdsa_only =
     0xFFFFFFFF, /* Any MD        */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_PK_SIGALG_ECDSA),
     0xFFFFFFFF, /* Any curve     */
-    1024,
+    0,
 };
 
 const mbedtls_x509_crt_profile profile_sha512 =

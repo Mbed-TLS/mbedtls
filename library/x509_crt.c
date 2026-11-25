@@ -193,7 +193,6 @@ static mbedtls_pk_sigalg_t x509_pk_type_to_sigalg(mbedtls_pk_type_t pk_type)
         case MBEDTLS_PK_RSA:        return MBEDTLS_PK_SIGALG_RSA_PKCS1V15;
         case MBEDTLS_PK_RSASSA_PSS: return MBEDTLS_PK_SIGALG_RSA_PSS;
         case MBEDTLS_PK_ECKEY:
-        case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:      return MBEDTLS_PK_SIGALG_ECDSA;
         default:                    return MBEDTLS_PK_SIGALG_NONE;
     }

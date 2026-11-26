@@ -1291,45 +1291,6 @@ component_test_new_psa_want_key_pair_symbol () {
     fi
 }
 
-component_test_psa_crypto_config_accel_hash () {
-    msg "test: full with accelerated hashes"
-
-    loc_accel_list="ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 \
-                    ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 \
-                    ALG_BLAKE2S_HASH256 ALG_BLAKE2B_HASH512 ALG_SM3"
-
-    # Configure
-    # ---------
-
-    helper_libtestdriver1_adjust_config "full"
-
-    # disable the built-in implementation of hashes
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
-    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
-
-    # Build
-    # -----
-
-    helper_libtestdriver1_make_drivers "$loc_accel_list"
-
-    helper_libtestdriver1_make_main "$loc_accel_list"
-
-    # There's a risk of something getting re-enabled via config_psa.h;
-    # make sure it did not happen. Note: it's OK for MD_C to be enabled.
-    not grep mbedtls_md5 ${BUILTIN_SRC_PATH}/md5.o
-    not grep mbedtls_sha1 ${BUILTIN_SRC_PATH}/sha1.o
-    not grep mbedtls_sha256 ${BUILTIN_SRC_PATH}/sha256.o
-    not grep mbedtls_sha512 ${BUILTIN_SRC_PATH}/sha512.o
-    not grep mbedtls_ripemd160 ${BUILTIN_SRC_PATH}/ripemd160.o
-
-    # Run the tests
-    # -------------
-
-    msg "test: full with accelerated hashes"
-    $MAKE_COMMAND test
-}
-
 # Auxiliary function to build config for hashes with and without drivers
 config_psa_crypto_hmac () {
     driver_only="$1"

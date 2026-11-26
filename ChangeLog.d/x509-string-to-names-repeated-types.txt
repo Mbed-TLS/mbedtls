@@ -1,0 +1,7 @@
+Bugfix
+   * Fix mbedtls_x509_string_to_names() keeping only the last value when a
+     name contains several attributes of the same type, for example
+     "DC=example,DC=net". This also affected
+     mbedtls_x509write_crt_set_subject_name(),
+     mbedtls_x509write_crt_set_issuer_name() and
+     mbedtls_x509write_csr_set_subject_name(). Fixes #10189.

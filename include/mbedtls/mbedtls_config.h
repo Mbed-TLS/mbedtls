@@ -353,7 +353,7 @@
  * Module:  library/ssl_cache.c
  * Caller:
  *
- * Requires: MBEDTLS_SSL_CACHE_C
+ * Requires: MBEDTLS_SSL_TLS_C
  */
 #define MBEDTLS_SSL_CACHE_C
 
@@ -468,7 +468,7 @@
  * in RFC 9146.
  *
  * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`,
- * mbedtls_ssl_get_own_cid()`, `mbedtls_ssl_get_peer_cid()` and
+ * `mbedtls_ssl_get_own_cid()`, `mbedtls_ssl_get_peer_cid()` and
  * `mbedtls_ssl_conf_cid()`. See the corresponding documentation for
  * more information.
  *
@@ -479,7 +479,7 @@
  *
  * Requires: MBEDTLS_SSL_PROTO_DTLS
  *
- * Uncomment to enable the Connection ID extension.
+ * Comment this macro to disable support for the Connection ID extension.
  */
 #define MBEDTLS_SSL_DTLS_CONNECTION_ID
 
@@ -588,7 +588,7 @@
  * This option controls the availability of the API mbedtls_ssl_get_peer_cert()
  * giving access to the peer's certificate after completion of the handshake.
  *
- * Unless you need mbedtls_ssl_peer_cert() in your application, it is
+ * Unless you need mbedtls_ssl_get_peer_cert() in your application, it is
  * recommended to disable this option for reduced RAM usage.
  *
  * \note If this option is disabled, mbedtls_ssl_get_peer_cert() is still

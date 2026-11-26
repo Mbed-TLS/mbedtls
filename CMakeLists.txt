@@ -16,9 +16,7 @@
 #   mbedtls, mbedx509, tfpsacrypto and mbedtls-apidoc targets.
 #
 
-# We specify a minimum requirement of 3.10.2, but for now use 3.5.1 here
-# until our infrastructure catches up.
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.10.2)
 
 include(CMakePackageConfigHelpers)
 

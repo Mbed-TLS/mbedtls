@@ -9,18 +9,16 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_BIGNUM_C) || \
-    !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_RSA_C) ||         \
-    !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) ||  \
+#if !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
+    !defined(MBEDTLS_NET_C) ||                                     \
+    !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) || \
     defined(MBEDTLS_X509_REMOVE_INFO)
 int main(void)
 {
-    mbedtls_printf("MBEDTLS_BIGNUM_C and/or "
-                   "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
-                   "MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
-                   "MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_FS_IO and/or "
-                   "and/or MBEDTLS_X509_REMOVE_INFO defined.\n");
+    mbedtls_printf("MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
+                   "MBEDTLS_NET_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
+                   "MBEDTLS_FS_IO not defined and/or "
+                   "MBEDTLS_X509_REMOVE_INFO defined.\n");
     mbedtls_exit(0);
 }
 #else
@@ -430,6 +428,5 @@ exit:
 
     mbedtls_exit(exit_code);
 }
-#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_SSL_TLS_C &&
-          MBEDTLS_SSL_CLI_C && MBEDTLS_NET_C && MBEDTLS_RSA_C &&
+#endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_CLI_C && MBEDTLS_NET_C &&
           MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_FS_IO */

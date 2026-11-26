@@ -334,7 +334,5 @@ exit:
 
     mbedtls_exit(exit_code);
 }
-#endif /* MBEDTLS_BIGNUM_C &&
-          MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_SRV_C && MBEDTLS_NET_C &&
-          MBEDTLS_RSA_C && MBEDTLS_PEM_PARSE_C &&
-          ! _WIN32 */
+#endif /* MBEDTLS_NET_C && MBEDTLS_SSL_SRV_C && MBEDTLS_PEM_PARSE_C &&
+          MBEDTLS_X509_CRT_PARSE_C && ! _WIN32 */

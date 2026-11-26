@@ -13,4 +13,19 @@ Non existing low error
 error_strerror:-0x007F:"UNKNOWN ERROR CODE (007F)"
 
 Non existing low and high error
-error_strerror:-0x88FF:"UNKNOWN ERROR CODE (8880) \: UNKNOWN ERROR CODE (007F)"
+error_strerror:-0x88FF:"UNKNOWN ERROR CODE (88FF)"
+
+Zero is not an error
+error_strerror:0:""
+
+Sum of known high and known low error is unknown
+depends_on:MBEDTLS_SSL_TLS_C:MBEDTLS_NET_C
+error_strerror:-0x6E50:"UNKNOWN ERROR CODE (6E50)"
+
+Sum of known high error and non existing low error is unknown
+depends_on:MBEDTLS_X509_CRT_PARSE_C
+error_strerror:-0x22FF:"UNKNOWN ERROR CODE (22FF)"
+
+Sum of non existing high error and known low error is unknown
+depends_on:MBEDTLS_NET_C
+error_strerror:-0x88D0:"UNKNOWN ERROR CODE (88D0)"

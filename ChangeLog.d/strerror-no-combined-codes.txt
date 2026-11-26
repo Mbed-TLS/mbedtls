@@ -1,0 +1,6 @@
+Changes
+   * mbedtls_strerror() no longer splits its argument into a high-level
+     and a low-level part, since Mbed TLS 4.0 functions no longer return
+     the sum of two error codes. Any value that is not an MBEDTLS_ERR_xxx
+     constant, including a positive value, is now reported as an unknown
+     error code.

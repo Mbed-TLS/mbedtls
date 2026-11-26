@@ -219,7 +219,7 @@ foreach my $match (@matches)
         ${$old_define_suffix} = $define_suffix;
     }
 
-    ${$code_check} .= "${white_space}case -($error_name):\n".
+    ${$code_check} .= "${white_space}case $error_name:\n".
                       "${white_space}    return( \"$module_name - $description\" );\n"
 };
 

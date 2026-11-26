@@ -9373,3 +9373,114 @@ exit:
     PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SERVER_NAME_INDICATION:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:PSA_WANT_ALG_SHA_256 */
+/* RFC 6066 section 3 forbids literal IPv4/IPv6 addresses in the ClientHello
+ * server_name (HostName) extension. mbedtls_ssl_set_hostname() must still
+ * accept them for certificate verification, but ssl_write_hostname_ext()
+ * must omit the extension. */
+void ssl_client_omits_ip_literal_sni(char *hostname, int expect_sni)
+{
+    enum { IO_BUFFER_SIZE = 4096 };
+    mbedtls_test_ssl_endpoint client, server;
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_ssl_buffer *output;
+    unsigned char *p, *end, *exts, *exts_end;
+    size_t rec_len, hs_len, sid_len, cs_len, comp_len, exts_len;
+    int ret = 0;
+    int saw_server_name = 0;
+
+    memset(&client, 0, sizeof(client));
+    memset(&server, 0, sizeof(server));
+    mbedtls_test_init_handshake_options(&options);
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
+                                              &options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
+                                              &options), 0);
+    TEST_EQUAL(mbedtls_ssl_set_hostname(&client.ssl, hostname), 0);
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&client.socket, &server.socket,
+                                                IO_BUFFER_SIZE), 0);
+
+    do {
+        ret = mbedtls_ssl_handshake_step(&client.ssl);
+    } while (ret == 0);
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
+
+    output = client.socket.output;
+    TEST_EQUAL(output->start, 0);
+    TEST_LE_U(11, output->content_length);
+    p = output->buffer;
+    end = p + output->content_length;
+
+    /* TLS record: type, version, length, handshake header. */
+    TEST_EQUAL(p[0], MBEDTLS_SSL_MSG_HANDSHAKE);
+    rec_len = MBEDTLS_GET_UINT16_BE(p, 3);
+    TEST_LE_U(5 + rec_len, (size_t) (end - p));
+    p += 5;
+    TEST_EQUAL(p[0], MBEDTLS_SSL_HS_CLIENT_HELLO);
+    hs_len = MBEDTLS_GET_UINT24_BE(p, 1);
+    TEST_LE_U(4 + hs_len, rec_len);
+    p += 4;
+    end = p + hs_len;
+
+    /* legacy_version (2) + random (32) + session_id */
+    TEST_LE_U(35, (size_t) (end - p));
+    p += 34;
+    sid_len = p[0];
+    p += 1;
+    TEST_LE_U(sid_len, (size_t) (end - p));
+    p += sid_len;
+
+    /* cipher_suites */
+    TEST_LE_U(2, (size_t) (end - p));
+    cs_len = MBEDTLS_GET_UINT16_BE(p, 0);
+    p += 2;
+    TEST_LE_U(cs_len, (size_t) (end - p));
+    p += cs_len;
+
+    /* legacy_compression_methods */
+    TEST_LE_U(1, (size_t) (end - p));
+    comp_len = p[0];
+    p += 1;
+    TEST_LE_U(comp_len, (size_t) (end - p));
+    p += comp_len;
+
+    TEST_LE_U(2, (size_t) (end - p));
+    exts_len = MBEDTLS_GET_UINT16_BE(p, 0);
+    p += 2;
+    TEST_EQUAL(exts_len, (size_t) (end - p));
+    exts = p;
+    exts_end = p + exts_len;
+
+    while (exts < exts_end) {
+        unsigned int ext_type;
+        size_t ext_len;
+        TEST_LE_U(4, (size_t) (exts_end - exts));
+        ext_type = MBEDTLS_GET_UINT16_BE(exts, 0);
+        ext_len = MBEDTLS_GET_UINT16_BE(exts, 2);
+        exts += 4;
+        TEST_LE_U(ext_len, (size_t) (exts_end - exts));
+        if (ext_type == MBEDTLS_TLS_EXT_SERVERNAME) {
+            saw_server_name = 1;
+            /* ServerNameList length (2) + NameType (1) + HostName length (2) */
+            TEST_LE_U(5, ext_len);
+            TEST_EQUAL(MBEDTLS_GET_UINT16_BE(exts, 0), ext_len - 2);
+            TEST_EQUAL(exts[2], MBEDTLS_BYTE_0(MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME));
+            TEST_EQUAL(MBEDTLS_GET_UINT16_BE(exts, 3), ext_len - 5);
+            TEST_EQUAL(ext_len - 5, strlen(hostname));
+            TEST_MEMORY_COMPARE(exts + 5, ext_len - 5, hostname, strlen(hostname));
+        }
+        exts += ext_len;
+    }
+    TEST_EQUAL(exts, exts_end);
+    TEST_EQUAL(saw_server_name, expect_sni);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&server);
+    mbedtls_test_ssl_endpoint_free(&client);
+    mbedtls_test_free_handshake_options(&options);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */

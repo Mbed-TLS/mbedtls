@@ -4120,6 +4120,12 @@ void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
  *
  * \note           Maximum hostname length #MBEDTLS_SSL_MAX_HOST_NAME_LEN.
  *
+ * \note           If \p hostname is a literal IPv4 or IPv6 address, it is
+ *                 still used to verify the certificate (against iPAddress
+ *                 subjectAltName entries), but it is not placed in the
+ *                 ServerName extension. RFC 6066 section 3 does not permit
+ *                 address literals in HostName.
+ *
  * \note           If the hostname is \c NULL on a client, then the server
  *                 is not authenticated: it only needs to have a valid
  *                 certificate, not a certificate matching its name.
@@ -4141,10 +4147,11 @@ void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
 int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname);
 
 /**
- * \brief          Get the hostname that checked against the received
- *                 server certificate. It is used to set the ServerName
- *                 TLS extension, too, if that extension is enabled.
- *                 (client-side only)
+ * \brief          Get the hostname that is checked against the received
+ *                 server certificate. On a client, a DNS hostname is also
+ *                 sent in the ServerName TLS extension, if that extension
+ *                 is enabled. A literal IPv4 or IPv6 address is not sent
+ *                 in that extension (RFC 6066 section 3).
  *
  * \param ssl      SSL context
  *

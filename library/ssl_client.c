@@ -36,6 +36,15 @@ static int ssl_write_hostname_ext(mbedtls_ssl_context *ssl,
         return 0;
     }
 
+    /* RFC 6066 section 3: "Literal IPv4 and IPv6 addresses are not permitted
+     * in HostName." Keep ssl->hostname for certificate verification. */
+    {
+        uint32_t ip[4];
+        if (mbedtls_x509_crt_parse_cn_inet_pton(ssl->hostname, ip) != 0) {
+            return 0;
+        }
+    }
+
     MBEDTLS_SSL_DEBUG_MSG(3,
                           ("client hello, adding server name extension: %s",
                            ssl->hostname));

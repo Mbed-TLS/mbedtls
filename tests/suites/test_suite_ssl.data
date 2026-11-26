@@ -3941,3 +3941,18 @@ ssl_ecjpake_write_round_buffer_overflow:330:0
 
 TLS 1.2 renegotiation with pending output after buffer resize (ASan)
 resize_pending_output_asan:
+
+TLS 1.2 write certificate: chain fills output buffer to the exact byte
+ssl_write_certificate_chain_bounds:4:1:0
+
+TLS 1.2 write certificate: chain leaves 3 bytes in buffer, 2nd cert too large
+ssl_write_certificate_chain_bounds:3:1:MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL
+
+TLS 1.2 write certificate: chain leaves 2 bytes in buffer (underflow boundary)
+ssl_write_certificate_chain_bounds:2:4000:MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL
+
+TLS 1.2 write certificate: chain leaves 1 byte in buffer (underflow boundary)
+ssl_write_certificate_chain_bounds:1:4000:MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL
+
+TLS 1.2 write certificate: chain leaves 0 bytes in buffer (underflow boundary)
+ssl_write_certificate_chain_bounds:0:1:MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL

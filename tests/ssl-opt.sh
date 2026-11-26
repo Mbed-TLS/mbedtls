@@ -1079,6 +1079,10 @@ check_osrv_dtls() {
         *s_server*-stateless*)
             # Input that s_server reads before the handshake makes it start
             # the handshake without -stateless, so provide it later.
+            # provide_input waits a fixed time after the server starts, which
+            # is after the client has connected only if wait_app_start can
+            # poll with lsof. Without lsof it sleeps for $START_DELAY and the
+            # input may arrive too early.
             NEEDS_INPUT=2
             SRV_CMD="$( echo $SRV_CMD | sed s/-www// )";;
         *) NEEDS_INPUT=0;;

@@ -112,6 +112,19 @@ typedef struct mbedtls_test_ssl_log_pattern {
     size_t counter;
 } mbedtls_test_ssl_log_pattern;
 
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
+/*
+ * PSK to configure on one endpoint of a test handshake: either raw bytes,
+ * or a PSA key imported from those bytes with the given algorithm and
+ * usage, registered through mbedtls_ssl_conf_psk_opaque().
+ */
+typedef struct mbedtls_test_ssl_psk_options {
+    data_t *psk_str;
+    psa_algorithm_t psk_alg; /* PSA_ALG_NONE for a raw PSK */
+    int psk_usage;
+} mbedtls_test_ssl_psk_options;
+#endif
+
 typedef struct mbedtls_test_handshake_test_options {
     const char *cipher;
     uint16_t *group_list;
@@ -127,6 +140,17 @@ typedef struct mbedtls_test_handshake_test_options {
     int opaque_alg2;
     int opaque_usage;
     data_t *psk_str;
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
+    /* Per-endpoint PSKs. When set, they take precedence over psk_str
+     * for the corresponding endpoint. */
+    mbedtls_test_ssl_psk_options cli_psk;
+    mbedtls_test_ssl_psk_options srv_psk;
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    /* TLS 1.3 key exchange modes to allow on both endpoints; 0 leaves
+     * the default (all supported modes). */
+    int tls13_kex_mode;
+#endif
     int dtls;
     int srv_auth_mode;
     int serialize;
@@ -259,6 +283,10 @@ typedef struct mbedtls_test_ssl_endpoint {
     mbedtls_x509_crt *ca_chain;
     mbedtls_x509_crt *cert;
     mbedtls_pk_context *pkey;
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
+    /* Opaque PSK key imported for mbedtls_ssl_conf_psk_opaque(). */
+    mbedtls_svc_key_id_t psk_key;
+#endif
 } mbedtls_test_ssl_endpoint;
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */

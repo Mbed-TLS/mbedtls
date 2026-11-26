@@ -459,11 +459,19 @@ int mbedtls_ssl_tls13_evolve_secret(
  * \param ssl         The SSL context. This is used for debugging only and may
  *                    be \c NULL if MBEDTLS_DEBUG_C is disabled.
  * \param hash_alg    The hash algorithm associated to the PSK \p psk.
- * \param psk         The buffer holding the PSK for which to create a binder.
+ * \param psk         The buffer holding the PSK for which to create a binder,
+ *                    or \c NULL when \p psk_opaque is used instead. Exactly
+ *                    one of \p psk and \p psk_opaque must be set.
  * \param psk_len     The size of \p psk in bytes.
  * \param psk_type    This indicates whether the PSK \p psk is externally
  *                    provisioned (#MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL) or a
  *                    resumption PSK (#MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION).
+ * \param psk_opaque  Opaque key for the binder, used instead of \p psk when
+ *                    the latter is \c NULL. The caller passes the key
+ *                    matching \p psk_type (configured external PSK on the
+ *                    client, handshake PSK on the server), or
+ *                    #MBEDTLS_SVC_KEY_ID_INIT when \p psk is used instead.
+ *                    Exactly one of \p psk and \p psk_opaque must be set.
  * \param transcript  The handshake transcript up to the point where the
  *                    PSK binder calculation happens. This must be readable,
  *                    and its size must be equal to the digest size of
@@ -481,6 +489,7 @@ int mbedtls_ssl_tls13_create_psk_binder(mbedtls_ssl_context *ssl,
                                         const psa_algorithm_t hash_alg,
                                         unsigned char const *psk, size_t psk_len,
                                         int psk_type,
+                                        mbedtls_svc_key_id_t psk_opaque,
                                         unsigned char const *transcript,
                                         unsigned char *result);
 

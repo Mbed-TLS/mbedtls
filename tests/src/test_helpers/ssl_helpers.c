@@ -867,6 +867,13 @@ int mbedtls_test_ssl_endpoint_init_conf(
         mbedtls_ssl_conf_groups(&(ep->conf), options->group_list);
     }
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if (options->tls13_kex_mode != 0) {
+        mbedtls_ssl_conf_tls13_key_exchange_modes(&(ep->conf),
+                                                  (uint32_t) options->tls13_kex_mode);
+    }
+#endif
+
     if (MBEDTLS_SSL_IS_SERVER == endpoint_type) {
         mbedtls_ssl_conf_authmode(&(ep->conf), options->srv_auth_mode);
     } else {
@@ -946,17 +953,48 @@ int mbedtls_test_ssl_endpoint_init_conf(
     TEST_EQUAL(ret, 0);
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
-    if (options->psk_str != NULL && options->psk_str->len > 0) {
-        TEST_EQUAL(mbedtls_ssl_conf_psk(
-                       &ep->conf, options->psk_str->x,
-                       options->psk_str->len,
-                       (const unsigned char *) psk_identity,
-                       strlen(psk_identity)), 0);
-#if defined(MBEDTLS_SSL_SRV_C)
-        if (MBEDTLS_SSL_IS_SERVER == endpoint_type) {
-            mbedtls_ssl_conf_psk_cb(&ep->conf, psk_dummy_callback, NULL);
+    {
+        const mbedtls_test_ssl_psk_options *endpoint_psk =
+            (MBEDTLS_SSL_IS_CLIENT == endpoint_type) ?
+            &options->cli_psk : &options->srv_psk;
+        data_t *psk_str = endpoint_psk->psk_str;
+
+        if (psk_str == NULL) {
+            psk_str = options->psk_str;
         }
+
+        if (psk_str != NULL && psk_str->len > 0) {
+            if (endpoint_psk->psk_alg != PSA_ALG_NONE) {
+                psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+
+                /* The endpoint owns the key and destroys it in
+                 * mbedtls_test_ssl_endpoint_free(). */
+                psa_set_key_usage_flags(&key_attr, endpoint_psk->psk_usage);
+                psa_set_key_algorithm(&key_attr, endpoint_psk->psk_alg);
+                psa_set_key_type(&key_attr, PSA_KEY_TYPE_DERIVE);
+                TEST_EQUAL(psa_import_key(&key_attr, psk_str->x, psk_str->len,
+                                          &ep->psk_key), PSA_SUCCESS);
+                psa_reset_key_attributes(&key_attr);
+                TEST_EQUAL(mbedtls_ssl_conf_psk_opaque(
+                               &ep->conf, ep->psk_key,
+                               (const unsigned char *) psk_identity,
+                               strlen(psk_identity)), 0);
+            } else {
+                TEST_EQUAL(mbedtls_ssl_conf_psk(
+                               &ep->conf, psk_str->x,
+                               psk_str->len,
+                               (const unsigned char *) psk_identity,
+                               strlen(psk_identity)), 0);
+            }
+            if (endpoint_psk->psk_str == NULL) {
+                /* Legacy behaviour for options.psk_str. */
+#if defined(MBEDTLS_SSL_SRV_C)
+                if (MBEDTLS_SSL_IS_SERVER == endpoint_type) {
+                    mbedtls_ssl_conf_psk_cb(&ep->conf, psk_dummy_callback, NULL);
+                }
 #endif
+            }
+        }
     }
 #endif
 
@@ -1048,6 +1086,13 @@ void mbedtls_test_ssl_endpoint_free(
     }
     mbedtls_ssl_free(&(ep->ssl));
     mbedtls_ssl_config_free(&(ep->conf));
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
+    if (!mbedtls_svc_key_id_is_null(ep->psk_key)) {
+        psa_destroy_key(ep->psk_key);
+        ep->psk_key = MBEDTLS_SVC_KEY_ID_INIT;
+    }
+#endif
 
     mbedtls_free(ep->ciphersuites);
     ep->ciphersuites = NULL;

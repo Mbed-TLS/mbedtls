@@ -8768,6 +8768,55 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void ssl_handle_alert(int tls_version, int protected_records,
+                      int level, int description, int expected_ret)
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    mbedtls_ssl_transform transform;
+
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_config_init(&conf);
+    mbedtls_ssl_transform_init(&transform);
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf,
+                                           MBEDTLS_SSL_IS_CLIENT,
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                           MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
+
+    /* Pretend that the handshake has reached tls_version, with or without
+     * protection on incoming records. Only the transform's version matters. */
+    transform.tls_version = (mbedtls_ssl_protocol_version) tls_version;
+    ssl.tls_version = (mbedtls_ssl_protocol_version) tls_version;
+    if (protected_records) {
+        ssl.transform_in = &transform;
+    }
+
+    ssl.in_msglen = 2;
+    ssl.in_msgtype = MBEDTLS_SSL_MSG_ALERT;
+    ssl.in_msg[0] = (unsigned char) level;
+    ssl.in_msg[1] = (unsigned char) description;
+
+    TEST_EQUAL(mbedtls_ssl_handle_message_type(&ssl), expected_ret);
+    if (expected_ret == MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE) {
+        TEST_EQUAL(mbedtls_ssl_get_fatal_alert(&ssl), description);
+    } else {
+        TEST_EQUAL(mbedtls_ssl_get_fatal_alert(&ssl),
+                   MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+    }
+
+exit:
+    ssl.transform_in = NULL;
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    mbedtls_ssl_transform_free(&transform);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 void verify_result_without_handshake(void)
 {

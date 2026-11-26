@@ -4968,6 +4968,8 @@ int mbedtls_ssl_handle_message_type(mbedtls_ssl_context *ssl)
     }
 
     if (ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT) {
+        int is_fatal;
+
         if (ssl->in_msglen != 2) {
             /* Note: Standard allows for more than one 2 byte alert
                to be packed in a single message, but Mbed TLS doesn't
@@ -4980,10 +4982,28 @@ int mbedtls_ssl_handle_message_type(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_MSG(2, ("got an alert message, type: [%u:%u]",
                                   ssl->in_msg[0], ssl->in_msg[1]));
 
+        is_fatal = (ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_FATAL);
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        /*
+         * In TLS 1.3, close_notify and user_canceled are the only closure
+         * alerts. Any other alert, including an unknown one, is an error
+         * alert whatever its level (RFC 8446 section 6). Only apply this
+         * once TLS 1.3 record protection is in place: before that, the
+         * peer may turn out to be a TLS 1.2 server sending a warning.
+         */
+        if (ssl->transform_in != NULL &&
+            ssl->transform_in->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+            ssl->in_msg[1] != MBEDTLS_SSL_ALERT_MSG_CLOSE_NOTIFY &&
+            ssl->in_msg[1] != MBEDTLS_SSL_ALERT_MSG_USER_CANCELED) {
+            is_fatal = 1;
+        }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
         /*
          * Ignore non-fatal alerts, except close_notify and no_renegotiation
          */
-        if (ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_FATAL) {
+        if (is_fatal) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("is a fatal alert message (msg %d)",
                                       ssl->in_msg[1]));
             ssl->in_fatal_alert_recv = 1;

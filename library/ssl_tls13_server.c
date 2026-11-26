@@ -1548,6 +1548,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     extensions_end = p + extensions_len;
 
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello extensions", p, extensions_len);
+    const unsigned char *extensions_start = p;
     handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
     while (p < extensions_end) {
@@ -1577,6 +1578,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
 
+        const unsigned char *received_extension = p;
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p, extensions_end, 4);
         extension_type = MBEDTLS_GET_UINT16_BE(p, 0);
         extension_data_len = MBEDTLS_GET_UINT16_BE(p, 2);
@@ -1587,7 +1589,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 
         ret = mbedtls_ssl_tls13_check_received_extension(
             ssl, MBEDTLS_SSL_HS_CLIENT_HELLO, extension_type,
-            allowed_exts);
+            allowed_exts, extensions_start, received_extension);
         if (ret != 0) {
             return ret;
         }

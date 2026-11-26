@@ -580,6 +580,7 @@ int mbedtls_ssl_tls13_parse_certificate(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p, certificate_list_end, extensions_len);
 
         extensions_end = p + extensions_len;
+        const unsigned char *extensions_start = p;
         handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
         while (p < extensions_end) {
@@ -592,6 +593,7 @@ int mbedtls_ssl_tls13_parse_certificate(mbedtls_ssl_context *ssl,
              *     opaque extension_data<0..2^16-1>;
              * } Extension;
              */
+            const unsigned char *received_extension = p;
             MBEDTLS_SSL_CHK_BUF_READ_PTR(p, extensions_end, 4);
             extension_type = MBEDTLS_GET_UINT16_BE(p, 0);
             extension_data_len = MBEDTLS_GET_UINT16_BE(p, 2);
@@ -601,7 +603,7 @@ int mbedtls_ssl_tls13_parse_certificate(mbedtls_ssl_context *ssl,
 
             ret = mbedtls_ssl_tls13_check_received_extension(
                 ssl, MBEDTLS_SSL_HS_CERTIFICATE, extension_type,
-                MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CT);
+                MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CT, extensions_start, received_extension);
             if (ret != 0) {
                 return ret;
             }
@@ -1644,8 +1646,11 @@ int mbedtls_ssl_tls13_check_received_extension(
     mbedtls_ssl_context *ssl,
     int hs_msg_type,
     unsigned int received_extension_type,
-    uint32_t hs_msg_allowed_extensions_mask)
+    uint32_t hs_msg_allowed_extensions_mask,
+    const unsigned char *extensions_start,
+    const unsigned char *received_extension)
 {
+    int is_duplicate = 0;
     uint32_t extension_id = mbedtls_ssl_get_extension_id(
         received_extension_type);
     uint32_t extension_mask = mbedtls_ssl_get_extension_mask(
@@ -1656,8 +1661,23 @@ int mbedtls_ssl_tls13_check_received_extension(
 
     /* RFC 8446, section 4.2: An extension type must not appear twice
      * in the same extension block. Treat as illegal_parameter on repeat. */
-    if (extension_id != MBEDTLS_SSL_EXT_ID_UNRECOGNIZED &&
-        (ssl->handshake->received_extensions & extension_mask) != 0) {
+    if ((ssl->handshake->received_extensions & extension_mask) != 0) {
+        if (extension_id != MBEDTLS_SSL_EXT_ID_UNRECOGNIZED) {
+            is_duplicate = 1;
+        } else {
+            /* Unknown wire types share one mask bit. To confirm duplication,
+             * scan earlier extensions in this block for the same wire identifier. */
+            const unsigned char *p = extensions_start;
+            while (p < received_extension) {
+                if (MBEDTLS_GET_UINT16_BE(p, 0) == received_extension_type) {
+                    is_duplicate = 1;
+                    break;
+                }
+                p += 4 + MBEDTLS_GET_UINT16_BE(p, 2);
+            }
+        }
+    }
+    if (is_duplicate) {
         MBEDTLS_SSL_PRINT_EXT(
             3, hs_msg_type, received_extension_type, "is duplicate");
         MBEDTLS_SSL_PEND_FATAL_ALERT(

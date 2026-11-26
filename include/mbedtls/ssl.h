@@ -2813,7 +2813,7 @@ static inline void mbedtls_ssl_conf_set_user_data_n(
  * \return               The current value of the user data.
  */
 static inline void *mbedtls_ssl_conf_get_user_data_p(
-    mbedtls_ssl_config *conf)
+    const mbedtls_ssl_config *conf)
 {
     return conf->MBEDTLS_PRIVATE(user_data).p;
 }
@@ -2829,7 +2829,7 @@ static inline void *mbedtls_ssl_conf_get_user_data_p(
  * \return               The current value of the user data.
  */
 static inline uintptr_t mbedtls_ssl_conf_get_user_data_n(
-    mbedtls_ssl_config *conf)
+    const mbedtls_ssl_config *conf)
 {
     return conf->MBEDTLS_PRIVATE(user_data).n;
 }
@@ -2876,7 +2876,7 @@ static inline void mbedtls_ssl_set_user_data_n(
  * \return               The current value of the user data.
  */
 static inline void *mbedtls_ssl_get_user_data_p(
-    mbedtls_ssl_context *ssl)
+    const mbedtls_ssl_context *ssl)
 {
     return ssl->MBEDTLS_PRIVATE(user_data).p;
 }
@@ -2892,7 +2892,7 @@ static inline void *mbedtls_ssl_get_user_data_p(
  * \return               The current value of the user data.
  */
 static inline uintptr_t mbedtls_ssl_get_user_data_n(
-    mbedtls_ssl_context *ssl)
+   const mbedtls_ssl_context *ssl)
 {
     return ssl->MBEDTLS_PRIVATE(user_data).n;
 }

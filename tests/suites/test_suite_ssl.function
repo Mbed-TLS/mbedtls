@@ -3738,6 +3738,23 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void ssl_session_load_rejects_null_buffer()
+{
+    mbedtls_ssl_session session;
+
+    mbedtls_ssl_session_init(&session);
+
+    TEST_EQUAL(mbedtls_ssl_session_load(&session, NULL, 0),
+               MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+    TEST_EQUAL(mbedtls_ssl_session_load(&session, NULL, 16),
+               MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+
+exit:
+    mbedtls_ssl_session_free(&session);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_CONTEXT_SERIALIZATION:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:TEST_GCM_OR_CHACHAPOLY_ENABLED */
 void ssl_context_load_rejects_oob_length(int field)
 {

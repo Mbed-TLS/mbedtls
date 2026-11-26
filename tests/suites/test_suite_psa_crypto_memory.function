@@ -20,6 +20,21 @@ static void fill_buffer_pattern(uint8_t *buffer, size_t len)
         buffer[i] = (uint8_t) (i % 256);
     }
 }
+#if defined(MBEDTLS_PLATFORM_MEMORY) && \
+    !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS) && \
+    !defined(MBEDTLS_PLATFORM_CALLOC_MACRO) && \
+    !defined(MBEDTLS_PLATFORM_FREE_MACRO)
+/* Make the n-th following allocation fail (n >= 1), then behave normally. */
+static int failing_calloc_countdown = 0;
+
+static void *failing_calloc(size_t n, size_t size)
+{
+    if (failing_calloc_countdown > 0 && --failing_calloc_countdown == 0) {
+        return NULL;
+    }
+    return MBEDTLS_PLATFORM_STD_CALLOC(n, size);
+}
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -257,5 +272,60 @@ void local_output_round_trip()
 
 exit:
     mbedtls_free(buffer_copy_for_comparison);
+}
+/* END_CASE */
+
+/* Check that psa_aead_finish() fails cleanly when the local copy of one of
+ * its output buffers cannot be allocated. The ciphertext copy is allocated
+ * first when ciphertext_size > 0, then the tag copy. */
+/* BEGIN_CASE depends_on:MBEDTLS_PLATFORM_MEMORY:!MBEDTLS_PLATFORM_NO_STD_FUNCTIONS:!MBEDTLS_PLATFORM_CALLOC_MACRO:!MBEDTLS_PLATFORM_FREE_MACRO:!MBEDTLS_MEMORY_BUFFER_ALLOC_C:!MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_GCM */
+void aead_finish_output_alloc_failure(int ciphertext_size)
+{
+    const uint8_t key_data[16] = { 0 };
+    const uint8_t nonce[12] = { 0 };
+    const uint8_t plaintext[16] = { 0 };
+    uint8_t ciphertext[16];
+    uint8_t finish_output[16];
+    uint8_t tag[16];
+    size_t length = 0;
+    size_t tag_length = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_aead_operation_t operation = PSA_AEAD_OPERATION_INIT;
+
+    TEST_LE_U(ciphertext_size, sizeof(finish_output));
+
+    PSA_INIT();
+
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT);
+    psa_set_key_algorithm(&attributes, PSA_ALG_GCM);
+    PSA_ASSERT(psa_import_key(&attributes, key_data, sizeof(key_data), &key));
+
+    PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, PSA_ALG_GCM));
+    PSA_ASSERT(psa_aead_set_nonce(&operation, nonce, sizeof(nonce)));
+    PSA_ASSERT(psa_aead_update(&operation, plaintext, sizeof(plaintext),
+                               ciphertext, sizeof(ciphertext), &length));
+
+    /* The first allocation in psa_aead_finish() is the local copy of the
+     * ciphertext output if ciphertext_size > 0, otherwise the copy of the
+     * tag. Make it fail. */
+    failing_calloc_countdown = 1;
+    TEST_EQUAL(mbedtls_platform_set_calloc_free(failing_calloc,
+                                                MBEDTLS_PLATFORM_STD_FREE), 0);
+    TEST_EQUAL(psa_aead_finish(&operation,
+                               finish_output, (size_t) ciphertext_size, &length,
+                               tag, sizeof(tag), &tag_length),
+               PSA_ERROR_INSUFFICIENT_MEMORY);
+    /* Check that the allocation that failed was the one in psa_aead_finish(). */
+    TEST_EQUAL(failing_calloc_countdown, 0);
+
+exit:
+    mbedtls_platform_set_calloc_free(MBEDTLS_PLATFORM_STD_CALLOC,
+                                     MBEDTLS_PLATFORM_STD_FREE);
+    failing_calloc_countdown = 0;
+    psa_aead_abort(&operation);
+    psa_destroy_key(key);
+    PSA_DONE();
 }
 /* END_CASE */

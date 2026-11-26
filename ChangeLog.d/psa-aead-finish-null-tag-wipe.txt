@@ -1,0 +1,6 @@
+Bugfix
+   * Fix a NULL pointer write in psa_aead_finish() when allocating the local
+     copy of the ciphertext or tag output buffer fails. This could only happen
+     when MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS is disabled (the default).
+     Reported by ljagiello. Fix contributed by Aaron M. Ucko in
+     Mbed-TLS/mbedtls#9839.

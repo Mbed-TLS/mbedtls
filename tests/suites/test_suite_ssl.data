@@ -3941,3 +3941,24 @@ ssl_ecjpake_write_round_buffer_overflow:330:0
 
 TLS 1.2 renegotiation with pending output after buffer resize (ASan)
 resize_pending_output_asan:
+
+TLS client SNI: DNS hostname is sent
+ssl_client_omits_ip_literal_sni:"localhost":1
+
+TLS client SNI: IPv4 literal is omitted
+ssl_client_omits_ip_literal_sni:"127.0.0.1":0
+
+TLS client SNI: IPv6 literal is omitted
+ssl_client_omits_ip_literal_sni:"\:\:1":0
+
+TLS client SNI: documentation IPv6 literal is omitted
+ssl_client_omits_ip_literal_sni:"2001\:db8\:\:1":0
+
+TLS client SNI: IPv4-mapped IPv6 literal is omitted
+ssl_client_omits_ip_literal_sni:"\:\:ffff\:127.0.0.1":0
+
+TLS client SNI: hostname that only looks like an IPv4 address is sent
+ssl_client_omits_ip_literal_sni:"127.0.0.1.example.com":1
+
+TLS client SNI: incomplete IPv4 address is sent
+ssl_client_omits_ip_literal_sni:"127.0.0":1

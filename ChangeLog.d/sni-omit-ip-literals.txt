@@ -1,0 +1,6 @@
+Bugfix
+   * On a TLS client, do not put a literal IPv4 or IPv6 address into the
+     ClientHello server_name extension. RFC 6066 section 3 forbids address
+     literals in HostName. mbedtls_ssl_set_hostname() still uses the address
+     to verify the server certificate against iPAddress SANs. Reported by
+     arthurtumanyan in #11099.

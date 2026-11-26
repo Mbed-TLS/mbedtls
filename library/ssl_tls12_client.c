@@ -1141,7 +1141,6 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     size_t ext_len;
     mbedtls_ssl_protocol_version server_version;
     unsigned char *buf, *ext;
-    unsigned char comp;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renegotiation_info_seen = 0;
 #endif
@@ -1294,11 +1293,10 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     /*
      * Read and check compression
      */
-    comp = buf[37 + n];
-
-    if (comp != MBEDTLS_SSL_COMPRESS_NULL) {
+    if (buf[37 + n] != MBEDTLS_SSL_COMPRESS_NULL) {
         MBEDTLS_SSL_DEBUG_MSG(1,
-                              ("server hello, bad compression: %d", comp));
+                              ("server hello, bad compression: %d",
+                               buf[37 + n]));
         mbedtls_ssl_send_alert_message(
             ssl,
             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -1395,15 +1393,6 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
         ssl->handshake->ecrs_enabled = 1;
     }
 #endif
-
-    if (comp != MBEDTLS_SSL_COMPRESS_NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad server hello message"));
-        mbedtls_ssl_send_alert_message(
-            ssl,
-            MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER);
-        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-    }
 
     ext = buf + 40 + n;
 

@@ -3941,3 +3941,6 @@ ssl_ecjpake_write_round_buffer_overflow:330:0
 
 TLS 1.2 renegotiation with pending output after buffer resize (ASan)
 resize_pending_output_asan:
+
+TLS 1.2 client rejects a ServerHello with a non-zero compression method
+ssl_tls12_server_hello_rejects_nonzero_compression:

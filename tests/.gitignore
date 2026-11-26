@@ -14,8 +14,6 @@
 
 /src/libmbed*
 
-/libtestdriver1/*
-
 ###START_GENERATED_FILES###
 # Generated source files
 /opt-testcases/handshake-generated.sh

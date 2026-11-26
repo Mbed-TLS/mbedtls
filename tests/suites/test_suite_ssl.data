@@ -3267,6 +3267,9 @@ TLS 1.2: Session serialization rejects out-of-bounds session ID length (server)
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SRV_C
 ssl_session_load_rejects_bad_serialized_data:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_IS_SERVER:TEST_TLS12_SESSION_LOAD_OOB_ID_LEN
 
+Session load rejects a NULL buffer
+ssl_session_load_rejects_null_buffer:
+
 Test configuration of EC groups through mbedtls_ssl_conf_groups()
 conf_group:
 

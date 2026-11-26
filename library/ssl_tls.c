@@ -4135,14 +4135,19 @@ static int ssl_session_load(mbedtls_ssl_session *session,
                             const unsigned char *buf,
                             size_t len)
 {
-    const unsigned char *p = buf;
-    const unsigned char * const end = buf + len;
+    const unsigned char *p;
+    const unsigned char *end;
     size_t remaining_len;
-
 
     if (session == NULL) {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
+    if (buf == NULL) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    p = buf;
+    end = buf + len;
 
     if (!omit_header) {
         /*

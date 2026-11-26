@@ -1,0 +1,5 @@
+Bugfix
+   * Fix undefined behavior in mbedtls_ssl_session_load() when it is called
+     with a NULL buffer, including a NULL buffer and length 0. The function
+     now returns MBEDTLS_ERR_SSL_BAD_INPUT_DATA without performing pointer
+     arithmetic on a null pointer.

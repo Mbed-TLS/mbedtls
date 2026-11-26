@@ -22,6 +22,21 @@ SALT16 = bytes((i * 7 + 11) & 0xFF for i in range(16))
 DATA = bytes((i * 31 + 9) & 0xFF for i in range(64))
 IV16 = bytes((i * 23 + 1) & 0xFF for i in range(16))
 
+# DATA encrypted with PWD under the PBES1/PBES2 parameters built in main()
+# (deterministic: the key and IV come from the password and parameters).
+CT_PBES1_AES256 = bytes.fromhex(
+    "5e7b748f7cad687546af3e2a5b0986cbe14bbc88baa28c0405f402e8f0aeda83"
+    "c0f9db01c8b667b55e88cb2071e38552fc76937e71a0fed0002b54bab8bc08ad"
+    "b873528d2a1833bbe9a44240375d333a")
+CT_PBES1_3DES = bytes.fromhex(
+    "205d7b9a9f679414944b1c6f89f0ca5cf951c77c45462b2d6a008d4bcfb37a67"
+    "f1b19b2a9b32ad49f7b658244c39f606d4361e704829663b669d199c1a539e21"
+    "d4763be64cbea0e5")
+CT_PBES2_SHA256_AES256 = bytes.fromhex(
+    "8e9a42f9ed2487d9087e6d398daac0839f0cf19e13e3f8fac2ebc9fe55c80a2f"
+    "2e9d5b2d51da3781dfdf86be3c9c6e639902df30221965d4f6e37b3374f084ef"
+    "aea437a61498b597f4a4064b0c252f8d")
+
 # ASN.1 OBJECT IDENTIFIER TLVs (tag 0x06 + length + value)
 OID_PBKDF2 = bytes.fromhex("06092a864886f70d01050c")       # 1.2.840.113549.1.5.12
 OID_AES128CBC = bytes.fromhex("0609608648016503040102")    # 2.16.840.1.101.3.4.1.2
@@ -88,8 +103,14 @@ def main():
     # PBES1 (PKCS#12 PBE): SEQUENCE contents { salt, iterations }
     pbes1 = octet(SALT8) + integer(1000)
     seeds["pbes1_aes128_enc"] = frame(1, 0, 1, 15, PWD, b"", pbes1, DATA)
-    seeds["pbes1_aes256_dec"] = frame(2, 1, 0, 15, PWD, b"", pbes1, DATA)
-    seeds["pbes1_3des_dec"] = frame(2, 4, 0, 15, PWD, b"", pbes1, DATA)
+    # Decrypt seeds carry real ciphertext (DATA encrypted with the same
+    # password and params) so the padding check passes and decryption
+    # succeeds. Op 1 decrypts when mode bit 0 is clear; op 2 inverts it.
+    # md byte 1 = AES-256-CBC + SHA-512, md byte 2 = 3DES-CBC + SHA-384.
+    seeds["pbes1_aes256_dec"] = frame(2, 1, 1, 15, PWD, b"", pbes1,
+                                      CT_PBES1_AES256)
+    seeds["pbes1_3des_dec"] = frame(1, 2, 0, 15, PWD, b"", pbes1,
+                                    CT_PBES1_3DES)
     seeds["pbes1_des_enc"] = frame(1, 4, 1, 15, PWD, b"", pbes1, DATA)
 
     # PBES2: outer SEQUENCE contents = algid(PBKDF2) || algid(aes-cbc, IV)
@@ -110,8 +131,9 @@ def main():
                               algid(OID_AES128CBC, octet(IV16)))
     seeds["pbes2_sha1_aes128_enc"] = frame(3, 0, 1, 15, PWD, b"",
                                            pbes2_sha1_aes128, DATA)
-    seeds["pbes2_sha256_aes256_dec"] = frame(4, 0, 0, 15, PWD, b"",
-                                             pbes2_sha256_aes256, DATA)
+    seeds["pbes2_sha256_aes256_dec"] = frame(4, 0, 1, 15, PWD, b"",
+                                             pbes2_sha256_aes256,
+                                             CT_PBES2_SHA256_AES256)
     seeds["pbes2_sha256_aes256_enc"] = frame(3, 0, 1, 15, PWD, b"",
                                              pbes2_sha256_aes256, DATA)
     seeds["pbes2_hmac_sha1_aes128_enc"] = frame(3, 0, 1, 15, PWD, b"",
@@ -123,8 +145,10 @@ def main():
     seeds["pbkdf2_129_md5"] = frame(5, 5, 0, 8, PWD, SALT8, b"", DATA)
 
     # corrupt-params path (flip a byte inside the SEQUENCE contents)
+    # (corrupt the OCTET STRING tag; a byte inside the salt would still
+    # parse and the call would succeed)
     bad = bytearray(pbes1)
-    bad[len(bad) // 2] ^= 0xFF
+    bad[0] ^= 0xFF
     seeds["pbes1_corrupt_params"] = frame(2, 4, 0, 15, PWD, b"", bytes(bad),
                                           DATA)
 

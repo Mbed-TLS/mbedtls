@@ -5607,7 +5607,7 @@ void tls13_check_received_extension_duplicate()
     ret = mbedtls_ssl_tls13_check_received_extension(
         &ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
         MBEDTLS_TLS_EXT_SERVERNAME,
-        MBEDTLS_SSL_EXT_MASK(SERVERNAME));
+        MBEDTLS_SSL_EXT_MASK(SERVERNAME), NULL, NULL);
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
 
 exit:
@@ -5619,6 +5619,44 @@ exit:
 }
 /* END_CASE */
 
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
+void tls13_check_unknown_extension_duplicate(data_t *extensions,
+                                             int expected_result)
+{
+    mbedtls_ssl_context ssl;
+    const unsigned char *p = extensions->x;
+    const unsigned char *end = p + extensions->len;
+    int ret = 0;
+
+    mbedtls_ssl_init(&ssl);
+    ssl.handshake = mbedtls_calloc(1, sizeof(*ssl.handshake));
+    TEST_ASSERT(ssl.handshake != NULL);
+
+    while (p < end) {
+        TEST_LE_U(4, (size_t) (end - p));
+        size_t extension_len = 4 + MBEDTLS_GET_UINT16_BE(p, 2);
+        TEST_LE_U(extension_len, (size_t) (end - p));
+        ret = mbedtls_ssl_tls13_check_received_extension(
+            &ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
+            MBEDTLS_GET_UINT16_BE(p, 0),
+            MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH, extensions->x, p);
+        if (ret != 0) {
+            break;
+        }
+        p += extension_len;
+    }
+    TEST_EQUAL(ret, expected_result);
+    if (ret != 0) {
+        TEST_EQUAL(ssl.alert_type, MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER);
+    }
+
+exit:
+    mbedtls_free(ssl.handshake);
+    ssl.handshake = NULL;
+    mbedtls_ssl_free(&ssl);
+}
+/* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:PSA_WANT_ECC_SECP_R1_384 */
 void tls13_rejects_extension_duplicate(int endpoint)

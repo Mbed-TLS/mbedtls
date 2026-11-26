@@ -4958,6 +4958,22 @@ int mbedtls_ssl_handle_message_type(mbedtls_ssl_context *ssl)
         }
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SRV_C)
+        /* RFC 8446 section 5: a ChangeCipherSpec received before the first
+         * ClientHello is an unexpected record type. The one a client sends
+         * before its second ClientHello, after a HelloRetryRequest, is
+         * dropped below. */
+        if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+            ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+            ssl->state == MBEDTLS_SSL_CLIENT_HELLO &&
+            !ssl->handshake->hello_retry_request_flag) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("ChangeCipherSpec before the ClientHello"));
+            mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                           MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE);
+            return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+        }
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
             MBEDTLS_SSL_DEBUG_MSG(2,

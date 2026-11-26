@@ -544,6 +544,15 @@ static int ssl_tls13_parse_cookie_ext(mbedtls_ssl_context *ssl,
     p += 2;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, cookie_len);
+
+    /* The cookie is opaque cookie<1..2^16-1> and fills the extension. */
+    if (cookie_len == 0 || p + cookie_len != end) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("cookie extension length incorrect"));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+
     MBEDTLS_SSL_DEBUG_BUF(3, "cookie extension", p, cookie_len);
 
     mbedtls_free(handshake->cookie);

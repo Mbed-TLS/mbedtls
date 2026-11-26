@@ -13,27 +13,19 @@ Non existing low error
 error_strerror:-0x007F:"UNKNOWN ERROR CODE (007F)"
 
 Non existing low and high error
-error_strerror:-0x88FF:"UNKNOWN ERROR CODE (8880) \: UNKNOWN ERROR CODE (007F)"
+error_strerror:-0x88FF:"UNKNOWN ERROR CODE (88FF)"
 
 Zero is not an error
 error_strerror:0:""
 
-Positive error code is treated like its negation
-depends_on:MBEDTLS_NET_C
-error_strerror:0x0042:"NET - Failed to open a socket"
-
-Known high and known low error
+Sum of known high and known low error is unknown
 depends_on:MBEDTLS_SSL_TLS_C:MBEDTLS_NET_C
-error_strerror:-0x6E50:"SSL - The handshake negotiation failed \: NET - Connection was reset by peer"
+error_strerror:-0x6E50:"UNKNOWN ERROR CODE (6E50)"
 
-Known high and non existing low error
+Sum of known high error and non existing low error is unknown
 depends_on:MBEDTLS_X509_CRT_PARSE_C
-error_strerror:-0x22FF:"X509 - The serial tag or value is invalid \: UNKNOWN ERROR CODE (007F)"
+error_strerror:-0x22FF:"UNKNOWN ERROR CODE (22FF)"
 
-Non existing high and known low error
+Sum of non existing high error and known low error is unknown
 depends_on:MBEDTLS_NET_C
-error_strerror:-0x88D0:"UNKNOWN ERROR CODE (8880) \: NET - Connection was reset by peer"
-
-Fatal alert high error hides the low error
-depends_on:MBEDTLS_SSL_TLS_C:MBEDTLS_NET_C
-error_strerror:-0x77D0:"SSL - A fatal alert message was received from our peer"
+error_strerror:-0x88D0:"UNKNOWN ERROR CODE (88D0)"

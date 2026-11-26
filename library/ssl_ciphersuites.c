@@ -781,8 +781,8 @@ const int *mbedtls_ssl_list_ciphersuites(void)
     return ciphersuite_preference;
 }
 #else
-#define MAX_CIPHERSUITES    sizeof(ciphersuite_definitions) /         \
-    sizeof(ciphersuite_definitions[0])
+#define MAX_CIPHERSUITES    (sizeof(ciphersuite_definitions) /        \
+                             sizeof(ciphersuite_definitions[0]))
 static int supported_ciphersuites[MAX_CIPHERSUITES];
 static int supported_init = 0;
 

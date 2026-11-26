@@ -872,6 +872,37 @@ static int x509_get_certificate_policies(unsigned char **p,
 }
 
 /*
+ * Check whether an extension with the given OID occurs among the extensions
+ * from p to end, which have already been parsed successfully.
+ *
+ * Calling this for each extension without a parser costs time quadratic in
+ * the number of extensions, which is bounded by the size of the certificate.
+ */
+static int x509_crt_ext_oid_seen(unsigned char *p, const unsigned char *end,
+                                 const mbedtls_x509_buf *oid)
+{
+    size_t len;
+    unsigned char *end_ext_data;
+
+    while (p < end) {
+        if (mbedtls_asn1_get_tag(&p, end, &len,
+                                 MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE) != 0) {
+            return 0;
+        }
+        end_ext_data = p + len;
+        if (mbedtls_asn1_get_tag(&p, end_ext_data, &len, MBEDTLS_ASN1_OID) != 0) {
+            return 0;
+        }
+        if (len == oid->len && memcmp(p, oid->p, len) == 0) {
+            return 1;
+        }
+        p = end_ext_data;
+    }
+
+    return 0;
+}
+
+/*
  * X.509 v3 extensions
  *
  */
@@ -882,6 +913,7 @@ static int x509_get_crt_ext(unsigned char **p,
                             void *p_ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *first_ext, *start_ext_data;
     size_t len;
     unsigned char *end_ext_data, *start_ext_octet, *end_ext_octet;
 
@@ -893,6 +925,7 @@ static int x509_get_crt_ext(unsigned char **p,
         return ret;
     }
 
+    first_ext = *p;
     end = crt->v3_ext.p + crt->v3_ext.len;
     while (*p < end) {
         /*
@@ -904,6 +937,8 @@ static int x509_get_crt_ext(unsigned char **p,
         mbedtls_x509_buf extn_oid = { 0, 0, NULL };
         int is_critical = 0; /* DEFAULT FALSE */
         int ext_type = 0;
+
+        start_ext_data = *p;
 
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
@@ -948,6 +983,12 @@ static int x509_get_crt_ext(unsigned char **p,
         ret = mbedtls_x509_oid_get_x509_ext_type(&extn_oid, &ext_type);
 
         if (ret != 0) {
+            /* Forbid repeated extensions without a parser here too: they are
+             * not recorded in ext_types, so look among the previous ones */
+            if (x509_crt_ext_oid_seen(first_ext, start_ext_data, &extn_oid)) {
+                return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+            }
+
             /* Give the callback (if any) a chance to handle the extension */
             if (cb != NULL) {
                 ret = cb(p_ctx, crt, &extn_oid, is_critical, *p, end_ext_octet);

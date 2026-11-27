@@ -2055,6 +2055,9 @@ static inline int mbedtls_ssl_tls13_is_some_psk_supported(mbedtls_ssl_context *s
 
 /*
  * Helper functions for extensions checking.
+ * extensions_start points to the start of the current extension block.
+ * received_extension points to the current extension's header.
+ * All preceding extensions in this block are duplicate-checked.
  */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -2062,7 +2065,9 @@ int mbedtls_ssl_tls13_check_received_extension(
     mbedtls_ssl_context *ssl,
     int hs_msg_type,
     unsigned int received_extension_type,
-    uint32_t hs_msg_allowed_extensions_mask);
+    uint32_t hs_msg_allowed_extensions_mask,
+    const unsigned char *extensions_start,
+    const unsigned char *received_extension);
 
 static inline void mbedtls_ssl_tls13_set_hs_sent_ext_mask(
     mbedtls_ssl_context *ssl, unsigned int extension_type)

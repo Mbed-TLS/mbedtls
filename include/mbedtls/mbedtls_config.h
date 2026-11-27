@@ -186,6 +186,9 @@
  * Warning: Only do so when you know what you are doing. This allows for
  * channels without any encryption. All data are transmitted in clear.
  *
+ * \note This option only applies to TLS 1.2 and DTLS 1.2. Mbed TLS does not
+ *       support any TLS 1.3 ciphersuite without encryption.
+ *
  * Uncomment this macro to enable the NULL ciphersuites
  */
 //#define MBEDTLS_SSL_NULL_CIPHERSUITES
@@ -208,7 +211,7 @@
 /**
  * \def MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
  *
- * Enable the ECDHE-ECDSA based ciphersuite modes in SSL / TLS.
+ * Enable the ECDHE-ECDSA based ciphersuite modes in TLS 1.2 and DTLS 1.2.
  *
  * Requires: PSA_WANT_ALG_ECDH
  *           PSA_WANT_ALG_ECDSA
@@ -226,13 +229,17 @@
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256
+ *
+ * \note This option only applies to TLS 1.2 and DTLS 1.2. It has no effect on
+ *       TLS 1.3 handshakes: the key exchange modes available in TLS 1.3 are
+ *       configured with the MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_xxx options.
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
  *
- * Enable the ECDHE-PSK based ciphersuite modes in SSL / TLS.
+ * Enable the ECDHE-PSK based ciphersuite modes in TLS 1.2 and DTLS 1.2.
  *
  * Requires: PSA_WANT_ALG_ECDH
  *
@@ -244,13 +251,17 @@
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
+ *
+ * \note This option only applies to TLS 1.2 and DTLS 1.2. It has no effect on
+ *       TLS 1.3 handshakes: the key exchange modes available in TLS 1.3 are
+ *       configured with the MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_xxx options.
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
  *
- * Enable the ECDHE-RSA based ciphersuite modes in SSL / TLS.
+ * Enable the ECDHE-RSA based ciphersuite modes in TLS 1.2 and DTLS 1.2.
  *
  * Requires: PSA_WANT_ALG_ECDH
  *           PSA_WANT_ALG_RSA_PKCS1V15_SIGN
@@ -268,13 +279,17 @@
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *
+ * \note This option only applies to TLS 1.2 and DTLS 1.2. It has no effect on
+ *       TLS 1.3 handshakes: the key exchange modes available in TLS 1.3 are
+ *       configured with the MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_xxx options.
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
  *
- * Enable the ECJPAKE based ciphersuite modes in SSL / TLS.
+ * Enable the ECJPAKE based ciphersuite modes in TLS 1.2 and DTLS 1.2.
  *
  * \warning This is currently experimental. EC J-PAKE support is based on the
  * Thread v1.0.0 specification; incompatible changes to the specification
@@ -287,13 +302,17 @@
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
  *      MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8
+ *
+ * \note This option only applies to TLS 1.2 and DTLS 1.2. It has no effect on
+ *       TLS 1.3 handshakes: the key exchange modes available in TLS 1.3 are
+ *       configured with the MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_xxx options.
  */
 //#define MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
  *
- * Enable the PSK based ciphersuite modes in SSL / TLS.
+ * Enable the PSK based ciphersuite modes in TLS 1.2 and DTLS 1.2.
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -307,6 +326,10 @@
  *      MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256
+ *
+ * \note This option only applies to TLS 1.2 and DTLS 1.2. It has no effect on
+ *       TLS 1.3 handshakes: the key exchange modes available in TLS 1.3 are
+ *       configured with the MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_xxx options.
  */
 #define MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 
@@ -340,6 +363,10 @@
  * you to configure an SSL connection to call an external cryptographic
  * module to perform private key operations instead of performing the
  * operation inside the library.
+ *
+ * \note The asynchronous callbacks are currently only used by servers
+ *       during TLS 1.2 and DTLS 1.2 handshakes. TLS 1.3 handshakes always
+ *       use the private key object directly.
  *
  * Requires: MBEDTLS_X509_CRT_PARSE_C
  */
@@ -395,6 +422,10 @@
  * Enabling these APIs makes some SSL structures larger, as 64 extra bytes are
  * saved after the handshake to allow for more efficient serialization, so if
  * you don't need this feature you'll save RAM by disabling it.
+ *
+ * \note Context serialization is currently only supported for DTLS 1.2
+ *       connections that use an AEAD ciphersuite. See the documentation of
+ *       mbedtls_ssl_context_save() for the full list of restrictions.
  *
  * Requires: PSA_WANT_ALG_GCM or PSA_WANT_ALG_CCM or PSA_WANT_ALG_CHACHA20_POLY1305
  *

@@ -89,6 +89,11 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # We don't test with HMAC disabled.
             # https://github.com/Mbed-TLS/mbedtls/issues/9591
             'Config: !PSA_WANT_KEY_TYPE_HMAC',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: !PSA_WANT_KEY_TYPE_ML_DSA_KEY_PAIR_EXPORT',
+            'Config: !PSA_WANT_KEY_TYPE_ML_DSA_KEY_PAIR_IMPORT',
             # The PASSWORD key type is always enabled.
             'Config: !PSA_WANT_KEY_TYPE_PASSWORD',
             # The PASSWORD_HASH key type is always enabled.

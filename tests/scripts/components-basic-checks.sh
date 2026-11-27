@@ -100,6 +100,10 @@ component_check_test_dependencies () {
     echo "!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH" >> $expected
     # No PSA equivalent - used to skip decryption tests in PSA-ECB, CBC/XTS/NIST_KW/DES
     echo "!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT" >> $expected
+    # No PSA equivalent - test infrastructure, not a crypto feature. Used in
+    # test_suite_psa_crypto_memory by tests that install their own calloc,
+    # which would conflict with the buffer allocator set up by the test runner.
+    echo "!MBEDTLS_MEMORY_BUFFER_ALLOC_C" >> $expected
     # MBEDTLS_ASN1_WRITE_C is used by import_rsa_made_up() in test_suite_psa_crypto
     # in order to build a fake RSA key of the wanted size based on
     # PSA_VENDOR_RSA_MAX_KEY_BITS. The legacy module is only used by

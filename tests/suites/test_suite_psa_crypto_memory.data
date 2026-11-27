@@ -60,3 +60,9 @@ local_output_free:200:1:PSA_ERROR_CORRUPTION_DETECTED
 
 PSA crypto local output round-trip
 local_output_round_trip
+
+PSA AEAD finish: ciphertext copy allocation fails
+aead_finish_output_alloc_failure:16
+
+PSA AEAD finish: tag copy allocation fails
+aead_finish_output_alloc_failure:0
